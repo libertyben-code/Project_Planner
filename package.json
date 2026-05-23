@@ -7,6 +7,6 @@
     "build": "echo 'Tauri build: install Rust + MSVC first, then run: npx @tauri-apps/cli build'"
   },
   "devDependencies": {
-    "serve": "^14.2.3"
+    "serve": "^14.2.6"
   }
 }
