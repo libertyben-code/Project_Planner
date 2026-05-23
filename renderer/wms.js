@@ -335,6 +335,7 @@ function generateWeeks() {
   while (c <= end) { w.push(new Date(c)); c.setDate(c.getDate() + 7); } return w;
 }
 function weekLabel(d) { return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0'); }
+function fmtDateShort(d) { return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}); }
 function isInWeek(s, e, w) { if (!s || !e) return false; const sd = new Date(s), ed = new Date(e), ws = new Date(w), we = new Date(w); ed.setHours(23,59,59); we.setDate(we.getDate()+6); we.setHours(23,59,59); return sd <= we && ed >= ws; }
 function isToday(w) { const ws = new Date(w), we = new Date(w); we.setDate(we.getDate()+6); we.setHours(23,59,59); return TODAY >= ws && TODAY <= we; }
 function monthGroups(weeks) { const g = []; let c = null; weeks.forEach((w,i) => { const m = w.getMonth(); if (!c || c.month !== m) { c = {month:m,label:MONTHS_FR[m],start:i,span:1}; g.push(c); } else c.span++; }); return g; }
@@ -404,7 +405,10 @@ function renderGantt() {
     const phaseTasks = tasks.filter(t => t.phaseId === phase.id);
     const rp = table.insertRow(); rp.className = 'tr-phase';
     const tdPh = document.createElement('td'); tdPh.colSpan = fixedCount; tdPh.style.background = phase.color;
-    tdPh.innerHTML = `<span style="cursor:pointer" title="Modifier la phase" onclick="openEditPhase('${phase.id}')">${phase.name}</span>
+    const phStarts = phaseTasks.map(t => t.start).filter(Boolean).map(d => new Date(d).getTime());
+    const phEnds   = phaseTasks.map(t => t.end).filter(Boolean).map(d => new Date(d).getTime());
+    const phDurStr = phStarts.length && phEnds.length ? ` <span style="opacity:.75;font-size:10px;font-weight:400">(${Math.round((Math.max(...phEnds) - Math.min(...phStarts)) / 86400000) + 1}j)</span>` : '';
+    tdPh.innerHTML = `<span style="cursor:pointer" title="Modifier la phase" onclick="openEditPhase('${phase.id}')">${phase.name}${phDurStr}</span>
       <span style="float:right;display:flex;gap:6px;align-items:center">
         <button onclick="openAddTaskModal('${phase.id}')" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;font-family:inherit">+ Tâche</button>
       </span>`;
@@ -427,11 +431,11 @@ function renderGantt() {
         const td = document.createElement('td'); td.className = cls;
 
         if (lbl === 'STATUT') {
-          td.className += ' status-cell'; td.innerHTML = statusBadgeHTML(task.status);
-          td.querySelector('.badge').addEventListener('click', e => { e.stopPropagation(); showDropdown(td.querySelector('.badge'), STATUS_OPTS, val => { updateTask(task.id,'status',val); renderGantt(); renderDashboard(); }); });
+          td.className += ' status-cell'; td.innerHTML = statusBadgeHTML(task.status); td.style.cursor = 'pointer';
+          td.addEventListener('click', e => { e.stopPropagation(); showDropdown(td.querySelector('.badge'), STATUS_OPTS, val => { updateTask(task.id,'status',val); renderGantt(); renderDashboard(); }); });
         } else if (lbl === 'PRIORITÉ') {
-          td.style.padding = '2px 6px'; td.innerHTML = prioHTML(task.priority);
-          td.querySelector('span').addEventListener('click', e => { e.stopPropagation(); showDropdown(td.querySelector('span'), PRIO_OPTS, val => { updateTask(task.id,'priority',val); renderGantt(); }); });
+          td.style.padding = '2px 6px'; td.innerHTML = prioHTML(task.priority); td.style.cursor = 'pointer';
+          td.addEventListener('click', e => { e.stopPropagation(); showDropdown(td.querySelector('span'), PRIO_OPTS, val => { updateTask(task.id,'priority',val); renderGantt(); }); });
         } else if (lbl === 'INTITULÉ') {
           td.contentEditable = true; td.textContent = formatTemplate(task.name); td.style.padding = '2px 6px'; td.style.fontWeight = task.isUnavail ? '400' : '500';
           if (done) { td.style.textDecoration = 'line-through'; td.style.color = 'var(--text-muted)'; }
@@ -471,6 +475,8 @@ function renderGantt() {
           const bar = document.createElement('span'); bar.className = 'gantt-bar'; bar.style.background = phColor;
           if (done) bar.classList.add('gantt-bar-done');
           td.appendChild(bar);
+          const wEnd = new Date(w); wEnd.setDate(wEnd.getDate() + 6);
+          td.title = `${fmtDateShort(w)} – ${fmtDateShort(wEnd)}`;
         }
         rt.appendChild(td);
       });

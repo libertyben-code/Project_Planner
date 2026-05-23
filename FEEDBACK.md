@@ -26,10 +26,10 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Le bouton + phase du navbar doit etre descndu qu niveau du bouton export PDF au dessus du planning
 - [x] le bouton de suppression de tache doit etre dans la modate d'edition
 - [x] le bouton de suppression de tache doit se trouver aussi dans une modate edition au niveau de la phase.
-- [ ] pour les colonnes avec un menu déroulant, celui ci doit être clickable dans toute la cellule.
+- [x] pour les colonnes avec un menu déroulant, celui ci doit être clickable dans toute la cellule.
 - [x] Dans la colonne propriétaire, il faut les champs suivant : nom du client, mecalux, intégrateur, autre dans un menu déroulant.
-- [ ] Chaque phase doit avoir le nombre de jours de durée en prenant les dates de tache min et max
-- [ ] si l'on hover sur une celulle colorié du planning, on doit pouvoir voir la date hovered.
+- [x] Chaque phase doit avoir le nombre de jours de durée en prenant les dates de tache min et max
+- [x] si l'on hover sur une celulle colorié du planning, on doit pouvoir voir la date hovered.
 - [x] Le statut des tache doit être Non commencé par défaut.  
 - [ ] Une phase Développement pour regrouper les taches de dev venues de JIRA via API. à prévoir mais pas mettre en place pour le moment.
 
