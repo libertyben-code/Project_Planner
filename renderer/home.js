@@ -173,7 +173,7 @@ window.createProject = async function() {
     installDateDelayed: '',
     installDateActual:  '',
     installDateComment: '',
-    endDate:         document.getElementById('np-end').value     || '',
+    endDate:         '',
     createdAt: now,
     updatedAt: now,
   };

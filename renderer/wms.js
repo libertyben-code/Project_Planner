@@ -494,7 +494,7 @@ function openAddTaskModal(phaseId) {
   const sel = document.getElementById('task-phase'); sel.innerHTML = '';
   phases.forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = p.name; if (p.id === phaseId) o.selected = true; sel.appendChild(o); });
   ['task-name','task-owner','task-start','task-end','task-deliverable'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('task-progress').value = 0; document.getElementById('task-status').value = ''; document.getElementById('task-priority').value = '';
+  document.getElementById('task-progress').value = 0; document.getElementById('task-status').value = 'Non commencé'; document.getElementById('task-priority').value = '';
   document.getElementById('modal-task').classList.add('open');
 }
 function openAddPhaseModal() {
