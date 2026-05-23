@@ -10,12 +10,12 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 
 <!-- Project cards, search, create/open/duplicate/delete -->
 
-- [ ] Le bouton ouvrir... ne fonctionne pas. Il devrait permettre d; importe in Json de projet et de créer ce nouveau projet
+- [x] Le bouton ouvrir... ne fonctionne pas. Il devrait permettre d; importe in Json de projet et de créer ce nouveau projet
 - [x] Dans la modale de création de projet, enlever (mecalux) du champ Dir Projet.
 - [x] Dans la meme modale, enlever la date de fin. Celle ci sera renseignée automatiquement avec la date la plus eloignée d'une tâche du planning.
 - [x] Enlever (Originiale) du champ date d'installation.
 - [ ] En plus de supprimer et dupliquer un projet, ajouter la possibilité de partager un projet.
-- [ ] Remplir le nom du client en même temps que le nom de projet car c'est souvent le meme mais garder le champ editable.
+- [x] Remplir le nom du client en même temps que le nom de projet car c'est souvent le meme mais garder le champ editable.
 
 ## Planning (Gantt)
 
@@ -23,11 +23,11 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 
 - [ ] Pour les dates, mettre seulemetn les date de début et d'installation prévue. Si la date est reportée, on devra afficher un tag Reportée et offrir la possibilité de mettre un commentaire.
 - [x]  bouttons + tache du navbar doit etre supprimé car déjà existant au niveau de chaques taches
-- [ ] Le bouton + phase du navbar doit etre descndu qu niveau du bouton export PDF au dessus du planning
-- [ ] le bouton de suppression de tache doit etre dans la modate d'edition
-- [ ] le bouton de suppression de tache doit se trouver aussi dans une modate edition au niveau de la phase.
+- [x] Le bouton + phase du navbar doit etre descndu qu niveau du bouton export PDF au dessus du planning
+- [x] le bouton de suppression de tache doit etre dans la modate d'edition
+- [x] le bouton de suppression de tache doit se trouver aussi dans une modate edition au niveau de la phase.
 - [ ] pour les colonnes avec un menu déroulant, celui ci doit être clickable dans toute la cellule.
-- [ ] Dans la colonne propriétaire, il faut les champs suivant : nom du client, mecalux, intégrateur, autre dans un menu déroulant.
+- [x] Dans la colonne propriétaire, il faut les champs suivant : nom du client, mecalux, intégrateur, autre dans un menu déroulant.
 - [ ] Chaque phase doit avoir le nombre de jours de durée en prenant les dates de tache min et max
 - [ ] si l'on hover sur une celulle colorié du planning, on doit pouvoir voir la date hovered.
 - [x] Le statut des tache doit être Non commencé par défaut.  

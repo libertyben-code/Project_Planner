@@ -254,6 +254,20 @@ function normalizeSpecialLabel(value) {
   if (value === getRLLabel())     return TOKEN_RL;
   return value;
 }
+const OWNER_OPTIONS = [
+  { value: '',              label: '—' },
+  { value: TOKEN_CLIENT,    label: () => getClientLabel() },
+  { value: 'MECALUX',       label: 'MECALUX' },
+  { value: 'Intégrateur',   label: 'Intégrateur' },
+  { value: 'Autre',         label: 'Autre' },
+];
+function buildOwnerSelect(sel, currentValue) {
+  sel.innerHTML = OWNER_OPTIONS.map(o => {
+    const lbl = typeof o.label === 'function' ? o.label() : o.label;
+    const sel_ = o.value === (currentValue || '') ? ' selected' : '';
+    return `<option value="${o.value}"${sel_}>${lbl}</option>`;
+  }).join('');
+}
 
 // ═══ FLOATING DROPDOWN ═══
 let _activeDD = null;
@@ -349,13 +363,14 @@ function openEditTask(taskId) {
   const sel = document.getElementById('task-phase'); sel.innerHTML = '';
   phases.forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = p.name; if (p.id === task.phaseId) o.selected = true; sel.appendChild(o); });
   document.getElementById('task-name').value = task.name;
-  document.getElementById('task-owner').value = task.owner || '';
+  buildOwnerSelect(document.getElementById('task-owner'), task.owner || '');
   document.getElementById('task-start').value = task.start || '';
   document.getElementById('task-end').value = task.end || '';
   document.getElementById('task-status').value = task.status || '';
   document.getElementById('task-priority').value = task.priority || '';
   document.getElementById('task-progress').value = task.progress || 0;
   document.getElementById('task-deliverable').value = task.deliverable || '';
+  document.getElementById('btn-delete-task').style.display = '';
   document.getElementById('modal-task').classList.add('open');
 }
 
@@ -392,7 +407,6 @@ function renderGantt() {
     tdPh.innerHTML = `<span style="cursor:pointer" title="Modifier la phase" onclick="openEditPhase('${phase.id}')">${phase.name}</span>
       <span style="float:right;display:flex;gap:6px;align-items:center">
         <button onclick="openAddTaskModal('${phase.id}')" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;font-family:inherit">+ Tâche</button>
-        <button onclick="removePhase('${phase.id}')" style="background:rgba(255,0,0,.25);border:none;color:#fff;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;font-family:inherit" title="Supprimer la phase">✕</button>
       </span>`;
     rp.appendChild(tdPh);
     WEEKS.forEach(w => { const td = document.createElement('td'); td.className = 'gantt-cell'; td.style.background = phase.color; td.style.opacity = '.2'; if (isToday(w)) td.style.borderLeft = '2px solid #f97316'; rp.appendChild(td); });
@@ -423,8 +437,11 @@ function renderGantt() {
           if (done) { td.style.textDecoration = 'line-through'; td.style.color = 'var(--text-muted)'; }
           td.onblur = e => { updateTask(task.id,'name',e.target.textContent.trim()); debouncedSave(); };
         } else if (lbl === 'PROPRIÉTAIRE') {
-          td.contentEditable = true; td.textContent = formatOwner(task.owner); td.style.padding = '2px 6px';
-          td.onblur = e => { updateTask(task.id,'owner',normalizeSpecialLabel(e.target.textContent.trim())); debouncedSave(); };
+          const ownSel = document.createElement('select');
+          ownSel.className = 'gantt-select'; ownSel.style.cssText = 'width:100%';
+          buildOwnerSelect(ownSel, task.owner);
+          ownSel.onchange = () => { updateTask(task.id,'owner',ownSel.value); debouncedSave(); };
+          td.style.padding = '2px 4px'; td.appendChild(ownSel);
         } else if (lbl === 'DÉBUT' || lbl === 'FIN') {
           const field = lbl === 'DÉBUT' ? 'start' : 'end';
           const inp = document.createElement('input'); inp.type = 'date'; inp.value = task[field] || '';
@@ -441,7 +458,7 @@ function renderGantt() {
           td.onclick = () => { const v = prompt("% d'avancement :", pct); if (v !== null && !isNaN(+v)) { updateTask(task.id,'progress',Math.min(100,Math.max(0,+v))); renderGantt(); renderDashboard(); debouncedSave(); } };
         } else if (lbl === '') {
           td.style.padding = '1px 4px'; td.style.textAlign = 'center'; td.style.whiteSpace = 'nowrap';
-          td.innerHTML = `<button title="Modifier" onclick="openEditTask('${task.id}')" style="background:var(--accent-light);border:none;color:var(--accent);border-radius:4px;padding:2px 7px;cursor:pointer;font-size:10px;font-family:inherit;margin-right:2px">✏</button><button title="Supprimer" onclick="deleteTask('${task.id}')" style="background:#fee2e2;border:none;color:#dc2626;border-radius:4px;padding:2px 7px;cursor:pointer;font-size:10px;font-family:inherit">✕</button>`;
+          td.innerHTML = `<button title="Modifier" onclick="openEditTask('${task.id}')" style="background:var(--accent-light);border:none;color:var(--accent);border-radius:4px;padding:2px 7px;cursor:pointer;font-size:10px;font-family:inherit">✏</button>`;
         }
         rt.appendChild(td);
       });
@@ -465,15 +482,19 @@ function updateTask(id, field, value) { const t = tasks.find(t => t.id === id); 
 
 function deleteTask(id) {
   const idx = tasks.findIndex(t => t.id === id); if (idx < 0) return;
-  const deleted = { ...tasks[idx] }; const phaseId = deleted.phaseId;
+  const deleted = { ...tasks[idx] };
   tasks.splice(idx, 1); renderGantt(); renderDashboard(); debouncedSave();
   showUndoToast(`Tâche "${formatTemplate(deleted.name)}" supprimée`, () => {
     tasks.splice(idx, 0, deleted); renderGantt(); renderDashboard();
   });
 }
+function deleteTaskFromModal() {
+  if (!_editingTaskId) return;
+  closeModal('modal-task');
+  deleteTask(_editingTaskId);
+}
 
 function removePhase(id) {
-  if (!confirm('Supprimer la phase et toutes ses tâches ?')) return;
   const ph = phases.find(p => p.id === id);
   const deletedPhase = { ...ph };
   const deletedTasks = tasks.filter(t => t.phaseId === id);
@@ -482,6 +503,11 @@ function removePhase(id) {
   showUndoToast(`Phase "${deletedPhase.name}" supprimée`, () => {
     phases.push(deletedPhase); tasks.push(...deletedTasks); renderGantt();
   });
+}
+function removePhaseFromModal() {
+  if (!_editingPhaseId) return;
+  closeModal('modal-phase');
+  removePhase(_editingPhaseId);
 }
 
 function scrollToToday() { const WEEKS = generateWeeks(); const idx = WEEKS.findIndex(w => isToday(w)); if (idx < 0) return; const wr = document.getElementById('gantt-wrapper'); wr.scrollLeft = Math.max(0, idx * 22 - 200); }
@@ -494,8 +520,10 @@ function openAddTaskModal(phaseId) {
   document.getElementById('btn-save-task').textContent = 'Enregistrer';
   const sel = document.getElementById('task-phase'); sel.innerHTML = '';
   phases.forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = p.name; if (p.id === phaseId) o.selected = true; sel.appendChild(o); });
-  ['task-name','task-owner','task-start','task-end','task-deliverable'].forEach(id => document.getElementById(id).value = '');
+  ['task-name','task-start','task-end','task-deliverable'].forEach(id => document.getElementById(id).value = '');
+  buildOwnerSelect(document.getElementById('task-owner'), '');
   document.getElementById('task-progress').value = 0; document.getElementById('task-status').value = 'Non commencé'; document.getElementById('task-priority').value = '';
+  document.getElementById('btn-delete-task').style.display = 'none';
   document.getElementById('modal-task').classList.add('open');
 }
 function openAddPhaseModal() {
@@ -503,6 +531,7 @@ function openAddPhaseModal() {
   document.getElementById('modal-phase-title').textContent = 'Nouvelle Phase';
   ['phase-name','phase-code'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('phase-color').value = '#1a56db';
+  document.getElementById('btn-delete-phase').style.display = 'none';
   document.getElementById('modal-phase').classList.add('open');
 }
 function openEditPhase(phaseId) {
@@ -510,13 +539,14 @@ function openEditPhase(phaseId) {
   const ph = phases.find(p => p.id === phaseId);
   document.getElementById('modal-phase-title').textContent = 'Modifier la Phase';
   document.getElementById('phase-name').value = ph.name; document.getElementById('phase-code').value = ph.code; document.getElementById('phase-color').value = ph.color;
+  document.getElementById('btn-delete-phase').style.display = '';
   document.getElementById('modal-phase').classList.add('open');
 }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 function saveTask() {
   const name = document.getElementById('task-name').value.trim();
   if (!name) { alert('Veuillez saisir un intitulé.'); return; }
-  const data = { phaseId: document.getElementById('task-phase').value, name, owner: normalizeSpecialLabel(document.getElementById('task-owner').value.trim()), start: document.getElementById('task-start').value, end: document.getElementById('task-end').value, status: document.getElementById('task-status').value, priority: document.getElementById('task-priority').value, progress: +document.getElementById('task-progress').value || 0, deliverable: document.getElementById('task-deliverable').value.trim() };
+  const data = { phaseId: document.getElementById('task-phase').value, name, owner: document.getElementById('task-owner').value, start: document.getElementById('task-start').value, end: document.getElementById('task-end').value, status: document.getElementById('task-status').value, priority: document.getElementById('task-priority').value, progress: +document.getElementById('task-progress').value || 0, deliverable: document.getElementById('task-deliverable').value.trim() };
   if (_editingTaskId) { Object.assign(tasks.find(t => t.id === _editingTaskId), data); }
   else { tasks.push({ id: uid(), ...data }); }
   closeModal('modal-task'); renderGantt(); renderDashboard(); debouncedSave();
@@ -1390,7 +1420,7 @@ Object.assign(window, {
   syncNav, onMetaInput,
   openAddPhaseModal, openAddTaskModal, openEditTask, openEditPhase,
   closeModal, saveTask, savePhase,
-  deleteTask, removePhase, updateTask,
+  deleteTask, deleteTaskFromModal, removePhase, removePhaseFromModal, updateTask,
   scrollToToday, renderGantt, renderDashboard, exportPDF,
   addInternalTask, openEditInternalTask, saveInternalTask, deleteInternalTask, deleteInternalTaskFromModal,
   addInterface, openEditInterface, saveInterface, deleteInterfaceFromModal,
