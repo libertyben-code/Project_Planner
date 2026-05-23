@@ -11,14 +11,11 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 <!-- Project cards, search, create/open/duplicate/delete -->
 
 - [ ] Le bouton ouvrir... ne fonctionne pas. Il devrait permettre d; importe in Json de projet et de créer ce nouveau projet
-
 - [x] Dans la modale de création de projet, enlever (mecalux) du champ Dir Projet.
-
 - [x] Dans la meme modale, enlever la date de fin. Celle ci sera renseignée automatiquement avec la date la plus eloignée d'une tâche du planning.
-
 - [x] Enlever (Originiale) du champ date d'installation.
-
 - [ ] En plus de supprimer et dupliquer un projet, ajouter la possibilité de partager un projet.
+- [ ] Remplir le nom du client en même temps que le nom de projet car c'est souvent le meme mais garder le champ editable.
 
 ## Planning (Gantt)
 
@@ -110,3 +107,11 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 
 <!-- Nav, save indicator, undo toast, keyboard shortcuts, responsive layout, performance -->
 - [ ] Le bouton PDF dans le nav bar doit s'appliquer seulement à l'onglet sélectionné.
+
+## Notes Techniques
+
+<!-- Implementation notes for future reference -->
+- [ ] **Drag & drop natif (futur)** : remplacer les boutons ↑↓ par SortableJS pour un vrai drag & drop.
+  - Ajouter `<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>` dans app.html
+  - Remplacer `makeReorderable(tr, arr, renderFn)` par `Sortable.create(tbody, { handle: '.drag-handle', animation: 150, onEnd: ({ oldIndex, newIndex }) => { const [item] = arr.splice(oldIndex, 1); arr.splice(newIndex, 0, item); renderFn(); debouncedSave(); } })`
+  - SortableJS utilise les pointer events en interne — contourne le bug Chromium/WebView2 avec l'API HTML5 drag dans les tableaux.
