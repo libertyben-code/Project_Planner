@@ -87,7 +87,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 ## Tableau de Bord (Dashboard)
 
 <!-- KPI cards, charts, install drift block -->
-- [ ] pour la facturation, utiliser un graphique d'une barreavec les différentes parties payé ou non et le montant global.
+- [x] pour la facturation, utiliser un graphique d'une barreavec les différentes parties payé ou non et le montant global.
 - [ ] Ajouter la possibilité de customiser ce dashboard en selectionnant les graphique à afficher.
   
 ## Onglets Personnalisés (Custom Tabs)

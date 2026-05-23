@@ -1159,7 +1159,27 @@ function renderDashboard() {
 
   destroyChart('fact');
   const allJ = [...jalonsProjet,...jalonsEquip];
-  charts['fact'] = new Chart(document.getElementById('ch-fact'), {type:'bar',data:{labels:allJ.map(j=>j.jalon.length>18?j.jalon.slice(0,18)+'…':j.jalon),datasets:[{label:'Montant (€)',data:allJ.map(j=>j.montant),backgroundColor:allJ.map(j=>j.etat==='Payé'?'#86efac':j.etat==='En cours'?'#93c5fd':j.etat==='Retard'?'#fca5a5':'#e2e7ed'),borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{ticks:{callback:v=>v.toLocaleString('fr-FR')+' €'},grid:{color:'#f0f2f5'}}}}});
+  const totM   = allJ.reduce((s,j)=>s+(j.montant||0),0);
+  const payeM  = allJ.filter(j=>j.etat==='Payé').reduce((s,j)=>s+(j.montant||0),0);
+  const coursM = allJ.filter(j=>j.etat==='En cours').reduce((s,j)=>s+(j.montant||0),0);
+  const retardM= allJ.filter(j=>j.etat==='Retard').reduce((s,j)=>s+(j.montant||0),0);
+  const resteM = Math.max(0, totM - payeM - coursM - retardM);
+  const fmtEur = v => v.toLocaleString('fr-FR') + ' €';
+  const factTitle = document.getElementById('ch-fact-title');
+  if (factTitle) factTitle.textContent = `Facturation — ${fmtEur(payeM)} payé / ${fmtEur(totM)} total`;
+  charts['fact'] = new Chart(document.getElementById('ch-fact'), {
+    type:'bar',
+    data:{labels:[''],datasets:[
+      {label:'Payé',    data:[payeM],  backgroundColor:'#86efac'},
+      {label:'En cours',data:[coursM], backgroundColor:'#93c5fd'},
+      {label:'Retard',  data:[retardM],backgroundColor:'#fca5a5'},
+      {label:'Restant', data:[resteM], backgroundColor:'#e2e7ed'},
+    ]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}},
+        tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${fmtEur(ctx.raw)}`}}},
+      scales:{x:{stacked:true,ticks:{callback:v=>fmtEur(v),font:{size:10}},grid:{color:'#f0f2f5'}},y:{stacked:true,display:false}}}
+  });
 
   destroyChart('itf');
   const itfCounts = ITF_STATES.reduce((o,s) => { o[s] = interfacesData.filter(r=>r.valide===s).length; return o; }, {});
