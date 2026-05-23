@@ -281,57 +281,27 @@ function showDropdown(anchorEl, options, onSelect) {
   dd.addEventListener('click', e => e.stopPropagation());
 }
 
-// ═══ DRAG & DROP ═══
-let _dragSrc = null, _dragArr = null, _dragRender = null;
-function makeDraggable(tr, arr, renderFn) {
-  const handle = tr.querySelector('.drag-handle');
-  if (!handle) return;
-  handle.style.cursor = 'grab';
-
-  // mousedown on handle enables dragging on the row; reset on mouseup so a plain
-  // click never accidentally leaves the row in a draggable state
-  handle.addEventListener('mousedown', () => {
-    tr.draggable = true;
-    const reset = () => { tr.draggable = false; document.removeEventListener('mouseup', reset); };
-    document.addEventListener('mouseup', reset);
+// ═══ ROW REORDER (↑↓ buttons) ═══
+function makeReorderable(tr, arr, renderFn) {
+  const up   = tr.querySelector('.row-up');
+  const down = tr.querySelector('.row-down');
+  if (!up || !down) return;
+  up.addEventListener('click', e => {
+    e.stopPropagation();
+    const idx = arr.findIndex(r => r.id === tr.dataset.rowId);
+    if (idx <= 0) return;
+    [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]];
+    renderFn(); debouncedSave();
   });
-
-  tr.addEventListener('dragstart', e => {
-    _dragSrc = tr; _dragArr = arr; _dragRender = renderFn;
-    tr.classList.add('dragging');
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', tr.dataset.rowId || '');
-  });
-  tr.addEventListener('dragend', () => {
-    tr.draggable = false;
-    tr.classList.remove('dragging');
-    document.querySelectorAll('.drag-over-top,.drag-over-bot').forEach(x => x.classList.remove('drag-over-top', 'drag-over-bot'));
-    _dragSrc = null;
-  });
-  tr.addEventListener('dragover', e => {
-    if (!_dragSrc || _dragSrc === tr) return;
-    e.preventDefault();
-    document.querySelectorAll('.drag-over-top,.drag-over-bot').forEach(x => x.classList.remove('drag-over-top', 'drag-over-bot'));
-    const mid = tr.getBoundingClientRect().top + tr.getBoundingClientRect().height / 2;
-    tr.classList.add(e.clientY < mid ? 'drag-over-top' : 'drag-over-bot');
-  });
-  tr.addEventListener('dragleave', () => tr.classList.remove('drag-over-top', 'drag-over-bot'));
-  tr.addEventListener('drop', e => {
-    e.preventDefault();
-    if (!_dragSrc || _dragSrc === tr) return;
-    const si = _dragArr.findIndex(r => r.id === _dragSrc.dataset.rowId);
-    const ti = _dragArr.findIndex(r => r.id === tr.dataset.rowId);
-    if (si < 0 || ti < 0) return;
-    const after = e.clientY >= tr.getBoundingClientRect().top + tr.getBoundingClientRect().height / 2;
-    const [item] = _dragArr.splice(si, 1);
-    // After removing si, ti shifts down by 1 if si was before ti
-    const newTi = si < ti ? ti - 1 : ti;
-    _dragArr.splice(after ? newTi + 1 : newTi, 0, item);
-    tr.classList.remove('drag-over-top', 'drag-over-bot');
-    _dragRender(); debouncedSave();
+  down.addEventListener('click', e => {
+    e.stopPropagation();
+    const idx = arr.findIndex(r => r.id === tr.dataset.rowId);
+    if (idx < 0 || idx >= arr.length - 1) return;
+    [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]];
+    renderFn(); debouncedSave();
   });
 }
-function dh() { return `<span class="drag-handle" title="Réorganiser">⠿</span>`; }
+function dh() { return `<span class="row-order-btns"><button class="row-up" title="Monter">↑</button><button class="row-down" title="Descendre">↓</button></span>`; }
 
 // ═══ GANTT ENGINE ═══
 function mondayOf(d) { const day = new Date(d); day.setHours(0,0,0,0); const dow = day.getDay(); day.setDate(day.getDate() + (dow === 0 ? -6 : 1 - dow)); return day; }
@@ -718,7 +688,7 @@ function renderTaches() {
     const etatSp = tr.cells[3].querySelector('span');
     etatSp.addEventListener('click', e => { e.stopPropagation(); showDropdown(etatSp, ETAT_INT.map(v => ({label:v,value:v,dot:ETAT_D[v]})), val => { task.etat = val; renderTaches(); debouncedSave(); }); });
     tr.cells[6].querySelector('span').addEventListener('click', e => { e.stopPropagation(); showDropdown(tr.cells[6].querySelector('span'), URG_OPTS, val => { task.urg = val; renderTaches(); debouncedSave(); }); });
-    makeDraggable(tr, internalTasks, renderTaches);
+    makeReorderable(tr, internalTasks, renderTaches);
   });
 }
 function addInternalTask() { internalTasks.push({id:uid(),action:'Nouvelle tâche',owner:'',etat:'À FAIRE',temps:0,deadline:'',urg:1,comment:''}); renderTaches(); debouncedSave(); }
@@ -785,7 +755,7 @@ function renderInterfaces() {
       const sp = tr.cells[fi+3].querySelector('span');
       sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, ITF_STATES.map(v => ({label:v,value:v,dot:ITF_D[v]})), val => { row[f] = val; sp.className = ITF_B[val]||'cell-none'; sp.textContent = val; renderDashboard(); debouncedSave(); }); });
     });
-    makeDraggable(tr, interfacesData, renderInterfaces);
+    makeReorderable(tr, interfacesData, renderInterfaces);
   });
 }
 function addInterface() { interfacesData.push({id:uid(),type:'Connecteur ERP',name:'Nouvelle interface',dev:'NON',preprod:'NON',recMecalux:'NON',recClient:'NON',valide:'NON',comment:''}); renderInterfaces(); debouncedSave(); }
@@ -854,7 +824,7 @@ function renderFonctionnel() {
       sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, ITF_STATES.map(v => ({label:v,value:v,dot:ITF_D[v]})), val => { row[f] = val; sp.className = ITF_B[val]||'cell-none'; sp.textContent = val; debouncedSave(); }); });
     });
     tr.cells[3].querySelector('span').addEventListener('click', e => { e.stopPropagation(); showDropdown(tr.cells[3].querySelector('span'), [0,10,20,30,40,50,60,70,80,90,100].map(v=>({label:v+'%',value:v,dot:'#2563eb'})), val => { row.pct = val; renderFonctionnel(); debouncedSave(); }); });
-    makeDraggable(tr, fonctionnelData, renderFonctionnel);
+    makeReorderable(tr, fonctionnelData, renderFonctionnel);
   });
 }
 function addFonctionnel() { fonctionnelData.push({id:uid(),name:'Nouveau flux',dev:'NON',pct:0,testMec:'NON',preprod:'NON',formKU:'NON',testClient:'NON',formUsers:'NON',comment:''}); renderFonctionnel(); debouncedSave(); }
@@ -901,7 +871,7 @@ function renderDryrun() {
       <td><button class="btn btn-secondary btn-sm" onclick="openEditDryrun('${row.id}')">✏</button></td>`;
     const sp = tr.cells[2].querySelector('span');
     sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, DR_STATES.map(v => ({label:v,value:v,dot:DR_D[v]})), val => { row.etat = val; sp.className = DR_B[val]||'cell-none'; sp.textContent = val; renderDashboard(); debouncedSave(); }); });
-    makeDraggable(tr, dryrunData, renderDryrun);
+    makeReorderable(tr, dryrunData, renderDryrun);
   });
 }
 function addDryrun() { dryrunData.push({id:uid(),name:'Nouveau prérequis',etat:'NON',comment:''}); renderDryrun(); debouncedSave(); }
@@ -966,7 +936,7 @@ function renderInstall() {
       <td><button class="btn btn-secondary btn-sm" onclick="openEditInstall('${row.id}')">✏</button></td>`;
     const sp = tr.cells[2].querySelector('span');
     sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, INST_STATES.map(v => ({label:v,value:v,dot:INST_D[v]})), val => { row.etat = val; sp.className = INST_B[val]||'cell-none'; sp.textContent = val; renderDashboard(); debouncedSave(); }); });
-    makeDraggable(tr, installData, renderInstall);
+    makeReorderable(tr, installData, renderInstall);
   });
 }
 function addInstall() { installData.push({id:uid(),action:'Nouveau prérequis',etat:'Non',qui:'MECALUX',deadline:'',comment:''}); renderInstall(); debouncedSave(); }
@@ -1033,7 +1003,7 @@ function renderFactRow(tbody, list, type) {
       <td><button class="btn btn-secondary btn-sm" onclick="openEditJalon('${row.id}','${type}')">✏</button></td>`;
     const sp = tr.cells[4].querySelector('span');
     sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, FACT_STATES.map(v => ({label:v,value:v,dot:FACT_D[v]})), val => { row.etat = val; sp.className = FACT_B[val]||'cell-none'; sp.textContent = val; renderFacturation(); renderDashboard(); debouncedSave(); }); });
-    makeDraggable(tr, list, renderFacturation);
+    makeReorderable(tr, list, renderFacturation);
   });
 }
 function del_fact_projet(id) {
@@ -1259,7 +1229,7 @@ function renderCustomTabRows(tabId) {
     });
     cells += `<td><button class="btn btn-sm btn-danger" onclick="deleteCustomTabRow('${tabId}','${row.id}')">✕</button></td>`;
     tr.innerHTML = cells;
-    makeDraggable(tr, tab.rows, () => { renderCustomTabRows(tabId); debouncedSave(); });
+    makeReorderable(tr, tab.rows, () => { renderCustomTabRows(tabId); debouncedSave(); });
   });
 }
 
