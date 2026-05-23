@@ -284,9 +284,22 @@ function showDropdown(anchorEl, options, onSelect) {
 // ═══ DRAG & DROP ═══
 let _dragSrc = null, _dragArr = null, _dragRender = null;
 function makeDraggable(tr, arr, renderFn) {
-  tr.draggable = true;
-  tr.addEventListener('dragstart', e => { _dragSrc = tr; _dragArr = arr; _dragRender = renderFn; tr.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
-  tr.addEventListener('dragend', () => { tr.classList.remove('dragging'); document.querySelectorAll('.drag-over-top,.drag-over-bot').forEach(x => x.classList.remove('drag-over-top', 'drag-over-bot')); _dragSrc = null; });
+  const handle = tr.querySelector('.drag-handle');
+  if (!handle) return;
+  // Only the drag handle initiates a drag — prevents contenteditable/inputs from interfering
+  handle.setAttribute('draggable', 'true');
+  handle.style.cursor = 'grab';
+  handle.addEventListener('dragstart', e => {
+    _dragSrc = tr; _dragArr = arr; _dragRender = renderFn;
+    tr.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', tr.dataset.rowId || '');
+  });
+  handle.addEventListener('dragend', () => {
+    tr.classList.remove('dragging');
+    document.querySelectorAll('.drag-over-top,.drag-over-bot').forEach(x => x.classList.remove('drag-over-top', 'drag-over-bot'));
+    _dragSrc = null;
+  });
   tr.addEventListener('dragover', e => { if (!_dragSrc || _dragSrc === tr) return; e.preventDefault(); document.querySelectorAll('.drag-over-top,.drag-over-bot').forEach(x => x.classList.remove('drag-over-top', 'drag-over-bot')); const mid = tr.getBoundingClientRect().top + tr.getBoundingClientRect().height / 2; tr.classList.add(e.clientY < mid ? 'drag-over-top' : 'drag-over-bot'); });
   tr.addEventListener('dragleave', () => tr.classList.remove('drag-over-top', 'drag-over-bot'));
   tr.addEventListener('drop', e => {
