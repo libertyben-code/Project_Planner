@@ -898,16 +898,21 @@ function renderCtColumns() {
     const row = document.createElement('div');
     row.className = 'ct-col-row';
     row.innerHTML = `
-      <input type="text" placeholder="Libellé *" value="${col.label||''}" style="flex:1;min-width:120px" oninput="_ctCols[${i}].label=this.value">
-      <select style="width:110px" onchange="_ctCols[${i}].type=this.value;renderCtColumns()">
+      <input type="text" placeholder="Libellé *" value="${col.label||''}" style="flex:1;min-width:120px" oninput="ctColLabel(${i},this.value)">
+      <select style="width:110px" onchange="ctColType(${i},this.value)">
         ${['text','select','date','checkbox'].map(t=>`<option value="${t}"${col.type===t?' selected':''}>${{text:'Texte',select:'Liste',date:'Date',checkbox:'Case'}[t]}</option>`).join('')}
       </select>
-      ${col.type==='select' ? `<input type="text" placeholder="opt1, opt2…" value="${(col.options||[]).join(', ')}" style="flex:1;min-width:100px" oninput="_ctCols[${i}].options=this.value.split(',').map(s=>s.trim()).filter(Boolean)">` : '<span style="flex:1"></span>'}
-      <button class="btn btn-ghost btn-sm" onclick="_ctCols.splice(${i},1);renderCtColumns()" ${_ctCols.length<=1?'disabled':''}>✕</button>`;
+      ${col.type==='select' ? `<input type="text" placeholder="opt1, opt2…" value="${(col.options||[]).join(', ')}" style="flex:1;min-width:100px" oninput="ctColOptions(${i},this.value)">` : '<span style="flex:1"></span>'}
+      <button class="btn btn-ghost btn-sm" onclick="ctColRemove(${i})" ${_ctCols.length<=1?'disabled':''}>✕</button>`;
     list.appendChild(row);
   });
   document.getElementById('btn-add-col').disabled = _ctCols.length >= 5;
 }
+
+function ctColLabel(i, v)   { _ctCols[i].label = v; }
+function ctColType(i, v)    { _ctCols[i].type = v; renderCtColumns(); }
+function ctColOptions(i, v) { _ctCols[i].options = v.split(',').map(s => s.trim()).filter(Boolean); }
+function ctColRemove(i)     { _ctCols.splice(i, 1); renderCtColumns(); }
 
 function addCustomTabColumn() {
   if (_ctCols.length >= 5) return;
@@ -1176,6 +1181,7 @@ Object.assign(window, {
   addCustomHeuresRow, deleteHeuresRow, toggleHeuresHistory,
   openExportHTMLModal, doExportHTML, exportSelectAll,
   openAddCustomTabModal, openEditCustomTabModal, addCustomTabColumn, saveCustomTab,
+  renderCtColumns, ctColLabel, ctColType, ctColOptions, ctColRemove,
   renderCustomTabs, renderCustomTabRows, addCustomTabRow, deleteCustomTabRow, deleteCustomTab, ctSetCell,
   normalizeSpecialLabel, buildState,
 });

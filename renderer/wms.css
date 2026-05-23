@@ -196,3 +196,87 @@ td[contenteditable="true"]:focus{outline:2px solid var(--accent);outline-offset:
 .ct-col-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:6px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;}
 .ct-col-row input,.ct-col-row select{font-family:inherit;font-size:12px;padding:3px 7px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text);}
 .page-custom-tab{animation:none;}
+
+/* ══════════════════════════════════════════════════
+   RESPONSIVE — tablet (≤1024px) and mobile (≤768px)
+   ══════════════════════════════════════════════════ */
+
+/* ── Tablet (≤1024px) ── */
+@media (max-width:1024px) {
+  /* Nav: allow tabs to scroll horizontally */
+  .app-nav { flex-wrap: nowrap; height: auto; min-height: 46px; padding: 0 10px; gap: 6px; }
+  .nav-tabs { gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab { font-size: 11px; padding: 0 10px; }
+  .nav-right { flex-shrink: 0; gap: 4px; }
+  .nav-right .btn { font-size: 10px; padding: 3px 8px; }
+
+  /* Project header: 2 columns instead of auto-fit */
+  .project-header { grid-template-columns: repeat(2, 1fr); }
+  .project-header-dates { grid-template-columns: repeat(2, 1fr); }
+
+  /* Charts: single column */
+  .chart-grid   { grid-template-columns: 1fr; }
+  .chart-grid-3 { grid-template-columns: 1fr 1fr; }
+
+  /* KPI: 3 per row */
+  .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+
+  /* Gantt: keep horizontal scroll, just tighten fixed cols */
+  .col-proprio { display: none; }
+  .col-jours   { display: none; }
+
+  /* Modal: full width with margin */
+  .modal { width: calc(100vw - 40px); max-width: 560px; }
+  .modal-wide { max-width: calc(100vw - 40px); }
+}
+
+/* ── Small tablet / large phone (≤768px) ── */
+@media (max-width:768px) {
+  /* Body padding for scrollable content */
+  .page { padding: 12px; }
+
+  /* Nav: stack logo + tabs */
+  .app-nav { flex-wrap: wrap; padding: 6px 10px; gap: 6px; }
+  .nav-logo { font-size: 13px; }
+  .nav-tabs { width: 100%; border-top: 1px solid rgba(255,255,255,.1); padding-top: 4px; }
+  .nav-right { width: 100%; justify-content: flex-end; padding-top: 4px; }
+  .nav-right .btn span { display: none; } /* hide button labels, keep icons */
+
+  /* Project header: single column */
+  .project-header,
+  .project-header-dates { grid-template-columns: 1fr; }
+  .install-dates { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .install-comment-input { width: 100%; }
+
+  /* KPI: 2 per row */
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* Charts: single column */
+  .chart-grid   { grid-template-columns: 1fr; }
+  .chart-grid-3 { grid-template-columns: 1fr; }
+  .chart-wrap   { height: 180px; }
+
+  /* Data tables: allow horizontal scroll, minimum column widths */
+  .data-table { font-size: 11px; }
+  .data-table td, .data-table th { padding: 4px 6px; }
+
+  /* Gantt extra columns hidden */
+  .col-debut, .col-fin, .col-avancement { display: none; }
+
+  /* Panel header: stack vertically if needed */
+  .panel-header { flex-wrap: wrap; gap: 6px; }
+
+  /* Modal: near full screen */
+  .modal { width: calc(100vw - 20px); max-height: 90vh; overflow-y: auto; }
+  .modal-wide { width: calc(100vw - 20px); }
+
+  /* Form layout: single column */
+  .form-2col { grid-template-columns: 1fr; }
+
+  /* Install drift: horizontal scroll */
+  .drift-timeline { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
+
+  /* Custom tab column builder */
+  .ct-col-row { flex-wrap: wrap; }
+}
