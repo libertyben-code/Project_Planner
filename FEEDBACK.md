@@ -36,11 +36,11 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 ## Suivi Heures
 
 <!-- Hours table, custom rows, history accordion, KPI cards -->
-- [ ] laisser le texte des champs de la colone catégorie editable.
-- [ ] Ajouter une colonne avec un dropdown contenant les catégorie Custom, Standard, Offre Comp.
-- [ ] Cette colonne permettra de remplur les lignes du haux du tableau qui ne seront pas editable.
-- [ ] Touts les lignes autres que les totals des heures doivent avoir un boutton Edit avec un bouton delete dans la modale
-- [ ] Toutes les lignes doivent pouvoir être réorganisées
+- [x] laisser le texte des champs de la colone catégorie editable.
+- [x] Ajouter une colonne avec un dropdown contenant les catégorie Custom, Standard, Offre Comp.
+- [x] Cette colonne permettra de remplur les lignes du haux du tableau qui ne seront pas editable.
+- [x] Touts les lignes autres que les totals des heures doivent avoir un boutton Edit avec un bouton delete dans la modale
+- [x] Toutes les lignes doivent pouvoir être réorganisées
 
 ## Tâches Internes
 

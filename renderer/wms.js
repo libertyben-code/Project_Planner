@@ -628,22 +628,59 @@ function updateHeuresDesc(id, val) {
 function heuresVenteTotale() { return heuresData.filter(r => !r.sep && r.bold).reduce((s,r) => s + (r.vente||0), 0); }
 function heuresActuelTotal() { return heuresData.filter(r => !r.sep).reduce((s,r) => s + (r.actuel||0), 0); }
 
+const HEURE_TYPES = ['Standard','Custom','Offre Comp'];
+let _editingHeureId = null;
+
+function openEditHeure(id) {
+  const row = heuresData.find(r => r.id === id); if (!row) return;
+  _editingHeureId = id;
+  document.getElementById('eh-cat').value    = row.cat || '';
+  document.getElementById('eh-type').value   = row.type || (row.custom ? 'Custom' : 'Standard');
+  document.getElementById('eh-vente').value  = row.vente ?? 0;
+  document.getElementById('eh-actuel').value = row.actuel ?? 0;
+  document.getElementById('eh-desc').value   = row.desc || '';
+  document.getElementById('modal-edit-heure').classList.add('open');
+}
+function saveHeures() {
+  const row = heuresData.find(r => r.id === _editingHeureId); if (!row) return;
+  row.cat    = document.getElementById('eh-cat').value.trim() || row.cat;
+  row.type   = document.getElementById('eh-type').value;
+  row.vente  = +document.getElementById('eh-vente').value || 0;
+  const newActuel = +document.getElementById('eh-actuel').value || 0;
+  if (newActuel !== row.actuel) {
+    if (!row.history) row.history = [];
+    row.history.push({ date: new Date().toISOString().slice(0,10), value: newActuel, note: '' });
+  }
+  row.actuel = newActuel;
+  row.desc   = document.getElementById('eh-desc').value.trim();
+  closeModal('modal-edit-heure'); renderHeures(); renderDashboard(); debouncedSave();
+}
+function deleteHeuresFromModal() {
+  if (!_editingHeureId) return;
+  closeModal('modal-edit-heure');
+  deleteHeuresRow(_editingHeureId);
+}
+
 function renderHeures() {
   const tbody = document.getElementById('tbody-heures'); tbody.innerHTML = '';
   heuresData.forEach(row => {
-    if (row.sep) { const tr = tbody.insertRow(); tr.innerHTML = `<td colspan="7" style="height:7px;background:#f7f9fb;border:none"></td>`; return; }
-    const tr = tbody.insertRow();
+    if (row.sep) { const tr = tbody.insertRow(); tr.innerHTML = `<td colspan="9" style="height:7px;background:#f7f9fb;border:none"></td>`; return; }
+    const tr = tbody.insertRow(); tr.dataset.rowId = row.id;
     const ecart = (row.vente != null && row.actuel != null) ? (row.actuel - row.vente) : null;
     const ecartColor = ecart == null ? '' : ecart > 0 ? '#dc2626' : ecart < 0 ? '#059669' : 'var(--text-muted)';
     const ecartHtml = ecart != null ? `<span style="color:${ecartColor};font-weight:500">${ecart>0?'+':''}${ecart}</span>` : '<span style="color:var(--text-muted)">—</span>';
+    const rowType = row.type || (row.custom ? 'Custom' : 'Standard');
     tr.innerHTML = `
-      <td style="font-weight:${row.bold?700:400}">${row.cat}</td>
+      <td>${dh()}</td>
+      <td style="font-weight:${row.bold?700:400}" contenteditable="true" onblur="heuresData.find(r=>r.id==='${row.id}').cat=this.textContent.trim();_DS()">${row.cat}</td>
+      <td style="font-size:11px;color:var(--text-muted)">${rowType}</td>
       <td style="text-align:right"><input class="h-input" type="number" value="${row.vente!=null?row.vente:''}" placeholder="0" min="0" onchange="updateHeures('${row.id}','vente',this.value===''?null:+this.value)"></td>
       <td style="text-align:right"><input class="h-input" type="number" value="${row.actuel!=null?row.actuel:''}" placeholder="—" min="0" onchange="updateHeures('${row.id}','actuel',this.value===''?null:+this.value)"></td>
       <td style="text-align:right">${ecartHtml}</td>
       <td style="text-align:center">${(row.history||[]).length > 0 ? `<span title="Voir l'historique" style="cursor:pointer;color:var(--text-muted);font-size:14px" onclick="toggleHeuresHistory('${row.id}',this)">🕐</span>` : ''}</td>
       <td contenteditable="true" style="color:var(--text-muted)" onblur="updateHeuresDesc('${row.id}',this.textContent.trim())">${row.desc||''}</td>
-      <td style="text-align:center">${row.custom ? `<button class="btn btn-sm btn-danger" onclick="deleteHeuresRow('${row.id}')">✕</button>` : ''}</td>`;
+      <td style="text-align:center"><button class="btn btn-ghost btn-icon btn-sm" onclick="openEditHeure('${row.id}')" title="Modifier">✏</button></td>`;
+    makeReorderable(tr, heuresData, renderHeures);
   });
   const vente = heuresVenteTotale(), actuel = heuresActuelTotal();
   document.getElementById('kpi-heures').innerHTML = `
@@ -654,7 +691,7 @@ function renderHeures() {
 }
 
 function addCustomHeuresRow() {
-  heuresData.push({ id: uid(), cat: 'Nouvelle catégorie', vente: 0, actuel: 0, desc: '', bold: false, sep: false, custom: true, history: [] });
+  heuresData.push({ id: uid(), cat: 'Nouvelle catégorie', vente: 0, actuel: 0, desc: '', bold: false, sep: false, custom: true, type: 'Custom', history: [] });
   renderHeures(); debouncedSave();
 }
 function deleteHeuresRow(id) {
@@ -668,7 +705,7 @@ function toggleHeuresHistory(id, btn) {
   if (existingRow && existingRow.classList.contains('history-row')) { existingRow.remove(); return; }
   const row = heuresData.find(r => r.id === id); if (!row || !row.history?.length) return;
   const tr = document.createElement('tr'); tr.className = 'history-row';
-  const td = document.createElement('td'); td.colSpan = 7; td.style.padding = '0 12px 8px 40px';
+  const td = document.createElement('td'); td.colSpan = 9; td.style.padding = '0 12px 8px 40px';
   const hist = row.history;
   let rows = hist.map((h,i) => {
     const delta = i === 0 ? '' : (h.value - hist[i-1].value);
@@ -1454,7 +1491,7 @@ Object.assign(window, {
   addInstall, openEditInstall, saveInstall, deleteInstallFromModal, deleteInstall,
   addJalon, openEditJalon, saveJalon, deleteJalonFromModal,
   del_fact_projet, del_fact_equip, renderFacturation,
-  addCustomHeuresRow, deleteHeuresRow, toggleHeuresHistory,
+  addCustomHeuresRow, deleteHeuresRow, deleteHeuresFromModal, openEditHeure, saveHeures, toggleHeuresHistory,
   openExportHTMLModal, doExportHTML, exportSelectAll,
   openAddCustomTabModal, openEditCustomTabModal, addCustomTabColumn, saveCustomTab,
   renderCtColumns, ctColLabel, ctColType, ctColOptions, ctColRemove,
