@@ -1076,41 +1076,77 @@ function exportSelectAll(val) { document.getElementById('export-tab-list').query
 async function doExportHTML() {
   closeModal('modal-export-html');
   const selectedIds = new Set([...document.getElementById('export-tab-list').querySelectorAll('input:checked')].map(cb => cb.dataset.tabId));
+
+  // Fetch and inline CSS
+  let inlineCSS = '';
+  try { inlineCSS = await fetch('./wms.css').then(r => r.text()); } catch {}
+
   const clone = document.documentElement.cloneNode(true);
-  // Remove edit controls
-  clone.querySelectorAll('[contenteditable]').forEach(el => { el.removeAttribute('contenteditable'); });
-  clone.querySelectorAll('button:not(.nav-tab)').forEach(el => el.remove());
-  clone.querySelectorAll('input,select,textarea').forEach(el => {
+
+  // Replace CSS link with inline style
+  clone.querySelectorAll('link[rel="stylesheet"]').forEach(el => el.remove());
+  const styleEl = document.createElement('style');
+  styleEl.textContent = inlineCSS;
+  clone.querySelector('head').prepend(styleEl);
+
+  // Replace input/select/textarea with static text spans
+  clone.querySelectorAll('input[type="date"],input[type="text"],input[type="number"],textarea').forEach(el => {
     const span = document.createElement('span'); span.textContent = el.value; el.replaceWith(span);
   });
-  clone.querySelectorAll('.modal-overlay,.reload-banner,.undo-toast,.save-indicator,.nav-tab-add').forEach(el => el.remove());
+  clone.querySelectorAll('input[type="checkbox"]').forEach(el => {
+    const span = document.createElement('span'); span.textContent = el.checked ? '☑' : '☐'; el.replaceWith(span);
+  });
+  clone.querySelectorAll('select').forEach(el => {
+    const span = document.createElement('span'); span.textContent = el.options[el.selectedIndex]?.text || ''; el.replaceWith(span);
+  });
+
+  // Strip editing UI
+  clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+  clone.querySelectorAll('button').forEach(el => el.remove());
+  clone.querySelectorAll('.modal-overlay,.reload-banner,.undo-toast,.save-indicator,.nav-tab-add,.history-row').forEach(el => el.remove());
+
+  // Keep only selected tabs
   clone.querySelectorAll('.page').forEach(pg => { if (!selectedIds.has(pg.id)) pg.remove(); });
-  clone.querySelectorAll('.nav-tab[data-page]').forEach(tab => { if (!selectedIds.has(tab.dataset.page)) tab.remove(); });
-  // Make first nav-tab active
+  clone.querySelectorAll('.nav-tab[data-page],.nav-tab.nav-tab-custom').forEach(tab => {
+    const pageId = tab.dataset.page; if (!selectedIds.has(pageId)) tab.remove();
+  });
+
+  // Activate first selected tab
   const firstTab = clone.querySelector('.nav-tab[data-page]');
-  if (firstTab) { const pageId = firstTab.dataset.page; firstTab.classList.add('active'); const pg = clone.getElementById(pageId); if (pg) pg.classList.add('active'); }
-  // Add header
-  const header = document.createElement('div');
-  header.style.cssText = 'background:#1e3a5f;color:#fff;padding:8px 20px;font-size:13px;font-family:sans-serif;position:sticky;top:0;z-index:100;display:flex;gap:16px;align-items:center';
-  header.innerHTML = `<strong>DOCUMENT CONFIDENTIEL</strong><span>—</span><span>${projectMeta.client||''}</span><span>—</span><span>${projectMeta.name||''}</span><span style="margin-left:auto">Exporté le ${new Date().toLocaleDateString('fr-FR')}</span>`;
-  clone.querySelector('body').prepend(header);
-  // Remove scripts; add state
+  if (firstTab) {
+    const pageId = firstTab.dataset.page; firstTab.classList.add('active');
+    const pg = clone.getElementById(pageId); if (pg) pg.classList.add('active');
+  }
+
+  // Confidentiality header
+  const headerDiv = document.createElement('div');
+  headerDiv.style.cssText = 'background:#1e3a5f;color:#fff;padding:8px 20px;font-size:13px;font-family:sans-serif;position:sticky;top:0;z-index:100;display:flex;gap:16px;align-items:center';
+  headerDiv.innerHTML = `<strong>DOCUMENT CONFIDENTIEL</strong><span>—</span><span>${projectMeta.client||''}</span><span>—</span><span>${projectMeta.name||''}</span><span style="margin-left:auto">Exporté le ${new Date().toLocaleDateString('fr-FR')}</span>`;
+  clone.querySelector('body').prepend(headerDiv);
+
+  // Remove all scripts; embed project state for reference
   clone.querySelectorAll('script').forEach(s => s.remove());
   const stateScript = document.createElement('script');
-  stateScript.textContent = `const PROJECT_DATA = ${JSON.stringify(buildState())};`;
+  stateScript.textContent = `const PROJECT_DATA=${JSON.stringify(buildState())};`;
   clone.querySelector('head').appendChild(stateScript);
-  // Inline CSS link as noop (styles referenced by href will still load from relative path)
+
+  // Minimal nav click handler (read-only tab switching)
+  const navScript = document.createElement('script');
+  navScript.textContent = `document.querySelectorAll('.nav-tab[data-page]').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));t.classList.add('active');const p=document.getElementById(t.dataset.page);if(p)p.classList.add('active');}));`;
+  clone.querySelector('body').appendChild(navScript);
+
   const html = '<!DOCTYPE html>\n' + clone.outerHTML;
-  const name = (projectMeta.client||'export') + '_' + (projectMeta.name||'projet');
+  const name = (projectMeta.client||'export').replace(/\s+/g,'_') + '_' + (projectMeta.name||'projet').replace(/\s+/g,'_');
+
   try {
     const result = await invoke('export_html_dialog', { name });
     if (!result) return;
-    if (result._browserDownload) {
+    if (result && result._browserDownload) {
       await invoke('export_html_write', { content: html, filename: result.filename });
     } else {
       await invoke('export_html_write', { path: result, content: html });
     }
-  } catch (e) { console.error('Export HTML error:', e); }
+  } catch (e) { console.error('Export HTML error:', e); alert('Erreur export HTML: ' + e); }
 }
 
 // ═══ KEYBOARD SHORTCUTS ═══
