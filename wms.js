@@ -36,6 +36,13 @@ function syncNav(){document.title='WMS Planning – '+document.getElementById('p
 
 // ═══ UTILS ═══
 function uid(){return '_'+Math.random().toString(36).slice(2,9);}
+const CLIENT_TOKEN='clientName';
+const PM_TOKEN='DPName';
+function getClientLabel(){return document.getElementById('pi-client')?.value||CLIENT_TOKEN;}
+function getPMLabel(){return document.getElementById('pi-pm')?.value||PM_TOKEN;}
+function formatTemplate(text){return String(text).replaceAll(CLIENT_TOKEN,getClientLabel()).replaceAll(PM_TOKEN,getPMLabel());}
+function formatOwner(owner){return owner===CLIENT_TOKEN?getClientLabel():owner===PM_TOKEN?getPMLabel():owner||'';}
+function normalizeSpecialLabel(value){return value===getClientLabel()?CLIENT_TOKEN:value===getPMLabel()?PM_TOKEN:value;}
 
 // ═══ FLOATING DROPDOWN ═══
 let _activeDD=null;
@@ -93,11 +100,11 @@ let phases=[
   {id:'FORM',   name:'FORMATION & UAT',          code:'F',color:'#059669'},
 ];
 let tasks=[
-  {id:uid(),phaseId:'INDISPO',name:'Dir. Projet - Ben LIBERTY',             owner:'MECALUX', start:'2026-07-27',end:'2026-08-26',status:'',priority:'',progress:0,deliverable:'',isUnavail:true},
+  {id:uid(),phaseId:'INDISPO',name:'Dir. Projet - DPName',             owner:'MECALUX', start:'2026-07-27',end:'2026-08-26',status:'',priority:'',progress:0,deliverable:'',isUnavail:true},
   {id:uid(),phaseId:'INDISPO',name:'Chef de Projet Technique - Timothy MARCIA',owner:'MECALUX',start:'',end:'',status:'',priority:'',progress:0,deliverable:'',isUnavail:true},
-  {id:uid(),phaseId:'INDISPO',name:'Responsable Logistique - Cyril SERAFINI',owner:'NIC IMPEX',start:'',end:'',status:'',priority:'',progress:0,deliverable:'',isUnavail:true},
-  {id:uid(),phaseId:'INDISPO',name:'Responsable de dépôt - Stephan GROS',   owner:'NIC IMPEX',start:'',end:'',status:'',priority:'',progress:0,deliverable:'',isUnavail:true},
-  {id:uid(),phaseId:'INDISPO',name:'Responsable ADV - Ludiwine MOREAUD',     owner:'NIC IMPEX',start:'',end:'',status:'',priority:'',progress:0,deliverable:'',isUnavail:true},
+  {id:uid(),phaseId:'INDISPO',name:'Responsable Logistique - Cyril SERAFINI',owner:'clientName',start:'',end:'',status:'',priority:'',progress:0,deliverable:'',isUnavail:true},
+  {id:uid(),phaseId:'INDISPO',name:'Responsable de dépôt - Stephan GROS',   owner:'clientName',start:'',end:'',status:'',priority:'',progress:0,deliverable:'',isUnavail:true},
+  {id:uid(),phaseId:'INDISPO',name:'Responsable ADV - Ludiwine MOREAUD',     owner:'clientName',start:'',end:'',status:'',priority:'',progress:0,deliverable:'',isUnavail:true},
   {id:uid(),phaseId:'PLAN',name:"Visite d'Analyse Fonctionnelle",            owner:'TOUS',start:'2026-04-02',end:'2026-04-02',status:'Terminé',priority:'',progress:100,deliverable:''},
   {id:uid(),phaseId:'PLAN',name:"Ateliers & Rédaction de l'Analyse Fonctionnelle",owner:'TOUS',start:'2026-04-03',end:'2026-05-15',status:'Terminé',priority:'',progress:100,deliverable:''},
   {id:uid(),phaseId:'PLAN',name:"Validation de l'Analyse Fonctionnelle",     owner:'TOUS',start:'2026-05-15',end:'2026-05-15',status:'Terminé',priority:'',progress:100,deliverable:''},
@@ -123,14 +130,14 @@ let tasks=[
   {id:uid(),phaseId:'DEV',name:'Développements Fonctionnels',                owner:'MECALUX',start:'2026-06-01',end:'2026-06-26',status:'',priority:'',progress:0,deliverable:''},
   {id:uid(),phaseId:'DEV',name:'Tests et validation développements fonctionnels',owner:'MECALUX',start:'2026-06-01',end:'2026-06-26',status:'',priority:'',progress:0,deliverable:''},
   {id:uid(),phaseId:'DEV',name:'Paramétrage environnement client',            owner:'MECALUX',start:'2026-06-08',end:'2026-06-12',status:'',priority:'',progress:0,deliverable:''},
-  {id:uid(),phaseId:'DEV',name:'Étiquetage Entrepôt',                       owner:'NIC IMPEX',start:'2026-06-26',end:'2026-06-26',status:'',priority:'',progress:0,deliverable:''},
+  {id:uid(),phaseId:'DEV',name:'Étiquetage Entrepôt',                       owner:'clientName',start:'2026-06-26',end:'2026-06-26',status:'',priority:'',progress:0,deliverable:''},
   {id:uid(),phaseId:'DEV',name:'Paramétrage des TRF / Imprimantes',          owner:'MECALUX',start:'2026-06-01',end:'2026-06-12',status:'',priority:'',progress:0,deliverable:''},
   {id:uid(),phaseId:'FORM',name:'Formation des Key Users',                   owner:'MECALUX',start:'2026-06-15',end:'2026-06-16',status:'',priority:'',progress:0,deliverable:''},
-  {id:uid(),phaseId:'FORM',name:'Tests et validation des développements',     owner:'NIC IMPEX',start:'2026-06-17',end:'2026-07-06',status:'',priority:'',progress:0,deliverable:''},
-  {id:uid(),phaseId:'FORM',name:'Formation des opérateurs',                  owner:'NIC IMPEX',start:'2026-07-09',end:'2026-09-05',status:'',priority:'',progress:0,deliverable:''},
-  {id:uid(),phaseId:'FORM',name:'Inventaire localisé des stocks - Dry Run WMS',owner:'NIC IMPEX',start:'2026-07-15',end:'2026-07-15',status:'',priority:'',progress:0,deliverable:''},
+  {id:uid(),phaseId:'FORM',name:'Tests et validation des développements',     owner:'clientName',start:'2026-06-17',end:'2026-07-06',status:'',priority:'',progress:0,deliverable:''},
+  {id:uid(),phaseId:'FORM',name:'Formation des opérateurs',                  owner:'clientName',start:'2026-07-09',end:'2026-09-05',status:'',priority:'',progress:0,deliverable:''},
+  {id:uid(),phaseId:'FORM',name:'Inventaire localisé des stocks - Dry Run WMS',owner:'clientName',start:'2026-07-15',end:'2026-07-15',status:'',priority:'',progress:0,deliverable:''},
   {id:uid(),phaseId:'FORM',name:'DRY RUN & GO/NO GO',                       owner:'TOUS',start:'2026-07-15',end:'2026-07-15',status:'',priority:'',progress:0,deliverable:'',barColor:'#dc2626'},
-  {id:uid(),phaseId:'FORM',name:'Inventaire complet des stocks pour GO LIVE',owner:'NIC IMPEX',start:'2026-09-10',end:'2026-09-11',status:'',priority:'',progress:0,deliverable:''},
+  {id:uid(),phaseId:'FORM',name:'Inventaire complet des stocks pour GO LIVE',owner:'clientName',start:'2026-09-10',end:'2026-09-11',status:'',priority:'',progress:0,deliverable:''},
   {id:uid(),phaseId:'FORM',name:'INSTALLATION',                              owner:'TOUS',start:'2026-09-14',end:'2026-09-18',status:'',priority:'',progress:0,deliverable:'',barColor:'#ea580c'},
   {id:uid(),phaseId:'FORM',name:'HyperCare',                                 owner:'MECALUX',start:'2026-09-21',end:'2026-10-16',status:'',priority:'',progress:0,deliverable:'',barColor:'#4f46e5'},
 ];
@@ -275,12 +282,12 @@ function renderGantt(){
           td.style.padding='2px 6px';td.innerHTML=prioHTML(task.priority);
           td.querySelector('span').addEventListener('click',e=>{e.stopPropagation();showDropdown(td.querySelector('span'),PRIO_OPTS,val=>{updateTask(task.id,'priority',val);renderGantt();});});
         }else if(lbl==='INTITULÉ'){
-          td.contentEditable=true;td.textContent=task.name;td.style.padding='2px 6px';td.style.fontWeight=task.isUnavail?'400':'500';
+          td.contentEditable=true;td.textContent=formatTemplate(task.name);td.style.padding='2px 6px';td.style.fontWeight=task.isUnavail?'400':'500';
           if(done){td.style.textDecoration='line-through';td.style.color='var(--text-muted)';}
           td.onblur=e=>updateTask(task.id,'name',e.target.textContent.trim());
         }else if(lbl==='PROPRIÉTAIRE'){
-          td.contentEditable=true;td.textContent=task.owner;td.style.padding='2px 6px';
-          td.onblur=e=>updateTask(task.id,'owner',e.target.textContent.trim());
+          td.contentEditable=true;td.textContent=formatOwner(task.owner);td.style.padding='2px 6px';
+          td.onblur=e=>updateTask(task.id,'owner',normalizeSpecialLabel(e.target.textContent.trim()));
         }else if(lbl==='DÉBUT'||lbl==='FIN'){
           const field=lbl==='DÉBUT'?'start':'end';
           const inp=document.createElement('input');inp.type='date';inp.value=task[field]||'';
@@ -351,7 +358,7 @@ function closeModal(id){document.getElementById(id).classList.remove('open');}
 function saveTask(){
   const name=document.getElementById('task-name').value.trim();
   if(!name){alert('Veuillez saisir un intitulé.');return;}
-  const data={phaseId:document.getElementById('task-phase').value,name,owner:document.getElementById('task-owner').value.trim(),start:document.getElementById('task-start').value,end:document.getElementById('task-end').value,status:document.getElementById('task-status').value,priority:document.getElementById('task-priority').value,progress:+document.getElementById('task-progress').value||0,deliverable:document.getElementById('task-deliverable').value.trim()};
+  const data={phaseId:document.getElementById('task-phase').value,name,owner:normalizeSpecialLabel(document.getElementById('task-owner').value.trim()),start:document.getElementById('task-start').value,end:document.getElementById('task-end').value,status:document.getElementById('task-status').value,priority:document.getElementById('task-priority').value,progress:+document.getElementById('task-progress').value||0,deliverable:document.getElementById('task-deliverable').value.trim()};
   if(_editingTaskId){Object.assign(tasks.find(t=>t.id===_editingTaskId),data);}
   else{tasks.push({id:uid(),...data});}
   closeModal('modal-task');renderGantt();renderDashboard();
@@ -562,20 +569,20 @@ function addDryrun(){dryrunData.push({id:uid(),name:'Nouveau prérequis',etat:'N
 const INST_STATES=['Non','En cours','Oui','KO'];
 const INST_D={'Oui':'#059669','Non':'#94a3b8','En cours':'#2563eb','KO':'#dc2626'};
 const INST_B={'Oui':'cell-ok','Non':'cell-none','En cours':'cell-wip','KO':'cell-ko'};
-const INST_QUI=['MECALUX','NIC IMPEX','TOUS','Prestataire externe','—'];
+const INST_QUI=['MECALUX','clientName','TOUS','Prestataire externe','—'];
 let installData=[
-  {id:uid(),action:"Plan de l'entrepôt à jour – autorisations vérifiées",etat:'En cours',qui:'NIC IMPEX',deadline:'',comment:'Mise à jour plan en cours (29/04).'},
+  {id:uid(),action:"Plan de l'entrepôt à jour – autorisations vérifiées",etat:'En cours',qui:'clientName',deadline:'',comment:'Mise à jour plan en cours (29/04).'},
   {id:uid(),action:'Entrepôt couvert par le WIFI',etat:'Oui',qui:'',deadline:'',comment:'Audit Wifi fait, 2 antennes encore à tester.'},
   {id:uid(),action:'Serveur installé et WMS accessible sans VPN',etat:'Non',qui:'MECALUX',deadline:'',comment:"SaaS déployé d'ici peu."},
-  {id:uid(),action:'TRF disponibles et configurés correctement',etat:'Oui',qui:'NIC IMPEX',deadline:'',comment:''},
-  {id:uid(),action:'Racks installés et étiquetés correctement',etat:'En cours',qui:'NIC IMPEX',deadline:'',comment:'Étiquettes test reçues.'},
-  {id:uid(),action:'Imprimantes disponibles, alimentées et connectées',etat:'En cours',qui:'NIC IMPEX',deadline:'',comment:"Serveur d'impression sur serveur existant."},
-  {id:uid(),action:'Ordinateurs EasyWMS disponibles et connectés',etat:'En cours',qui:'NIC IMPEX',deadline:'',comment:'3 zones emballage : 1 PC + 3 TRF chacune.'},
+  {id:uid(),action:'TRF disponibles et configurés correctement',etat:'Oui',qui:'clientName',deadline:'',comment:''},
+  {id:uid(),action:'Racks installés et étiquetés correctement',etat:'En cours',qui:'clientName',deadline:'',comment:'Étiquettes test reçues.'},
+  {id:uid(),action:'Imprimantes disponibles, alimentées et connectées',etat:'En cours',qui:'clientName',deadline:'',comment:"Serveur d'impression sur serveur existant."},
+  {id:uid(),action:'Ordinateurs EasyWMS disponibles et connectés',etat:'En cours',qui:'clientName',deadline:'',comment:'3 zones emballage : 1 PC + 3 TRF chacune.'},
   {id:uid(),action:'Communications WMS ↔ ERP fonctionnelles',etat:'En cours',qui:'MECALUX',deadline:'',comment:'Dry Run ERP à terminer.'},
   {id:uid(),action:"Process de l'AF en préproduction",etat:'En cours',qui:'MECALUX',deadline:'',comment:'Il manque les transporteurs GLS, BPost, PostNL.'},
   {id:uid(),action:'Process testés et compris par Key Users',etat:'En cours',qui:'TOUS',deadline:'',comment:'Réception, Rangement, Config emplacements OK.'},
   {id:uid(),action:'Plan de tests fonctionnel rédigé et envoyé',etat:'En cours',qui:'MECALUX',deadline:'',comment:'En cours pour préparation commande.'},
-  {id:uid(),action:'Plans de tests WMS validés par le client',etat:'Non',qui:'NIC IMPEX',deadline:'',comment:''},
+  {id:uid(),action:'Plans de tests WMS validés par le client',etat:'Non',qui:'clientName',deadline:'',comment:''},
 ];
 function instBadge(v){return`<span class="${INST_B[v]||'cell-none'}" style="cursor:pointer">${v}</span>`;}
 function renderInstall(){
@@ -585,7 +592,7 @@ function renderInstall(){
     tr.innerHTML=`<td>${dh()}</td>
       <td contenteditable="true" style="font-weight:500;min-width:230px" onblur="installData.find(r=>r.id==='${row.id}').action=this.textContent.trim()">${row.action}</td>
       <td style="min-width:88px">${instBadge(row.etat)}</td>
-      <td><select class="tbl-sel" onchange="installData.find(r=>r.id==='${row.id}').qui=this.value">${INST_QUI.map(o=>`<option${o===row.qui?' selected':''}>${o}</option>`).join('')}</select></td>
+      <td><select class="tbl-sel" onchange="installData.find(r=>r.id==='${row.id}').qui=normalizeSpecialLabel(this.value)">${INST_QUI.map(o=>`<option value="${o}"${(o===row.qui|| (o===CLIENT_TOKEN && row.qui===getClientLabel()))?' selected':''}>${o===CLIENT_TOKEN?getClientLabel():o}</option>`).join('')}</select></td>
       <td><input type="date" value="${row.deadline||''}" style="border:none;background:transparent;font-family:inherit;font-size:11.5px;width:100%" onchange="installData.find(r=>r.id==='${row.id}').deadline=this.value"></td>
       <td contenteditable="true" style="color:var(--text-muted);min-width:170px" onblur="installData.find(r=>r.id==='${row.id}').comment=this.textContent.trim()">${row.comment}</td>
       <td><button class="btn btn-sm btn-danger" onclick="installData=installData.filter(r=>r.id!=='${row.id}');renderInstall()">✕</button></td>`;
@@ -712,6 +719,9 @@ function renderDashboard(){
 }
 
 // ═══ INIT ═══
+document.getElementById('pi-client').addEventListener('input',()=>{renderGantt();renderInstall();renderDashboard();});
+document.getElementById('pi-pm').addEventListener('input',()=>{renderGantt();renderDashboard();});
+
 renderGantt();
 renderHeures();
 renderTaches();

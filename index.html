@@ -54,8 +54,8 @@
 <div class="page" id="page-planning">
   <div class="project-header">
     <div class="info-item"><label>Projet</label><input id="pi-project" value="Easy WMS" oninput="syncNav()"></div>
-    <div class="info-item"><label>Directeur de Projet</label><input id="pi-pm" value="Ben LIBERTY"></div>
-    <div class="info-item"><label>Client</label><input id="pi-client" value="NIC IMPEX SA"></div>
+    <div class="info-item"><label>Directeur de Projet</label><input id="pi-pm" value="DPName"></div>
+    <div class="info-item"><label>Client</label><input id="pi-client" value="clientName"></div>
     <div class="info-item"><label>Date de début</label><input id="pi-start" type="date" value="2026-03-21" onchange="renderGantt()"></div>
     <div class="info-item"><label>Date d'installation</label><input id="pi-install" type="date" value="2026-09-14"></div>
     <div class="info-item"><label>Date de fin</label><input id="pi-end" type="date" value="2026-10-16" onchange="renderGantt()"></div>
@@ -159,7 +159,7 @@
     <h3 id="modal-task-title">Nouvelle Tâche</h3>
     <div class="form-row"><label>Phase</label><select id="task-phase"></select></div>
     <div class="form-row"><label>Intitulé *</label><input id="task-name" type="text"></div>
-    <div class="form-row"><label>Propriétaire</label><input id="task-owner" type="text" placeholder="MECALUX, NIC IMPEX, TOUS…"></div>
+    <div class="form-row"><label>Propriétaire</label><input id="task-owner" type="text" placeholder="MECALUX, clientName, TOUS…"></div>
     <div class="form-2col">
       <div class="form-row"><label>Début</label><input id="task-start" type="date"></div>
       <div class="form-row"><label>Fin</label><input id="task-end" type="date"></div>
