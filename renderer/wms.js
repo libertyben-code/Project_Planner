@@ -717,17 +717,52 @@ const ITF_TYPE_OPTS = ['Connecteur ERP','API REST','Fichier plat','Web Service',
 const ITF_D = {'OUI':'#059669','NON':'#94a3b8','EN COURS':'#2563eb','KO':'#dc2626'};
 const ITF_B = {'OUI':'cell-ok','NON':'cell-none','EN COURS':'cell-wip','KO':'cell-ko'};
 
+let _editingInterfaceId = null;
+function openEditInterface(id) {
+  _editingInterfaceId = id;
+  const r = interfacesData.find(r => r.id === id); if (!r) return;
+  document.getElementById('ei-name').value       = r.name || '';
+  document.getElementById('ei-type').value       = r.type || 'Connecteur ERP';
+  document.getElementById('ei-dev').value        = r.dev || 'NON';
+  document.getElementById('ei-preprod').value    = r.preprod || 'NON';
+  document.getElementById('ei-recMecalux').value = r.recMecalux || 'NON';
+  document.getElementById('ei-recClient').value  = r.recClient || 'NON';
+  document.getElementById('ei-valide').value     = r.valide || 'NON';
+  document.getElementById('ei-comment').value    = r.comment || '';
+  document.getElementById('modal-edit-interface').classList.add('open');
+}
+function saveInterface() {
+  if (!_editingInterfaceId) return;
+  const r = interfacesData.find(r => r.id === _editingInterfaceId); if (!r) return;
+  const name = document.getElementById('ei-name').value.trim();
+  if (!name) { alert('Veuillez saisir un nom.'); return; }
+  r.name       = name;
+  r.type       = document.getElementById('ei-type').value;
+  r.dev        = document.getElementById('ei-dev').value;
+  r.preprod    = document.getElementById('ei-preprod').value;
+  r.recMecalux = document.getElementById('ei-recMecalux').value;
+  r.recClient  = document.getElementById('ei-recClient').value;
+  r.valide     = document.getElementById('ei-valide').value;
+  r.comment    = document.getElementById('ei-comment').value.trim();
+  closeModal('modal-edit-interface'); renderInterfaces(); renderDashboard(); debouncedSave();
+}
+function deleteInterfaceFromModal() {
+  if (!_editingInterfaceId) return;
+  closeModal('modal-edit-interface');
+  deleteInterface(_editingInterfaceId);
+}
+
 function itfBadge(v) { return `<span class="${ITF_B[v]||'cell-none'}" style="cursor:pointer">${v}</span>`; }
 function renderInterfaces() {
   const tbody = document.getElementById('tbody-interfaces'); tbody.innerHTML = '';
   interfacesData.forEach(row => {
     const tr = tbody.insertRow(); tr.dataset.rowId = row.id;
     tr.innerHTML = `<td>${dh()}</td>
-      <td><select class="tbl-sel" onchange="interfacesData.find(r=>r.id==='${row.id}').type=this.value;_DS()">${ITF_TYPE_OPTS.map(o=>`<option${o===row.type?' selected':''}>${o}</option>`).join('')}</select></td>
-      <td contenteditable="true" style="font-weight:500;min-width:180px" onblur="interfacesData.find(r=>r.id==='${row.id}').name=this.textContent.trim();_DS()">${row.name}</td>
+      <td style="font-size:12px">${row.type}</td>
+      <td style="font-weight:500">${row.name}</td>
       <td>${itfBadge(row.dev)}</td><td>${itfBadge(row.preprod)}</td><td>${itfBadge(row.recMecalux)}</td><td>${itfBadge(row.recClient)}</td><td>${itfBadge(row.valide)}</td>
-      <td contenteditable="true" style="color:var(--text-muted);min-width:120px" onblur="interfacesData.find(r=>r.id==='${row.id}').comment=this.textContent.trim();_DS()">${row.comment}</td>
-      <td><button class="btn btn-sm btn-danger" onclick="deleteInterface('${row.id}')">✕</button></td>`;
+      <td style="color:var(--text-muted);font-size:12px">${row.comment}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="openEditInterface('${row.id}')">✏</button></td>`;
     ['dev','preprod','recMecalux','recClient','valide'].forEach((f,fi) => {
       const sp = tr.cells[fi+3].querySelector('span');
       sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, ITF_STATES.map(v => ({label:v,value:v,dot:ITF_D[v]})), val => { row[f] = val; sp.className = ITF_B[val]||'cell-none'; sp.textContent = val; renderDashboard(); debouncedSave(); }); });
@@ -739,8 +774,8 @@ function addInterface() { interfacesData.push({id:uid(),type:'Connecteur ERP',na
 function deleteInterface(id) {
   const idx = interfacesData.findIndex(r => r.id === id); if (idx < 0) return;
   const deleted = { ...interfacesData[idx] };
-  interfacesData.splice(idx, 1); renderInterfaces(); debouncedSave();
-  showUndoToast(`Interface "${deleted.name}" supprimée`, () => { interfacesData.splice(idx, 0, deleted); renderInterfaces(); });
+  interfacesData.splice(idx, 1); renderInterfaces(); renderDashboard(); debouncedSave();
+  showUndoToast(`Interface "${deleted.name}" supprimée`, () => { interfacesData.splice(idx, 0, deleted); renderInterfaces(); renderDashboard(); });
 }
 
 // ═══ FONCTIONNEL ═══
@@ -865,18 +900,52 @@ const INST_D = {'Oui':'#059669','Non':'#94a3b8','En cours':'#2563eb','KO':'#dc26
 const INST_B = {'Oui':'cell-ok','Non':'cell-none','En cours':'cell-wip','KO':'cell-ko'};
 const INST_QUI = ['MECALUX', TOKEN_CLIENT,'TOUS','Prestataire externe','—'];
 
+let _editingInstallId = null;
+function openEditInstall(id) {
+  _editingInstallId = id;
+  const r = installData.find(r => r.id === id); if (!r) return;
+  // Update client name option label dynamically
+  const clientOpt = document.getElementById('einst-qui-client');
+  if (clientOpt) clientOpt.textContent = getClientLabel();
+  document.getElementById('einst-action').value   = r.action || '';
+  document.getElementById('einst-etat').value     = r.etat || 'Non';
+  const quiVal = r.qui === TOKEN_CLIENT ? getClientLabel() : r.qui;
+  document.getElementById('einst-qui').value      = quiVal || 'MECALUX';
+  document.getElementById('einst-deadline').value = r.deadline || '';
+  document.getElementById('einst-comment').value  = r.comment || '';
+  document.getElementById('modal-edit-install').classList.add('open');
+}
+function saveInstall() {
+  if (!_editingInstallId) return;
+  const r = installData.find(r => r.id === _editingInstallId); if (!r) return;
+  const action = document.getElementById('einst-action').value.trim();
+  if (!action) { alert('Veuillez saisir une action.'); return; }
+  r.action   = action;
+  r.etat     = document.getElementById('einst-etat').value;
+  r.qui      = normalizeSpecialLabel(document.getElementById('einst-qui').value);
+  r.deadline = document.getElementById('einst-deadline').value;
+  r.comment  = document.getElementById('einst-comment').value.trim();
+  closeModal('modal-edit-install'); renderInstall(); renderDashboard(); debouncedSave();
+}
+function deleteInstallFromModal() {
+  if (!_editingInstallId) return;
+  closeModal('modal-edit-install');
+  deleteInstall(_editingInstallId);
+}
+
 function instBadge(v) { return `<span class="${INST_B[v]||'cell-none'}" style="cursor:pointer">${v}</span>`; }
 function renderInstall() {
   const tbody = document.getElementById('tbody-install'); tbody.innerHTML = '';
   installData.forEach(row => {
     const tr = tbody.insertRow(); tr.dataset.rowId = row.id;
+    const quiLabel = row.qui === TOKEN_CLIENT ? getClientLabel() : (row.qui || '—');
     tr.innerHTML = `<td>${dh()}</td>
-      <td contenteditable="true" style="font-weight:500;min-width:230px" onblur="installData.find(r=>r.id==='${row.id}').action=this.textContent.trim();_DS()">${row.action}</td>
+      <td style="font-weight:500">${row.action}</td>
       <td style="min-width:88px">${instBadge(row.etat)}</td>
-      <td><select class="tbl-sel" onchange="installData.find(r=>r.id==='${row.id}').qui=normalizeSpecialLabel(this.value);_DS()">${INST_QUI.map(o=>`<option value="${o}"${(o===row.qui||(o===TOKEN_CLIENT&&row.qui===getClientLabel()))?' selected':''}>${o===TOKEN_CLIENT?getClientLabel():o}</option>`).join('')}</select></td>
-      <td><input type="date" value="${row.deadline||''}" style="border:none;background:transparent;font-family:inherit;font-size:11.5px;width:100%" onchange="installData.find(r=>r.id==='${row.id}').deadline=this.value;_DS()"></td>
-      <td contenteditable="true" style="color:var(--text-muted);min-width:170px" onblur="installData.find(r=>r.id==='${row.id}').comment=this.textContent.trim();_DS()">${row.comment}</td>
-      <td><button class="btn btn-sm btn-danger" onclick="deleteInstall('${row.id}')">✕</button></td>`;
+      <td style="font-size:12px">${quiLabel}</td>
+      <td style="font-size:12px">${row.deadline||'—'}</td>
+      <td style="color:var(--text-muted);font-size:12px">${row.comment}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="openEditInstall('${row.id}')">✏</button></td>`;
     const sp = tr.cells[2].querySelector('span');
     sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, INST_STATES.map(v => ({label:v,value:v,dot:INST_D[v]})), val => { row.etat = val; sp.className = INST_B[val]||'cell-none'; sp.textContent = val; renderDashboard(); debouncedSave(); }); });
     makeDraggable(tr, installData, renderInstall);
@@ -886,8 +955,8 @@ function addInstall() { installData.push({id:uid(),action:'Nouveau prérequis',e
 function deleteInstall(id) {
   const idx = installData.findIndex(r => r.id === id); if (idx < 0) return;
   const deleted = { ...installData[idx] };
-  installData.splice(idx, 1); renderInstall(); debouncedSave();
-  showUndoToast(`Prérequis install "${deleted.action}" supprimé`, () => { installData.splice(idx, 0, deleted); renderInstall(); });
+  installData.splice(idx, 1); renderInstall(); renderDashboard(); debouncedSave();
+  showUndoToast(`Prérequis install "${deleted.action}" supprimé`, () => { installData.splice(idx, 0, deleted); renderInstall(); renderDashboard(); });
 }
 
 // ═══ FACTURATION ═══
@@ -895,26 +964,72 @@ const FACT_STATES = ['Payé','En cours','Retard','—'];
 const FACT_D = {'Payé':'#059669','En cours':'#2563eb','Retard':'#dc2626','—':'#94a3b8'};
 const FACT_B = {'Payé':'cell-ok','En cours':'cell-wip','Retard':'cell-ko','—':'cell-none'};
 
+let _editingJalonId = null, _editingJalonType = null;
+function openEditJalon(id, type) {
+  _editingJalonId = id; _editingJalonType = type;
+  const list = type === 'projet' ? jalonsProjet : jalonsEquip;
+  const r = list.find(r => r.id === id); if (!r) return;
+  document.getElementById('modal-edit-jalon-title').textContent = type === 'projet' ? 'Modifier le jalon Projet' : 'Modifier le jalon Équipement';
+  document.getElementById('ej-jalon').value   = r.jalon || '';
+  document.getElementById('ej-date').value    = r.date || '';
+  document.getElementById('ej-echeance').value = r.echeance || '';
+  document.getElementById('ej-etat').value    = r.etat || '—';
+  document.getElementById('ej-pct').value     = r.pct || 0;
+  document.getElementById('ej-montant').value = r.montant || 0;
+  document.getElementById('modal-edit-jalon').classList.add('open');
+}
+function saveJalon() {
+  if (!_editingJalonId) return;
+  const list = _editingJalonType === 'projet' ? jalonsProjet : jalonsEquip;
+  const r = list.find(r => r.id === _editingJalonId); if (!r) return;
+  const jalon = document.getElementById('ej-jalon').value.trim();
+  if (!jalon) { alert('Veuillez saisir un nom de jalon.'); return; }
+  r.jalon    = jalon;
+  r.date     = document.getElementById('ej-date').value;
+  r.echeance = document.getElementById('ej-echeance').value;
+  r.etat     = document.getElementById('ej-etat').value;
+  r.pct      = Math.min(100, Math.max(0, +document.getElementById('ej-pct').value || 0));
+  r.montant  = +document.getElementById('ej-montant').value || 0;
+  closeModal('modal-edit-jalon'); renderFacturation(); renderDashboard(); debouncedSave();
+}
+function deleteJalonFromModal() {
+  if (!_editingJalonId) return;
+  closeModal('modal-edit-jalon');
+  if (_editingJalonType === 'projet') del_fact_projet(_editingJalonId);
+  else del_fact_equip(_editingJalonId);
+}
+
 function factBadge(v) { return `<span class="${FACT_B[v]||'cell-none'}" style="cursor:pointer">${v}</span>`; }
+function fmtMontant(v) { return (v || 0).toLocaleString('fr-FR') + ' €'; }
 function renderFactRow(tbody, list, type) {
   tbody.innerHTML = '';
   list.forEach(row => {
     const tr = tbody.insertRow(); tr.dataset.rowId = row.id;
     tr.innerHTML = `<td>${dh()}</td>
-      <td contenteditable="true" style="font-weight:600;min-width:180px" onblur="(${type}==='projet'?jalonsProjet:jalonsEquip).find(r=>r.id==='${row.id}').jalon=this.textContent.trim();_DS()">${row.jalon}</td>
-      <td><input type="date" value="${row.date||''}" style="border:none;background:transparent;font-family:inherit;font-size:11.5px" onchange="(${type}==='projet'?jalonsProjet:jalonsEquip).find(r=>r.id==='${row.id}').date=this.value;_DS()"></td>
-      <td><input type="date" value="${row.echeance||''}" style="border:none;background:transparent;font-family:inherit;font-size:11.5px" onchange="(${type}==='projet'?jalonsProjet:jalonsEquip).find(r=>r.id==='${row.id}').echeance=this.value;_DS()"></td>
+      <td style="font-weight:600">${row.jalon}</td>
+      <td style="font-size:12px">${row.date||'—'}</td>
+      <td style="font-size:12px">${row.echeance||'—'}</td>
       <td style="min-width:78px">${factBadge(row.etat)}</td>
-      <td><input type="number" value="${row.pct}" min="0" max="100" style="width:40px;border:none;background:transparent;font-size:12px;text-align:right" onchange="(${type}==='projet'?jalonsProjet:jalonsEquip).find(r=>r.id==='${row.id}').pct=+this.value;renderFacturation();_DS()">%</td>
-      <td><input type="number" value="${row.montant}" min="0" style="width:88px;border:none;background:transparent;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;text-align:right" onchange="(${type}==='projet'?jalonsProjet:jalonsEquip).find(r=>r.id==='${row.id}').montant=+this.value;renderFacturation();_DS()"> €</td>
-      <td><button class="btn btn-sm btn-danger" onclick="del_fact_${type}('${row.id}')">✕</button></td>`;
+      <td style="text-align:right;font-size:12px">${row.pct||0}%</td>
+      <td style="text-align:right;font-weight:600;font-family:'DM Mono',monospace">${fmtMontant(row.montant)}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="openEditJalon('${row.id}','${type}')">✏</button></td>`;
     const sp = tr.cells[4].querySelector('span');
     sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, FACT_STATES.map(v => ({label:v,value:v,dot:FACT_D[v]})), val => { row.etat = val; sp.className = FACT_B[val]||'cell-none'; sp.textContent = val; renderFacturation(); renderDashboard(); debouncedSave(); }); });
     makeDraggable(tr, list, renderFacturation);
   });
 }
-function del_fact_projet(id) { jalonsProjet = jalonsProjet.filter(r => r.id !== id); renderFacturation(); debouncedSave(); }
-function del_fact_equip(id)  { jalonsEquip  = jalonsEquip.filter(r => r.id !== id);  renderFacturation(); debouncedSave(); }
+function del_fact_projet(id) {
+  const idx = jalonsProjet.findIndex(r => r.id === id); if (idx < 0) return;
+  const deleted = { ...jalonsProjet[idx] };
+  jalonsProjet.splice(idx, 1); renderFacturation(); renderDashboard(); debouncedSave();
+  showUndoToast(`Jalon "${deleted.jalon}" supprimé`, () => { jalonsProjet.splice(idx, 0, deleted); renderFacturation(); renderDashboard(); });
+}
+function del_fact_equip(id) {
+  const idx = jalonsEquip.findIndex(r => r.id === id); if (idx < 0) return;
+  const deleted = { ...jalonsEquip[idx] };
+  jalonsEquip.splice(idx, 1); renderFacturation(); renderDashboard(); debouncedSave();
+  showUndoToast(`Jalon "${deleted.jalon}" supprimé`, () => { jalonsEquip.splice(idx, 0, deleted); renderFacturation(); renderDashboard(); });
+}
 function addJalon(type) { const list = type === 'projet' ? jalonsProjet : jalonsEquip; list.push({id:uid(),jalon:'Nouveau jalon',date:'',echeance:'',etat:'—',pct:0,montant:0}); renderFacturation(); debouncedSave(); }
 function renderFacturation() {
   renderFactRow(document.getElementById('tbody-jalons-projet'), jalonsProjet, 'projet');
@@ -1290,10 +1405,11 @@ Object.assign(window, {
   deleteTask, removePhase, updateTask,
   scrollToToday, renderGantt, renderDashboard, exportPDF,
   addInternalTask, openEditInternalTask, saveInternalTask, deleteInternalTask, deleteInternalTaskFromModal,
-  addInterface,
+  addInterface, openEditInterface, saveInterface, deleteInterfaceFromModal,
   openEditFonctionnel, saveFonctionnel, deleteFonctionnelFromModal, addFonctionnel,
   openEditDryrun, saveDryrun, deleteDryrunFromModal, addDryrun,
-  addInstall, addJalon,
+  addInstall, openEditInstall, saveInstall, deleteInstallFromModal, deleteInstall,
+  addJalon, openEditJalon, saveJalon, deleteJalonFromModal,
   del_fact_projet, del_fact_equip, renderFacturation,
   addCustomHeuresRow, deleteHeuresRow, toggleHeuresHistory,
   openExportHTMLModal, doExportHTML, exportSelectAll,

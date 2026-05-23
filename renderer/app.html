@@ -194,11 +194,11 @@
   <div class="kpi-grid" id="kpi-fact"></div>
   <div class="panel">
     <div class="panel-header"><span class="panel-title">Jalons Projet</span><button class="btn btn-secondary btn-sm" onclick="addJalon('projet')">+ Jalon</button></div>
-    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th>Jalon</th><th style="width:108px">Date</th><th style="width:108px">Échéance</th><th style="width:88px">État</th><th style="width:46px">%</th><th style="width:118px">Montant (€)</th><th style="width:34px"></th></tr></thead><tbody id="tbody-jalons-projet"></tbody></table></div>
+    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th>Jalon</th><th style="width:100px">Date</th><th style="width:100px">Échéance</th><th style="width:88px">État</th><th style="width:46px">%</th><th style="width:140px">Montant</th><th style="width:50px"></th></tr></thead><tbody id="tbody-jalons-projet"></tbody></table></div>
   </div>
   <div class="panel">
     <div class="panel-header"><span class="panel-title">Jalons Équipement</span><button class="btn btn-secondary btn-sm" onclick="addJalon('equip')">+ Jalon</button></div>
-    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th>Jalon</th><th style="width:108px">Date</th><th style="width:108px">Échéance</th><th style="width:88px">État</th><th style="width:46px">%</th><th style="width:118px">Montant (€)</th><th style="width:34px"></th></tr></thead><tbody id="tbody-jalons-equip"></tbody></table></div>
+    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th>Jalon</th><th style="width:100px">Date</th><th style="width:100px">Échéance</th><th style="width:88px">État</th><th style="width:46px">%</th><th style="width:140px">Montant</th><th style="width:50px"></th></tr></thead><tbody id="tbody-jalons-equip"></tbody></table></div>
   </div>
 </div>
 
@@ -250,6 +250,71 @@
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-custom-tab')">Annuler</button>
       <button class="btn btn-primary" onclick="saveCustomTab()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Interface ERP modal -->
+<div class="modal-overlay" id="modal-edit-interface">
+  <div class="modal">
+    <h3>Modifier l'interface ERP</h3>
+    <div class="form-row"><label>Nom du fichier *</label><input id="ei-name" type="text"></div>
+    <div class="form-row"><label>Type</label><select id="ei-type"><option>Connecteur ERP</option><option>API REST</option><option>Fichier plat</option><option>Web Service</option><option>Manuel</option></select></div>
+    <div class="form-2col">
+      <div class="form-row"><label>Développé</label><select id="ei-dev"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+      <div class="form-row"><label>Livré Preprod</label><select id="ei-preprod"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+    </div>
+    <div class="form-2col">
+      <div class="form-row"><label>Recette Mecalux</label><select id="ei-recMecalux"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+      <div class="form-row"><label>Recette Client</label><select id="ei-recClient"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+    </div>
+    <div class="form-row"><label>Validé</label><select id="ei-valide"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+    <div class="form-row"><label>Commentaires</label><input id="ei-comment" type="text"></div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="deleteInterfaceFromModal()">Supprimer</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-interface')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveInterface()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Install modal -->
+<div class="modal-overlay" id="modal-edit-install">
+  <div class="modal">
+    <h3>Modifier le prérequis Installation</h3>
+    <div class="form-row"><label>Action *</label><input id="einst-action" type="text"></div>
+    <div class="form-2col">
+      <div class="form-row"><label>État</label><select id="einst-etat"><option>Non</option><option>En cours</option><option>Oui</option><option>KO</option></select></div>
+      <div class="form-row"><label>Qui ?</label><select id="einst-qui"><option>MECALUX</option><option id="einst-qui-client">clientName</option><option>TOUS</option><option>Prestataire externe</option><option>—</option></select></div>
+    </div>
+    <div class="form-row"><label>Deadline</label><input id="einst-deadline" type="date"></div>
+    <div class="form-row"><label>Commentaire</label><input id="einst-comment" type="text"></div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="deleteInstallFromModal()">Supprimer</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-install')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveInstall()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Jalon modal -->
+<div class="modal-overlay" id="modal-edit-jalon">
+  <div class="modal">
+    <h3 id="modal-edit-jalon-title">Modifier le jalon</h3>
+    <div class="form-row"><label>Jalon *</label><input id="ej-jalon" type="text"></div>
+    <div class="form-2col">
+      <div class="form-row"><label>Date</label><input id="ej-date" type="date"></div>
+      <div class="form-row"><label>Échéance</label><input id="ej-echeance" type="date"></div>
+    </div>
+    <div class="form-2col">
+      <div class="form-row"><label>État</label><select id="ej-etat"><option>—</option><option>En cours</option><option>Payé</option><option>Retard</option></select></div>
+      <div class="form-row"><label>%</label><input id="ej-pct" type="number" min="0" max="100" value="0"></div>
+    </div>
+    <div class="form-row"><label>Montant (€)</label><input id="ej-montant" type="number" min="0" value="0"></div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="deleteJalonFromModal()">Supprimer</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-jalon')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveJalon()">Enregistrer</button>
     </div>
   </div>
 </div>
