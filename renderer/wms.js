@@ -136,6 +136,8 @@ function renderAll() {
   renderGantt(); renderHeures(); renderTaches(); renderInterfaces();
   renderFonctionnel(); renderDryrun(); renderInstall(); renderFacturation();
   renderDashboard(); renderInstallDrift();
+  renderCustomTabs();
+  customTabs.forEach(t => renderCustomTabRows(t.id));
 }
 
 // ═══ META INPUTS ═══
@@ -862,10 +864,194 @@ function renderDashboard() {
   charts['dryrun'] = new Chart(document.getElementById('ch-dryrun'), {type:'doughnut',data:{labels:['OK','En cours','NON','KO'],datasets:[{data:[dryrunData.filter(r=>r.etat==='OK').length,dryrunData.filter(r=>r.etat==='En cours').length,dryrunData.filter(r=>r.etat==='NON').length,dryrunData.filter(r=>r.etat==='KO').length],backgroundColor:['#86efac','#93c5fd','#e2e7ed','#fca5a5'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}}}});
 }
 
-// ═══ CUSTOM TABS (Step 6 stubs) ═══
-function openAddCustomTabModal() { document.getElementById('modal-custom-tab').classList.add('open'); }
-function addCustomTabColumn() { /* Step 6 */ }
-function saveCustomTab()      { closeModal('modal-custom-tab'); /* Step 6 */ }
+// ═══ CUSTOM TABS ═══
+let _editingTabId = null;
+
+function openAddCustomTabModal() {
+  _editingTabId = null;
+  document.getElementById('modal-custom-tab-title').textContent = 'Nouvel Onglet';
+  document.getElementById('ct-name').value = '';
+  document.getElementById('ct-icon').value = '📋';
+  document.getElementById('ct-columns-list').innerHTML = '';
+  _ctCols = [];
+  addCustomTabColumn();
+  document.getElementById('modal-custom-tab').classList.add('open');
+}
+
+function openEditCustomTabModal(tabId) {
+  const tab = customTabs.find(t => t.id === tabId);
+  if (!tab) return;
+  _editingTabId = tabId;
+  document.getElementById('modal-custom-tab-title').textContent = 'Modifier l\'Onglet';
+  document.getElementById('ct-name').value = tab.name;
+  document.getElementById('ct-icon').value = tab.icon || '📋';
+  _ctCols = tab.columns.map(c => ({ ...c }));
+  renderCtColumns();
+  document.getElementById('modal-custom-tab').classList.add('open');
+}
+
+let _ctCols = [];
+function renderCtColumns() {
+  const list = document.getElementById('ct-columns-list');
+  list.innerHTML = '';
+  _ctCols.forEach((col, i) => {
+    const row = document.createElement('div');
+    row.className = 'ct-col-row';
+    row.innerHTML = `
+      <input type="text" placeholder="Libellé *" value="${col.label||''}" style="flex:1;min-width:120px" oninput="_ctCols[${i}].label=this.value">
+      <select style="width:110px" onchange="_ctCols[${i}].type=this.value;renderCtColumns()">
+        ${['text','select','date','checkbox'].map(t=>`<option value="${t}"${col.type===t?' selected':''}>${{text:'Texte',select:'Liste',date:'Date',checkbox:'Case'}[t]}</option>`).join('')}
+      </select>
+      ${col.type==='select' ? `<input type="text" placeholder="opt1, opt2…" value="${(col.options||[]).join(', ')}" style="flex:1;min-width:100px" oninput="_ctCols[${i}].options=this.value.split(',').map(s=>s.trim()).filter(Boolean)">` : '<span style="flex:1"></span>'}
+      <button class="btn btn-ghost btn-sm" onclick="_ctCols.splice(${i},1);renderCtColumns()" ${_ctCols.length<=1?'disabled':''}>✕</button>`;
+    list.appendChild(row);
+  });
+  document.getElementById('btn-add-col').disabled = _ctCols.length >= 5;
+}
+
+function addCustomTabColumn() {
+  if (_ctCols.length >= 5) return;
+  _ctCols.push({ key: 'col' + uid(), label: '', type: 'text', editable: true });
+  renderCtColumns();
+}
+
+function saveCustomTab() {
+  const name = document.getElementById('ct-name').value.trim();
+  if (!name) { alert('Veuillez saisir un nom d\'onglet.'); return; }
+  const cols = _ctCols.filter(c => c.label.trim());
+  if (!cols.length) { alert('Ajoutez au moins une colonne.'); return; }
+  if (_editingTabId) {
+    const tab = customTabs.find(t => t.id === _editingTabId);
+    tab.name = name; tab.icon = document.getElementById('ct-icon').value || '📋';
+    tab.columns = cols;
+  } else {
+    customTabs.push({ id: uid(), name, icon: document.getElementById('ct-icon').value || '📋', columns: cols, rows: [] });
+  }
+  closeModal('modal-custom-tab');
+  renderCustomTabs();
+  debouncedSave();
+}
+
+function renderCustomTabs() {
+  // Remove existing custom tab pages and nav tabs
+  document.querySelectorAll('.page.page-custom-tab').forEach(el => el.remove());
+  document.querySelectorAll('.nav-tab.nav-tab-custom').forEach(el => el.remove());
+
+  const navTabs = document.getElementById('nav-tabs');
+  const addBtn = navTabs.querySelector('.nav-tab-add');
+
+  customTabs.forEach(tab => {
+    // Nav tab
+    const navTab = document.createElement('div');
+    navTab.className = 'nav-tab nav-tab-custom';
+    navTab.dataset.page = 'page-ct-' + tab.id;
+    navTab.innerHTML = `${tab.icon||''} ${tab.name}`;
+    navTab.addEventListener('click', () => {
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      navTab.classList.add('active');
+      document.getElementById('page-ct-' + tab.id).classList.add('active');
+    });
+    navTabs.insertBefore(navTab, addBtn);
+
+    // Page
+    const page = document.createElement('div');
+    page.className = 'page page-custom-tab';
+    page.id = 'page-ct-' + tab.id;
+    page.innerHTML = buildCustomTabHTML(tab);
+    document.getElementById('custom-tabs-container').appendChild(page);
+  });
+}
+
+function buildCustomTabHTML(tab) {
+  const cols = tab.columns;
+  const headerCells = `<th style="width:26px"></th>${cols.map(c=>`<th>${c.label}</th>`).join('')}<th style="width:34px"></th>`;
+  const bodyId = `tbody-ct-${tab.id}`;
+  return `
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">${tab.icon||''} ${tab.name}</span>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="openEditCustomTabModal('${tab.id}')" title="Modifier l'onglet">✏ Modifier</button>
+          <button class="btn btn-secondary btn-sm" onclick="addCustomTabRow('${tab.id}')">＋ Ligne</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteCustomTab('${tab.id}')">🗑 Supprimer</button>
+        </div>
+      </div>
+      <div style="padding:0"><table class="data-table">
+        <thead><tr>${headerCells}</tr></thead>
+        <tbody id="${bodyId}"></tbody>
+      </table></div>
+    </div>`;
+}
+
+function renderCustomTabRows(tabId) {
+  const tab = customTabs.find(t => t.id === tabId);
+  if (!tab) return;
+  const tbody = document.getElementById('tbody-ct-' + tabId);
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  tab.rows.forEach(row => {
+    const tr = tbody.insertRow(); tr.dataset.rowId = row.id;
+    let cells = `<td>${dh()}</td>`;
+    tab.columns.forEach(col => {
+      const val = row[col.key] !== undefined ? row[col.key] : '';
+      if (col.type === 'checkbox') {
+        cells += `<td style="text-align:center"><input type="checkbox" ${val?'checked':''} onchange="ctSetCell('${tabId}','${row.id}','${col.key}',this.checked);_DS()"></td>`;
+      } else if (col.type === 'date') {
+        cells += `<td><input type="date" value="${val}" style="border:none;background:transparent;font-family:inherit;font-size:11.5px;width:100%" onchange="ctSetCell('${tabId}','${row.id}','${col.key}',this.value);_DS()"></td>`;
+      } else if (col.type === 'select') {
+        const opts = (col.options||[]).map(o=>`<option${o===val?' selected':''}>${o}</option>`).join('');
+        cells += `<td><select class="tbl-sel" onchange="ctSetCell('${tabId}','${row.id}','${col.key}',this.value);_DS()">${opts}</select></td>`;
+      } else {
+        cells += `<td contenteditable="true" onblur="ctSetCell('${tabId}','${row.id}','${col.key}',this.textContent.trim());_DS()">${val}</td>`;
+      }
+    });
+    cells += `<td><button class="btn btn-sm btn-danger" onclick="deleteCustomTabRow('${tabId}','${row.id}')">✕</button></td>`;
+    tr.innerHTML = cells;
+    makeDraggable(tr, tab.rows, () => { renderCustomTabRows(tabId); debouncedSave(); });
+  });
+}
+
+function ctSetCell(tabId, rowId, key, value) {
+  const tab = customTabs.find(t => t.id === tabId);
+  if (!tab) return;
+  const row = tab.rows.find(r => r.id === rowId);
+  if (row) row[key] = value;
+}
+
+function addCustomTabRow(tabId) {
+  const tab = customTabs.find(t => t.id === tabId);
+  if (!tab) return;
+  const row = { id: uid() };
+  tab.columns.forEach(col => { row[col.key] = col.type === 'checkbox' ? false : col.type === 'select' ? (col.options||[''])[0] : ''; });
+  tab.rows.push(row);
+  renderCustomTabRows(tabId);
+  debouncedSave();
+}
+
+function deleteCustomTabRow(tabId, rowId) {
+  const tab = customTabs.find(t => t.id === tabId);
+  if (!tab) return;
+  const idx = tab.rows.findIndex(r => r.id === rowId); if (idx < 0) return;
+  const deleted = { ...tab.rows[idx] };
+  tab.rows.splice(idx, 1);
+  renderCustomTabRows(tabId); debouncedSave();
+  showUndoToast('Ligne supprimée', () => { tab.rows.splice(idx, 0, deleted); renderCustomTabRows(tabId); });
+}
+
+function deleteCustomTab(tabId) {
+  if (!confirm('Supprimer cet onglet et toutes ses données ?')) return;
+  const idx = customTabs.findIndex(t => t.id === tabId); if (idx < 0) return;
+  const deleted = { ...customTabs[idx], rows: [...customTabs[idx].rows] };
+  customTabs.splice(idx, 1);
+  renderCustomTabs();
+  // Re-render rows for remaining tabs
+  customTabs.forEach(t => renderCustomTabRows(t.id));
+  debouncedSave();
+  showUndoToast(`Onglet "${deleted.name}" supprimé`, () => {
+    customTabs.splice(idx, 0, deleted); renderCustomTabs(); customTabs.forEach(t => renderCustomTabRows(t.id));
+  });
+}
 
 // ═══ HTML EXPORT (Step 7 stubs) ═══
 function openExportHTMLModal() {
@@ -953,7 +1139,8 @@ Object.assign(window, {
   del_fact_projet, del_fact_equip, renderFacturation,
   addCustomHeuresRow, deleteHeuresRow, toggleHeuresHistory,
   openExportHTMLModal, doExportHTML, exportSelectAll,
-  openAddCustomTabModal, addCustomTabColumn, saveCustomTab,
+  openAddCustomTabModal, openEditCustomTabModal, addCustomTabColumn, saveCustomTab,
+  renderCustomTabs, renderCustomTabRows, addCustomTabRow, deleteCustomTabRow, deleteCustomTab, ctSetCell,
   normalizeSpecialLabel, buildState,
 });
 

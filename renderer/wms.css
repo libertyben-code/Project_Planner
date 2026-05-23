@@ -191,3 +191,8 @@ td[contenteditable="true"]:focus{outline:2px solid var(--accent);outline-offset:
 /* ── Nav tab add button ── */
 .nav-tab-add{font-size:16px;padding:0 10px;line-height:1;border:1px dashed var(--border);border-radius:6px;color:var(--text-muted);}
 .nav-tab-add:hover{color:var(--text);border-color:var(--accent);}
+
+/* ── Custom tab column builder ── */
+.ct-col-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:6px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;}
+.ct-col-row input,.ct-col-row select{font-family:inherit;font-size:12px;padding:3px 7px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text);}
+.page-custom-tab{animation:none;}
