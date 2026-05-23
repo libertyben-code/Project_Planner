@@ -286,29 +286,47 @@ let _dragSrc = null, _dragArr = null, _dragRender = null;
 function makeDraggable(tr, arr, renderFn) {
   const handle = tr.querySelector('.drag-handle');
   if (!handle) return;
-  // Only the drag handle initiates a drag — prevents contenteditable/inputs from interfering
-  handle.setAttribute('draggable', 'true');
   handle.style.cursor = 'grab';
-  handle.addEventListener('dragstart', e => {
+
+  // mousedown on handle enables dragging on the row; reset on mouseup so a plain
+  // click never accidentally leaves the row in a draggable state
+  handle.addEventListener('mousedown', () => {
+    tr.draggable = true;
+    const reset = () => { tr.draggable = false; document.removeEventListener('mouseup', reset); };
+    document.addEventListener('mouseup', reset);
+  });
+
+  tr.addEventListener('dragstart', e => {
     _dragSrc = tr; _dragArr = arr; _dragRender = renderFn;
     tr.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', tr.dataset.rowId || '');
   });
-  handle.addEventListener('dragend', () => {
+  tr.addEventListener('dragend', () => {
+    tr.draggable = false;
     tr.classList.remove('dragging');
     document.querySelectorAll('.drag-over-top,.drag-over-bot').forEach(x => x.classList.remove('drag-over-top', 'drag-over-bot'));
     _dragSrc = null;
   });
-  tr.addEventListener('dragover', e => { if (!_dragSrc || _dragSrc === tr) return; e.preventDefault(); document.querySelectorAll('.drag-over-top,.drag-over-bot').forEach(x => x.classList.remove('drag-over-top', 'drag-over-bot')); const mid = tr.getBoundingClientRect().top + tr.getBoundingClientRect().height / 2; tr.classList.add(e.clientY < mid ? 'drag-over-top' : 'drag-over-bot'); });
+  tr.addEventListener('dragover', e => {
+    if (!_dragSrc || _dragSrc === tr) return;
+    e.preventDefault();
+    document.querySelectorAll('.drag-over-top,.drag-over-bot').forEach(x => x.classList.remove('drag-over-top', 'drag-over-bot'));
+    const mid = tr.getBoundingClientRect().top + tr.getBoundingClientRect().height / 2;
+    tr.classList.add(e.clientY < mid ? 'drag-over-top' : 'drag-over-bot');
+  });
   tr.addEventListener('dragleave', () => tr.classList.remove('drag-over-top', 'drag-over-bot'));
   tr.addEventListener('drop', e => {
-    e.preventDefault(); if (!_dragSrc || _dragSrc === tr) return;
-    const si = _dragArr.findIndex(r => r.id === _dragSrc.dataset.rowId), ti = _dragArr.findIndex(r => r.id === tr.dataset.rowId);
+    e.preventDefault();
+    if (!_dragSrc || _dragSrc === tr) return;
+    const si = _dragArr.findIndex(r => r.id === _dragSrc.dataset.rowId);
+    const ti = _dragArr.findIndex(r => r.id === tr.dataset.rowId);
     if (si < 0 || ti < 0) return;
-    const [item] = _dragArr.splice(si, 1);
     const after = e.clientY >= tr.getBoundingClientRect().top + tr.getBoundingClientRect().height / 2;
-    _dragArr.splice(after ? ti : ti, 0, item);
+    const [item] = _dragArr.splice(si, 1);
+    // After removing si, ti shifts down by 1 if si was before ti
+    const newTi = si < ti ? ti - 1 : ti;
+    _dragArr.splice(after ? newTi + 1 : newTi, 0, item);
     tr.classList.remove('drag-over-top', 'drag-over-bot');
     _dragRender(); debouncedSave();
   });
