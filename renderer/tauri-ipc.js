@@ -39,12 +39,12 @@ function _stub(cmd, args) {
   switch (cmd) {
 
     case 'read_recent': {
-      try { return JSON.parse(localStorage.getItem(PREFIX + 'recent') || '[]'); }
-      catch { return []; }
+      return localStorage.getItem(PREFIX + 'recent') || '[]';
     }
 
     case 'write_recent': {
-      localStorage.setItem(PREFIX + 'recent', JSON.stringify(args.data));
+      const str = typeof args.data === 'string' ? args.data : JSON.stringify(args.data);
+      localStorage.setItem(PREFIX + 'recent', str);
       return;
     }
 

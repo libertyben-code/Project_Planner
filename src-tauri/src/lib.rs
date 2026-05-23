@@ -59,7 +59,7 @@ fn write_recent(app: AppHandle, data: String) -> Result<(), String> {
 async fn open_dialog(app: AppHandle) -> Option<String> {
     app.dialog()
         .file()
-        .add_filter("WMS Plan", &["wmsplan"])
+        .add_filter("WMS Plan", &["wmsplan", "json"])
         .blocking_pick_file()
         .map(|p| p.to_string())
 }

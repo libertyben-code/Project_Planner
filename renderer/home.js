@@ -10,9 +10,16 @@ let pendingConfirm = null;  // fn to call when user clicks "Confirmer"
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 async function init() {
-  recent = await invoke('read_recent') || [];
-  if (!Array.isArray(recent)) recent = [];
+  try {
+    const raw = await invoke('read_recent');
+    // Tauri returns a JSON string; browser stub may return a parsed array — handle both
+    recent = typeof raw === 'string' ? JSON.parse(raw) : (Array.isArray(raw) ? raw : []);
+  } catch { recent = []; }
   render();
+}
+
+async function persistRecent() {
+  await invoke('write_recent', { data: JSON.stringify(recent) });
 }
 
 // ── Render project cards ──────────────────────────────────────────────────────
@@ -127,13 +134,28 @@ function navigateToApp(path) {
 }
 
 // ── Create project ────────────────────────────────────────────────────────────
+let _clientManuallyEdited = false;
+
 window.openNewProjectModal = function() {
-  // Pre-fill today's date for start
   const today = new Date().toISOString().slice(0, 10);
   document.getElementById('np-start').value = today;
+  document.getElementById('np-name').value = '';
+  document.getElementById('np-client').value = '';
+  _clientManuallyEdited = false;
   document.getElementById('modal-new-project').classList.add('open');
   document.getElementById('np-name').focus();
 };
+
+window.autoFillClient = function() {
+  if (_clientManuallyEdited) return;
+  const name = document.getElementById('np-name').value;
+  document.getElementById('np-client').value = name;
+};
+
+// Mark client as manually edited once the user types in it
+document.getElementById('np-client').addEventListener('input', () => {
+  _clientManuallyEdited = true;
+});
 
 window.closeNewProjectModal = function() {
   document.getElementById('modal-new-project').classList.remove('open');
@@ -237,7 +259,7 @@ window.removeFromRecent = function(path) {
     'Ce projet sera retiré de la liste récente. Le fichier ne sera pas supprimé.',
     async () => {
       recent = recent.filter(p => p.path !== path);
-      await invoke('write_recent', { data: recent });
+      await persistRecent();
       render();
     }
   );
@@ -273,7 +295,7 @@ async function addToRecent(meta, path) {
 
   // Keep max 20 recent
   if (recent.length > 20) recent = recent.slice(0, 20);
-  await invoke('write_recent', { data: recent });
+  await persistRecent();
 }
 
 function checklistProgress(items, doneValues) {
