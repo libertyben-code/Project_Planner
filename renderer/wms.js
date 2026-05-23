@@ -650,26 +650,60 @@ const ETAT_B = {'FAIT':'cell-ok','EN COURS':'cell-wip','À FAIRE':'cell-none','E
 const ETAT_D = {'FAIT':'#059669','EN COURS':'#2563eb','À FAIRE':'#94a3b8','EN ATTENTE':'#d97706','ANNULÉ':'#dc2626'};
 const URG_OPTS = [{label:'— Aucune —',value:0,dot:'#e2e7ed'},{label:'⭐ Faible',value:1,dot:'#94a3b8'},{label:'⭐⭐ Moyenne',value:2,dot:'#f59e0b'},{label:'⭐⭐⭐ Haute',value:3,dot:'#ef4444'}];
 
+let _editingTacheId = null;
+function openEditInternalTask(id) {
+  _editingTacheId = id;
+  const t = internalTasks.find(t => t.id === id); if (!t) return;
+  document.getElementById('et-action').value   = t.action || '';
+  document.getElementById('et-owner').value    = formatOwner(t.owner || '');
+  document.getElementById('et-etat').value     = t.etat || 'À FAIRE';
+  document.getElementById('et-urg').value      = t.urg ?? 1;
+  document.getElementById('et-temps').value    = t.temps || 0;
+  document.getElementById('et-deadline').value = t.deadline || '';
+  document.getElementById('et-comment').value  = t.comment || '';
+  document.getElementById('modal-edit-tache').classList.add('open');
+}
+function saveInternalTask() {
+  if (!_editingTacheId) return;
+  const t = internalTasks.find(t => t.id === _editingTacheId); if (!t) return;
+  const action = document.getElementById('et-action').value.trim();
+  if (!action) { alert('Veuillez saisir une action.'); return; }
+  t.action   = action;
+  t.owner    = normalizeSpecialLabel(document.getElementById('et-owner').value.trim());
+  t.etat     = document.getElementById('et-etat').value;
+  t.urg      = +document.getElementById('et-urg').value;
+  t.temps    = +document.getElementById('et-temps').value || 0;
+  t.deadline = document.getElementById('et-deadline').value;
+  t.comment  = document.getElementById('et-comment').value.trim();
+  closeModal('modal-edit-tache'); renderTaches(); debouncedSave();
+}
+function deleteInternalTaskFromModal() {
+  if (!_editingTacheId) return;
+  closeModal('modal-edit-tache');
+  deleteInternalTask(_editingTacheId);
+}
+
 function renderTaches() {
   const tbody = document.getElementById('tbody-taches'); tbody.innerHTML = '';
   internalTasks.forEach(task => {
     const tr = tbody.insertRow(); tr.dataset.rowId = task.id;
     const urgStr = task.urg ? '⭐'.repeat(task.urg) : '—';
     tr.innerHTML = `<td>${dh()}</td>
-      <td contenteditable="true" style="min-width:190px" onblur="internalTasks.find(t=>t.id==='${task.id}').action=this.textContent.trim();_DS()">${task.action}</td>
+      <td style="font-weight:500;min-width:190px">${task.action}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${formatOwner(task.owner||'')}</td>
       <td style="min-width:98px"><span class="${ETAT_B[task.etat]||'cell-none'}" style="cursor:pointer">${task.etat}</span></td>
-      <td style="text-align:center"><input type="number" value="${task.temps||0}" min="0" style="width:48px;border:none;background:transparent;font-family:'DM Mono',monospace;font-size:12px;text-align:center" onchange="internalTasks.find(t=>t.id==='${task.id}').temps=+this.value;_DS()"></td>
-      <td><input type="date" value="${task.deadline||''}" style="border:none;background:transparent;font-family:inherit;font-size:11.5px;width:100%" onchange="internalTasks.find(t=>t.id==='${task.id}').deadline=this.value;_DS()"></td>
-      <td style="text-align:center;cursor:pointer"><span>${urgStr}</span></td>
-      <td contenteditable="true" style="color:var(--text-muted);min-width:120px" onblur="internalTasks.find(t=>t.id==='${task.id}').comment=this.textContent.trim();_DS()">${task.comment}</td>
-      <td><button class="btn btn-sm btn-danger" onclick="deleteInternalTask('${task.id}')">✕</button></td>`;
-    const etatSp = tr.cells[2].querySelector('span');
+      <td style="text-align:center;font-size:12px">${task.temps||0} h</td>
+      <td style="font-size:12px">${task.deadline||'—'}</td>
+      <td style="text-align:center"><span style="cursor:pointer">${urgStr}</span></td>
+      <td style="color:var(--text-muted);min-width:120px;font-size:12px">${task.comment||''}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="openEditInternalTask('${task.id}')">✏</button></td>`;
+    const etatSp = tr.cells[3].querySelector('span');
     etatSp.addEventListener('click', e => { e.stopPropagation(); showDropdown(etatSp, ETAT_INT.map(v => ({label:v,value:v,dot:ETAT_D[v]})), val => { task.etat = val; renderTaches(); debouncedSave(); }); });
-    tr.cells[5].querySelector('span').addEventListener('click', e => { e.stopPropagation(); showDropdown(tr.cells[5].querySelector('span'), URG_OPTS, val => { task.urg = val; renderTaches(); debouncedSave(); }); });
+    tr.cells[6].querySelector('span').addEventListener('click', e => { e.stopPropagation(); showDropdown(tr.cells[6].querySelector('span'), URG_OPTS, val => { task.urg = val; renderTaches(); debouncedSave(); }); });
     makeDraggable(tr, internalTasks, renderTaches);
   });
 }
-function addInternalTask() { internalTasks.push({id:uid(),action:'Nouvelle tâche',etat:'À FAIRE',temps:0,deadline:'',urg:1,comment:''}); renderTaches(); debouncedSave(); }
+function addInternalTask() { internalTasks.push({id:uid(),action:'Nouvelle tâche',owner:'',etat:'À FAIRE',temps:0,deadline:'',urg:1,comment:''}); renderTaches(); debouncedSave(); }
 function deleteInternalTask(id) {
   const idx = internalTasks.findIndex(t => t.id === id); if (idx < 0) return;
   const deleted = { ...internalTasks[idx] };
@@ -710,22 +744,63 @@ function deleteInterface(id) {
 }
 
 // ═══ FONCTIONNEL ═══
+let _editingFonctionnelId = null;
+function openEditFonctionnel(id) {
+  _editingFonctionnelId = id;
+  const r = fonctionnelData.find(r => r.id === id); if (!r) return;
+  document.getElementById('ef-name').value       = r.name || '';
+  document.getElementById('ef-pct').value        = r.pct || 0;
+  document.getElementById('ef-dev').value        = r.dev || 'NON';
+  document.getElementById('ef-testMec').value    = r.testMec || 'NON';
+  document.getElementById('ef-preprod').value    = r.preprod || 'NON';
+  document.getElementById('ef-formKU').value     = r.formKU || 'NON';
+  document.getElementById('ef-testClient').value = r.testClient || 'NON';
+  document.getElementById('ef-formUsers').value  = r.formUsers || 'NON';
+  document.getElementById('ef-comment').value    = r.comment || '';
+  document.getElementById('modal-edit-fonctionnel').classList.add('open');
+}
+function saveFonctionnel() {
+  if (!_editingFonctionnelId) return;
+  const r = fonctionnelData.find(r => r.id === _editingFonctionnelId); if (!r) return;
+  const name = document.getElementById('ef-name').value.trim();
+  if (!name) { alert('Veuillez saisir un nom de flux.'); return; }
+  r.name       = name;
+  r.pct        = Math.min(100, Math.max(0, +document.getElementById('ef-pct').value || 0));
+  r.dev        = document.getElementById('ef-dev').value;
+  r.testMec    = document.getElementById('ef-testMec').value;
+  r.preprod    = document.getElementById('ef-preprod').value;
+  r.formKU     = document.getElementById('ef-formKU').value;
+  r.testClient = document.getElementById('ef-testClient').value;
+  r.formUsers  = document.getElementById('ef-formUsers').value;
+  r.comment    = document.getElementById('ef-comment').value.trim();
+  closeModal('modal-edit-fonctionnel'); renderFonctionnel(); debouncedSave();
+}
+function deleteFonctionnelFromModal() {
+  if (!_editingFonctionnelId) return;
+  closeModal('modal-edit-fonctionnel');
+  const id = _editingFonctionnelId;
+  const idx = fonctionnelData.findIndex(r => r.id === id); if (idx < 0) return;
+  const deleted = { ...fonctionnelData[idx] };
+  fonctionnelData.splice(idx, 1); renderFonctionnel(); debouncedSave();
+  showUndoToast(`Flux "${deleted.name}" supprimé`, () => { fonctionnelData.splice(idx, 0, deleted); renderFonctionnel(); });
+}
+
 function renderFonctionnel() {
   const tbody = document.getElementById('tbody-fonctionnel'); tbody.innerHTML = '';
   fonctionnelData.forEach(row => {
     const tr = tbody.insertRow(); tr.dataset.rowId = row.id;
     tr.innerHTML = `<td>${dh()}</td>
-      <td contenteditable="true" style="font-weight:600;min-width:160px" onblur="fonctionnelData.find(r=>r.id==='${row.id}').name=this.textContent.trim();_DS()">${row.name}</td>
+      <td style="font-weight:600;min-width:160px">${row.name}</td>
       <td>${itfBadge(row.dev)}</td>
       <td style="text-align:center;cursor:pointer"><span>${row.pct}%</span></td>
       <td>${itfBadge(row.testMec)}</td><td>${itfBadge(row.preprod)}</td><td>${itfBadge(row.formKU)}</td><td>${itfBadge(row.testClient)}</td><td>${itfBadge(row.formUsers)}</td>
-      <td contenteditable="true" style="color:var(--text-muted);min-width:110px" onblur="fonctionnelData.find(r=>r.id==='${row.id}').comment=this.textContent.trim();_DS()">${row.comment}</td>
-      <td><button class="btn btn-sm btn-danger" onclick="fonctionnelData=fonctionnelData.filter(r=>r.id!=='${row.id}');renderFonctionnel();_DS()">✕</button></td>`;
+      <td style="color:var(--text-muted);min-width:110px;font-size:12px">${row.comment}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="openEditFonctionnel('${row.id}')">✏</button></td>`;
     ['dev','testMec','preprod','formKU','testClient','formUsers'].forEach((f,fi) => {
       const td = tr.cells[[2,4,5,6,7,8][fi]]; const sp = td.querySelector('span');
       sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, ITF_STATES.map(v => ({label:v,value:v,dot:ITF_D[v]})), val => { row[f] = val; sp.className = ITF_B[val]||'cell-none'; sp.textContent = val; debouncedSave(); }); });
     });
-    tr.cells[3].querySelector('span').addEventListener('click', () => { const v = prompt('% tâches terminées :', row.pct); if (v !== null && !isNaN(+v)) { row.pct = Math.min(100,Math.max(0,+v)); renderFonctionnel(); debouncedSave(); } });
+    tr.cells[3].querySelector('span').addEventListener('click', e => { e.stopPropagation(); showDropdown(tr.cells[3].querySelector('span'), [0,10,20,30,40,50,60,70,80,90,100].map(v=>({label:v+'%',value:v,dot:'#2563eb'})), val => { row.pct = val; renderFonctionnel(); debouncedSave(); }); });
     makeDraggable(tr, fonctionnelData, renderFonctionnel);
   });
 }
@@ -736,16 +811,41 @@ const DR_STATES = ['NON','En cours','OK','KO'];
 const DR_D = {'OK':'#059669','NON':'#94a3b8','En cours':'#2563eb','KO':'#dc2626'};
 const DR_B = {'OK':'cell-ok','NON':'cell-none','En cours':'cell-wip','KO':'cell-ko'};
 
+let _editingDryrunId = null;
+function openEditDryrun(id) {
+  _editingDryrunId = id;
+  const r = dryrunData.find(r => r.id === id); if (!r) return;
+  document.getElementById('edr-name').value    = r.name || '';
+  document.getElementById('edr-etat').value    = r.etat || 'NON';
+  document.getElementById('edr-comment').value = r.comment || '';
+  document.getElementById('modal-edit-dryrun').classList.add('open');
+}
+function saveDryrun() {
+  if (!_editingDryrunId) return;
+  const r = dryrunData.find(r => r.id === _editingDryrunId); if (!r) return;
+  const name = document.getElementById('edr-name').value.trim();
+  if (!name) { alert('Veuillez saisir un nom.'); return; }
+  r.name    = name;
+  r.etat    = document.getElementById('edr-etat').value;
+  r.comment = document.getElementById('edr-comment').value.trim();
+  closeModal('modal-edit-dryrun'); renderDryrun(); renderDashboard(); debouncedSave();
+}
+function deleteDryrunFromModal() {
+  if (!_editingDryrunId) return;
+  closeModal('modal-edit-dryrun');
+  deleteDryrun(_editingDryrunId);
+}
+
 function drBadge(v) { return `<span class="${DR_B[v]||'cell-none'}" style="cursor:pointer">${v}</span>`; }
 function renderDryrun() {
   const tbody = document.getElementById('tbody-dryrun'); tbody.innerHTML = '';
   dryrunData.forEach(row => {
     const tr = tbody.insertRow(); tr.dataset.rowId = row.id;
     tr.innerHTML = `<td>${dh()}</td>
-      <td contenteditable="true" style="font-weight:500" onblur="dryrunData.find(r=>r.id==='${row.id}').name=this.textContent.trim();_DS()">${formatTemplate(row.name)}</td>
+      <td style="font-weight:500">${formatTemplate(row.name)}</td>
       <td style="min-width:98px">${drBadge(row.etat)}</td>
-      <td contenteditable="true" style="color:var(--text-muted)" onblur="dryrunData.find(r=>r.id==='${row.id}').comment=this.textContent.trim();_DS()">${row.comment}</td>
-      <td><button class="btn btn-sm btn-danger" onclick="deleteDryrun('${row.id}')">✕</button></td>`;
+      <td style="color:var(--text-muted);font-size:12px">${row.comment}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="openEditDryrun('${row.id}')">✏</button></td>`;
     const sp = tr.cells[2].querySelector('span');
     sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, DR_STATES.map(v => ({label:v,value:v,dot:DR_D[v]})), val => { row.etat = val; sp.className = DR_B[val]||'cell-none'; sp.textContent = val; renderDashboard(); debouncedSave(); }); });
     makeDraggable(tr, dryrunData, renderDryrun);
@@ -755,8 +855,8 @@ function addDryrun() { dryrunData.push({id:uid(),name:'Nouveau prérequis',etat:
 function deleteDryrun(id) {
   const idx = dryrunData.findIndex(r => r.id === id); if (idx < 0) return;
   const deleted = { ...dryrunData[idx] };
-  dryrunData.splice(idx, 1); renderDryrun(); debouncedSave();
-  showUndoToast(`Prérequis "${deleted.name}" supprimé`, () => { dryrunData.splice(idx, 0, deleted); renderDryrun(); });
+  dryrunData.splice(idx, 1); renderDryrun(); renderDashboard(); debouncedSave();
+  showUndoToast(`Prérequis "${deleted.name}" supprimé`, () => { dryrunData.splice(idx, 0, deleted); renderDryrun(); renderDashboard(); });
 }
 
 // ═══ INSTALL ═══
@@ -1189,7 +1289,11 @@ Object.assign(window, {
   closeModal, saveTask, savePhase,
   deleteTask, removePhase, updateTask,
   scrollToToday, renderGantt, renderDashboard, exportPDF,
-  addInternalTask, addInterface, addFonctionnel, addDryrun, addInstall, addJalon,
+  addInternalTask, openEditInternalTask, saveInternalTask, deleteInternalTask, deleteInternalTaskFromModal,
+  addInterface,
+  openEditFonctionnel, saveFonctionnel, deleteFonctionnelFromModal, addFonctionnel,
+  openEditDryrun, saveDryrun, deleteDryrunFromModal, addDryrun,
+  addInstall, addJalon,
   del_fact_projet, del_fact_equip, renderFacturation,
   addCustomHeuresRow, deleteHeuresRow, toggleHeuresHistory,
   openExportHTMLModal, doExportHTML, exportSelectAll,

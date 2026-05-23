@@ -153,7 +153,7 @@
 <div class="page" id="page-taches">
   <div class="panel">
     <div class="panel-header"><span class="panel-title">Suivi Tâches Internes</span><button class="btn btn-secondary btn-sm" onclick="addInternalTask()">+ Tâche</button></div>
-    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th>Action</th><th style="width:108px">État</th><th style="width:64px">Temps (h)</th><th style="width:108px">Deadline</th><th style="width:50px">Urg.</th><th>Commentaire</th><th style="width:34px"></th></tr></thead><tbody id="tbody-taches"></tbody></table></div>
+    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th>Action</th><th style="width:108px">Propriétaire</th><th style="width:108px">État</th><th style="width:64px">Temps (h)</th><th style="width:108px">Deadline</th><th style="width:50px">Urg.</th><th>Commentaire</th><th style="width:50px"></th></tr></thead><tbody id="tbody-taches"></tbody></table></div>
   </div>
 </div>
 
@@ -250,6 +250,71 @@
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-custom-tab')">Annuler</button>
       <button class="btn btn-primary" onclick="saveCustomTab()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Tâche Interne modal -->
+<div class="modal-overlay" id="modal-edit-tache">
+  <div class="modal">
+    <h3>Modifier la tâche interne</h3>
+    <div class="form-row"><label>Action *</label><input id="et-action" type="text"></div>
+    <div class="form-row"><label>Propriétaire</label><input id="et-owner" type="text" placeholder="MECALUX, clientName…"></div>
+    <div class="form-2col">
+      <div class="form-row"><label>État</label><select id="et-etat"><option>À FAIRE</option><option>EN COURS</option><option>FAIT</option><option>EN ATTENTE</option><option>ANNULÉ</option></select></div>
+      <div class="form-row"><label>Urgence</label><select id="et-urg"><option value="0">— Aucune —</option><option value="1">⭐ Faible</option><option value="2">⭐⭐ Moyenne</option><option value="3">⭐⭐⭐ Haute</option></select></div>
+    </div>
+    <div class="form-2col">
+      <div class="form-row"><label>Temps (h)</label><input id="et-temps" type="number" min="0" value="0"></div>
+      <div class="form-row"><label>Deadline</label><input id="et-deadline" type="date"></div>
+    </div>
+    <div class="form-row"><label>Commentaire</label><input id="et-comment" type="text"></div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="btn-delete-tache" onclick="deleteInternalTaskFromModal()">Supprimer</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-tache')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveInternalTask()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Fonctionnel modal -->
+<div class="modal-overlay" id="modal-edit-fonctionnel">
+  <div class="modal">
+    <h3>Modifier le flux fonctionnel</h3>
+    <div class="form-row"><label>Flux *</label><input id="ef-name" type="text"></div>
+    <div class="form-row"><label>% Tâches terminées</label><input id="ef-pct" type="number" min="0" max="100" value="0"></div>
+    <div class="form-2col">
+      <div class="form-row"><label>Développé</label><select id="ef-dev"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+      <div class="form-row"><label>Test Mecalux</label><select id="ef-testMec"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+    </div>
+    <div class="form-2col">
+      <div class="form-row"><label>Livraison Preprod</label><select id="ef-preprod"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+      <div class="form-row"><label>Formation Key Users</label><select id="ef-formKU"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+    </div>
+    <div class="form-2col">
+      <div class="form-row"><label>Test Client</label><select id="ef-testClient"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+      <div class="form-row"><label>Formation Users</label><select id="ef-formUsers"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+    </div>
+    <div class="form-row"><label>Commentaires</label><input id="ef-comment" type="text"></div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="deleteFonctionnelFromModal()">Supprimer</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-fonctionnel')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveFonctionnel()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Dry Run modal -->
+<div class="modal-overlay" id="modal-edit-dryrun">
+  <div class="modal">
+    <h3>Modifier le prérequis Dry Run</h3>
+    <div class="form-row"><label>Prérequis *</label><input id="edr-name" type="text"></div>
+    <div class="form-row"><label>État</label><select id="edr-etat"><option>NON</option><option>En cours</option><option>OK</option><option>KO</option></select></div>
+    <div class="form-row"><label>Commentaires</label><input id="edr-comment" type="text"></div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="deleteDryrunFromModal()">Supprimer</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-dryrun')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveDryrun()">Enregistrer</button>
     </div>
   </div>
 </div>
