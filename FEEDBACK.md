@@ -21,7 +21,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 
 <!-- Gantt chart, task add/edit/delete, phase management, date inputs -->
 
-- [ ] Pour les dates, mettre seulemetn les date de début et d'installation prévue. Si la date est reportée, on devra afficher un tag Reportée et offrir la possibilité de mettre un commentaire.
+- [x] Pour les dates, mettre seulemetn les date de début et d'installation prévue. Si la date est reportée, on devra afficher un tag Reportée et offrir la possibilité de mettre un commentaire.
 - [x]  bouttons + tache du navbar doit etre supprimé car déjà existant au niveau de chaques taches
 - [x] Le bouton + phase du navbar doit etre descndu qu niveau du bouton export PDF au dessus du planning
 - [x] le bouton de suppression de tache doit etre dans la modate d'edition

@@ -118,6 +118,7 @@ function applyState(state) {
   setVal('pi-install-delayed', m.installDateDelayed || '');
   setVal('pi-install-actual', m.installDateActual || '');
   setVal('pi-install-comment', m.installDateComment || '');
+  _syncInstallDelayUI();
 
   const title = 'WMS Planning — ' + (m.name || 'Sans titre');
   setWindowTitle(title); document.title = title;
@@ -163,6 +164,24 @@ function onMetaInput() {
   renderInstallDrift();
 }
 function syncNav() { onMetaInput(); }
+
+// ═══ INSTALL DELAY UI ═══
+function _syncInstallDelayUI() {
+  const hasDelay = !!document.getElementById('pi-install-delayed').value;
+  document.getElementById('install-delay-section').style.display = hasDelay ? 'flex' : 'none';
+  document.getElementById('btn-signal-report').style.display    = hasDelay ? 'none' : '';
+}
+function openInstallDelaySection() {
+  document.getElementById('install-delay-section').style.display = 'flex';
+  document.getElementById('btn-signal-report').style.display = 'none';
+  document.getElementById('pi-install-delayed').focus();
+}
+function clearInstallDelay() {
+  document.getElementById('pi-install-delayed').value = '';
+  document.getElementById('pi-install-comment').value = '';
+  _syncInstallDelayUI();
+  onMetaInput();
+}
 
 // ═══ INSTALL DRIFT ═══
 function renderInstallDrift() {
@@ -1423,7 +1442,7 @@ async function openFilePicker() {
 // ═══ WINDOW EXPORTS (for onclick handlers in HTML) ═══
 Object.assign(window, {
   goHome, reloadProject, undoDelete,
-  syncNav, onMetaInput,
+  syncNav, onMetaInput, openInstallDelaySection, clearInstallDelay,
   openAddPhaseModal, openAddTaskModal, openEditTask, openEditPhase,
   closeModal, saveTask, savePhase,
   deleteTask, deleteTaskFromModal, removePhase, removePhaseFromModal, updateTask,

@@ -82,15 +82,21 @@
   <div class="project-header project-header-dates">
     <div class="info-item"><label>Date de début</label><input id="pi-start" type="date" onchange="onMetaInput();renderGantt()"></div>
     <div class="info-item install-date-group">
-      <label>Date d'installation</label>
+      <label>Date d'installation prévue</label>
       <div class="install-dates">
-        <span class="install-date-label">Originale</span><input id="pi-install-orig"    type="date" onchange="onMetaInput()">
-        <span class="install-date-label install-label-delayed">Reportée</span><input id="pi-install-delayed" type="date" onchange="onMetaInput()">
-        <span class="install-date-label install-label-actual">Réelle</span><input id="pi-install-actual"  type="date" onchange="onMetaInput()">
-        <input id="pi-install-comment" type="text" placeholder="Motif du report…" class="install-comment-input" oninput="onMetaInput()">
+        <input id="pi-install-orig" type="date" onchange="onMetaInput()">
+        <div id="install-delay-section" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px">
+          <span class="badge badge-retarde" style="font-size:10px">Reportée</span>
+          <input id="pi-install-delayed" type="date" onchange="onMetaInput()">
+          <input id="pi-install-comment" type="text" placeholder="Motif du report…" class="install-comment-input" oninput="onMetaInput()">
+          <button class="btn btn-ghost btn-xs" onclick="clearInstallDelay()" title="Annuler le report" style="font-size:11px;padding:1px 6px">✕</button>
+        </div>
+        <button id="btn-signal-report" class="btn btn-ghost" style="font-size:10px;padding:2px 8px;margin-top:4px" onclick="openInstallDelaySection()">Signaler un report…</button>
       </div>
     </div>
-    <div class="info-item"><label>Date de fin</label><input id="pi-end" type="date" onchange="onMetaInput();renderGantt()"></div>
+    <!-- Hidden fields: in DOM for data model, not shown in UI -->
+    <input id="pi-install-actual" type="date" onchange="onMetaInput()" style="display:none">
+    <input id="pi-end" type="date" onchange="onMetaInput();renderGantt()" style="display:none">
     <div class="info-item info-item-notes"><label>Remarques</label><textarea id="pi-notes" rows="2" oninput="onMetaInput()" placeholder="Notes libres sur le projet…"></textarea></div>
   </div>
   <div class="panel" id="planning-panel">
