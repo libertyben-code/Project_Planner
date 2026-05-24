@@ -209,6 +209,29 @@ td[contenteditable="true"]:focus{outline:2px solid var(--accent);outline-offset:
 .ct-col-row input,.ct-col-row select{font-family:inherit;font-size:12px;padding:3px 7px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text);}
 .page-custom-tab{animation:none;}
 
+/* ── JIRA tab ── */
+.nav-tab-jira { color:#0052CC;font-weight:600; }
+.nav-tab-jira.active { border-bottom-color:#0052CC; }
+.jira-toolbar { display:flex;align-items:center;gap:10px;padding:12px 20px 10px;border-bottom:1px solid var(--border); }
+.jira-sync-info { font-size:12px;color:var(--text-muted);flex:1; }
+.jira-epics-list { padding:16px 20px;display:flex;flex-direction:column;gap:12px; }
+.jira-epic { border:1px solid var(--border);border-radius:8px;overflow:hidden; }
+.jira-epic-header { display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);cursor:pointer;user-select:none; }
+.jira-epic-header:hover { background:var(--hover-bg,#f1f5f9); }
+.jira-epic-color-dot { width:10px;height:10px;border-radius:50%;flex-shrink:0; }
+.jira-epic-key { font-size:11px;font-weight:700;background:#e0e7ff;color:#3730a3;padding:1px 6px;border-radius:3px;font-family:monospace;white-space:nowrap; }
+.jira-epic-progress { display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0; }
+.jira-collapse-icon { font-size:10px;color:var(--text-muted);transition:transform .2s;flex-shrink:0; }
+.jira-epic.collapsed .jira-collapse-icon { transform:rotate(-90deg); }
+.jira-epic.collapsed .jira-epic-tasks { display:none; }
+.jira-tasks-header { display:grid;grid-template-columns:80px 1fr 120px 120px 45px 80px 90px;gap:8px;padding:5px 14px 5px 28px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--text-muted);background:var(--bg);border-top:1px solid var(--border); }
+.jira-task-row { display:grid;grid-template-columns:80px 1fr 120px 120px 45px 80px 90px;gap:8px;align-items:center;padding:7px 14px 7px 28px;border-top:1px solid var(--border);font-size:12px; }
+.jira-task-row:hover { background:var(--hover-bg,#f8fafc); }
+.jira-task-key { font-size:10px;font-weight:700;color:#0052CC;background:#EAF0FF;padding:2px 5px;border-radius:3px;font-family:monospace;text-align:center;white-space:nowrap; }
+.jira-task-summary { overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500; }
+.jira-empty { text-align:center;padding:48px 20px;color:var(--text-muted); }
+.jira-no-tasks { padding:8px 28px;color:var(--text-muted);font-style:italic;font-size:12px;border-top:1px solid var(--border); }
+
 /* ══════════════════════════════════════════════════
    RESPONSIVE — tablet (≤1024px) and mobile (≤768px)
    ══════════════════════════════════════════════════ */

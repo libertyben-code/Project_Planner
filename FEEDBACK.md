@@ -36,7 +36,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Le statut des tache doit être Non commencé par défaut.  
 - [x] Un bouton edit planning doit permettre de drag and drop les taches dans toutes les phases. - OK
 - [x] Ce meme bouton doit permettre de drag and drop une phase avec toute ses taches. - OK
-- [ ] Une phase Développement pour regrouper les taches de dev venues de JIRA via API. à prévoir mais pas mettre en place pour le moment.
+- [x] Une phase JIRA dans le planning (épics + tâches, barres de Gantt, progression). Backbone complet : onglet JIRA dédié, modal de configuration (URL Atlassian, clé projet, email, token API), fonction syncJira() prête pour la vraie clé. Données de démonstration pré-chargées dans le template. - OK
 
 ## Suivi Heures
 

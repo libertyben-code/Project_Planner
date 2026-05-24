@@ -22,6 +22,7 @@ let installData = [];
 let jalonsProjet = [];
 let jalonsEquip = [];
 let customTabs = [];
+let jiraData = { epics: [], tasks: [], lastSync: '' };
 let _ganttEditMode = false;
 
 // ═══ IPC / SAVE ═══
@@ -34,7 +35,8 @@ function buildState() {
     dryRun: dryrunData,
     install: installData,
     billing: { jalonsProjet, jalonsEquipement: jalonsEquip },
-    customTabs
+    customTabs,
+    jiraData
   };
 }
 
@@ -96,6 +98,10 @@ function applyState(state) {
   phases        = state.phases        || [];
   tasks         = state.tasks         || [];
   heuresData    = state.heuresData    || [];
+  jiraData      = state.jiraData      || { epics: [], tasks: [], lastSync: '' };
+  if (!jiraData.epics)  jiraData.epics  = [];
+  if (!jiraData.tasks)  jiraData.tasks  = [];
+  if (!projectMeta.jiraConfig) projectMeta.jiraConfig = { url: '', projectKey: '', email: '', token: '' };
   // Backwards-compat: add totalType/type to projects saved before dynamic totals
   heuresData.forEach(r => {
     if (r.bold && !r.totalType) {
@@ -150,6 +156,7 @@ function renderAll() {
   renderDashboard(); renderInstallDrift();
   renderCustomTabs();
   customTabs.forEach(t => renderCustomTabRows(t.id));
+  renderJira();
 }
 
 // ═══ META INPUTS ═══
@@ -539,6 +546,71 @@ function renderGantt() {
       });
     });
   });
+  // ── JIRA phase ──
+  if (jiraData.tasks.length > 0) {
+    const JIRA_COLOR = '#0052CC';
+    const rpJ = table.insertRow(); rpJ.className = 'tr-phase';
+    const tdPhJ = document.createElement('td'); tdPhJ.colSpan = fixedCount; tdPhJ.style.background = JIRA_COLOR;
+    tdPhJ.innerHTML = `<span style="font-weight:700;letter-spacing:.5px">◈ JIRA</span>
+      <span style="opacity:.7;font-size:10px;margin-left:8px">${jiraData.tasks.length} tâches · ${jiraData.epics.length} epics</span>
+      <span style="float:right"><button onclick="syncJira()" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;font-family:inherit">⟳ Sync</button></span>`;
+    rpJ.appendChild(tdPhJ);
+    WEEKS.forEach(w => { const td = document.createElement('td'); td.className = 'gantt-cell'; td.style.background = JIRA_COLOR; td.style.opacity = '.2'; if (isToday(w)) td.style.borderLeft = '2px solid #f97316'; rpJ.appendChild(td); });
+
+    jiraData.epics.forEach(epic => {
+      const epicTasks = jiraData.tasks.filter(t => t.epicId === epic.id);
+      if (!epicTasks.length) return;
+      // Epic sub-header
+      const repic = table.insertRow(); repic.className = 'tr-phase';
+      const tdEpic = document.createElement('td'); tdEpic.colSpan = fixedCount;
+      tdEpic.style.cssText = `background:${epic.color}18;border-left:3px solid ${epic.color};padding-left:12px;font-size:11px`;
+      tdEpic.innerHTML = `<span style="font-weight:700;color:${epic.color};font-family:monospace;margin-right:6px">${epic.key}</span>${epic.summary}`;
+      repic.appendChild(tdEpic);
+      WEEKS.forEach(w => { const td = document.createElement('td'); td.className = 'gantt-cell'; if (isToday(w)) td.classList.add('today-col'); repic.appendChild(td); });
+
+      epicTasks.forEach(jTask => {
+        const rt = table.insertRow(); rt.className = 'tr-task';
+        visFC.forEach(([lbl, cls]) => {
+          const td = document.createElement('td'); td.className = cls;
+          if (lbl === 'STATUT') {
+            td.className += ' status-cell';
+            td.innerHTML = `<span class="badge badge-${jiraStatusBadgeClass(jTask.status)}">${jiraStatusLabel(jTask.status)}</span>`;
+          } else if (lbl === 'PRIORITÉ') {
+            td.style.cssText = 'text-align:center;font-size:10px;color:var(--text-muted)';
+            td.textContent = jTask.storyPoints ? jTask.storyPoints + ' pts' : '—';
+          } else if (lbl === 'INTITULÉ') {
+            td.style.cssText = 'padding:2px 6px;font-size:11.5px';
+            td.innerHTML = `<span style="font-size:10px;font-weight:700;color:#0052CC;background:#EAF0FF;padding:1px 4px;border-radius:2px;margin-right:5px;font-family:monospace">${jTask.key}</span>${jTask.summary}`;
+          } else if (lbl === 'PROPRIÉTAIRE') {
+            td.style.cssText = 'padding:2px 4px;font-size:11px'; td.textContent = jTask.assignee || '—';
+          } else if (lbl === 'DÉBUT') {
+            td.style.fontSize = '11px'; td.textContent = jTask.startDate || '—';
+          } else if (lbl === 'FIN') {
+            td.style.fontSize = '11px'; td.textContent = jTask.dueDate || '—';
+          } else if (lbl === 'J') {
+            td.style.cssText = 'text-align:center;font-size:11px';
+            if (jTask.startDate && jTask.dueDate) { const d = Math.round((new Date(jTask.dueDate) - new Date(jTask.startDate)) / 86400000) + 1; td.textContent = d > 0 ? d : ''; }
+          } else if (lbl === '% AVA.') {
+            const pct = jTask.progress || 0; td.style.padding = '2px 6px';
+            td.innerHTML = `<div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${epic.color}"></div></div><span class="progress-pct">${pct}%</span></div>`;
+          }
+          rt.appendChild(td);
+        });
+        WEEKS.forEach(w => {
+          const td = document.createElement('td'); td.className = 'gantt-cell';
+          if (isToday(w)) td.classList.add('today-col');
+          if (jTask.startDate && jTask.dueDate && isInWeek(jTask.startDate, jTask.dueDate, w)) {
+            const bar = document.createElement('span'); bar.className = 'gantt-bar'; bar.style.background = epic.color;
+            if ((jTask.progress || 0) >= 100) bar.classList.add('gantt-bar-done');
+            td.appendChild(bar);
+            td.title = `${jTask.key}: ${jTask.summary}\n${jiraStatusLabel(jTask.status)}\n${jTask.startDate} → ${jTask.dueDate}\n${jTask.progress || 0}%`;
+          }
+          rt.appendChild(td);
+        });
+      });
+    });
+  }
+
   if (_ganttEditMode) {
     const tbody = table.tBodies[0];
     if (tbody) initGanttSort(tbody);
@@ -597,6 +669,143 @@ function initGanttSort(tbody) {
       }
       renderGantt(); debouncedSave();
     }
+  });
+}
+
+// ═══ JIRA ═══
+function jiraStatusLabel(s) {
+  return { TO_DO:'Non commencé', IN_PROGRESS:'En cours', DONE:'Terminé', IN_REVIEW:'En révision', BLOCKED:'Bloqué' }[s] || (s || '—');
+}
+function jiraStatusBadgeClass(s) {
+  return { TO_DO:'Non-commencé', IN_PROGRESS:'En-cours', DONE:'Terminé', IN_REVIEW:'Vérification-requise', BLOCKED:'En-attente' }[s] || 'empty';
+}
+function normalizeJiraStatus(name) {
+  const n = (name || '').toLowerCase();
+  if (n.includes('done') || n.includes('terminé') || n.includes('closed') || n.includes('resolved')) return 'DONE';
+  if (n.includes('progress') || n.includes('cours') || n.includes('doing')) return 'IN_PROGRESS';
+  if (n.includes('review') || n.includes('révision') || n.includes('testing')) return 'IN_REVIEW';
+  if (n.includes('blocked') || n.includes('bloqué')) return 'BLOCKED';
+  return 'TO_DO';
+}
+function transformJiraIssues(epicsRaw, tasksRaw) {
+  const COLORS = ['#4f46e5','#0891b2','#059669','#d97706','#dc2626','#7c3aed','#ea580c'];
+  const epics = (epicsRaw.issues || []).map((iss, i) => ({
+    id: iss.key, key: iss.key, summary: iss.fields.summary,
+    status: normalizeJiraStatus(iss.fields.status?.name || ''),
+    color: COLORS[i % COLORS.length]
+  }));
+  const tasks = (tasksRaw.issues || []).map(iss => ({
+    id: iss.key, key: iss.key,
+    epicId: iss.fields.parent?.key || null,
+    summary: iss.fields.summary,
+    status: normalizeJiraStatus(iss.fields.status?.name || ''),
+    assignee: iss.fields.assignee?.displayName || '',
+    storyPoints: iss.fields.customfield_10016 || 0,
+    startDate: '',
+    dueDate: iss.fields.duedate || '',
+    progress: iss.fields.progress?.percent || 0
+  }));
+  return { epics, tasks, lastSync: '' };
+}
+async function syncJira() {
+  const cfg = projectMeta.jiraConfig;
+  if (!cfg?.token || !cfg?.url || !cfg?.projectKey) {
+    openJiraConfig();
+    return;
+  }
+  const syncBtn = document.getElementById('jira-sync-btn');
+  if (syncBtn) { syncBtn.disabled = true; syncBtn.textContent = '⟳ Synchro…'; }
+  try {
+    const auth = btoa(`${cfg.email}:${cfg.token}`);
+    const h = { 'Authorization': `Basic ${auth}`, 'Accept': 'application/json' };
+    const [er, tr] = await Promise.all([
+      fetch(`${cfg.url}/rest/api/3/search?jql=project%3D${cfg.projectKey}%20AND%20issuetype%3DEpic&fields=summary,status&maxResults=50`, { headers: h }),
+      fetch(`${cfg.url}/rest/api/3/search?jql=project%3D${cfg.projectKey}%20AND%20issuetype%20in%20(Story%2CTask%2CBug)&fields=summary,status,assignee,customfield_10016,duedate,parent,progress&maxResults=100`, { headers: h })
+    ]);
+    if (!er.ok) throw new Error(`JIRA ${er.status}`);
+    jiraData = transformJiraIssues(await er.json(), await tr.json());
+    jiraData.lastSync = new Date().toLocaleString('fr-FR');
+    renderJira(); renderGantt(); debouncedSave();
+    document.getElementById('jira-sync-info').textContent = `Dernière synchro : ${jiraData.lastSync} — ${jiraData.tasks.length} tâches importées`;
+  } catch (e) {
+    console.error('JIRA sync:', e);
+    const info = document.getElementById('jira-sync-info');
+    if (info) info.textContent = 'Erreur : ' + e.message;
+  } finally {
+    if (syncBtn) { syncBtn.disabled = false; syncBtn.textContent = '⟳ Synchroniser'; }
+  }
+}
+function openJiraConfig() {
+  const cfg = projectMeta.jiraConfig || {};
+  document.getElementById('jira-cfg-url').value   = cfg.url          || '';
+  document.getElementById('jira-cfg-key').value   = cfg.projectKey   || '';
+  document.getElementById('jira-cfg-email').value = cfg.email        || '';
+  document.getElementById('jira-cfg-token').value = cfg.token        || '';
+  document.getElementById('modal-jira-config').classList.add('open');
+}
+function saveJiraConfig() {
+  if (!projectMeta.jiraConfig) projectMeta.jiraConfig = {};
+  projectMeta.jiraConfig.url        = document.getElementById('jira-cfg-url').value.trim().replace(/\/$/, '');
+  projectMeta.jiraConfig.projectKey = document.getElementById('jira-cfg-key').value.trim();
+  projectMeta.jiraConfig.email      = document.getElementById('jira-cfg-email').value.trim();
+  projectMeta.jiraConfig.token      = document.getElementById('jira-cfg-token').value.trim();
+  closeModal('modal-jira-config');
+  debouncedSave();
+}
+function renderJira() {
+  const container = document.getElementById('jira-epics-container');
+  if (!container) return;
+  const { epics = [], tasks = [], lastSync = '' } = jiraData;
+  const syncInfo = document.getElementById('jira-sync-info');
+  if (syncInfo) syncInfo.textContent = lastSync ? `Dernière synchro : ${lastSync}` : 'Jamais synchronisé — données de démonstration affichées';
+  const done = tasks.filter(t => t.status === 'DONE').length;
+  const inProg = tasks.filter(t => t.status === 'IN_PROGRESS').length;
+  const kpi = document.getElementById('kpi-jira');
+  if (kpi) kpi.innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">Total Tâches</div><div class="kpi-value">${tasks.length}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Terminées</div><div class="kpi-value" style="color:#059669">${done}</div><div class="kpi-sub">${tasks.length ? Math.round(done/tasks.length*100) : 0}%</div></div>
+    <div class="kpi-card"><div class="kpi-label">En cours</div><div class="kpi-value" style="color:#2563eb">${inProg}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Epics</div><div class="kpi-value">${epics.length}</div></div>`;
+  container.innerHTML = '';
+  if (!tasks.length && !epics.length) {
+    container.innerHTML = `<div class="jira-empty"><p style="font-size:15px;font-weight:600;margin-bottom:6px">Aucune donnée JIRA</p><p>Configurez la connexion et synchronisez pour importer les tâches.</p></div>`;
+    return;
+  }
+  [...epics, { id: '__orphan__', key: '', summary: 'Sans Epic', color: '#94a3b8', status: '' }].forEach(epic => {
+    const epicTasks = epic.id === '__orphan__'
+      ? tasks.filter(t => !t.epicId || !epics.find(e => e.id === t.epicId))
+      : tasks.filter(t => t.epicId === epic.id);
+    if (!epicTasks.length) return;
+    const epicDone = epicTasks.filter(t => t.status === 'DONE').length;
+    const epicPct  = epicTasks.length ? Math.round(epicDone / epicTasks.length * 100) : 0;
+    const section  = document.createElement('div');
+    section.className = 'jira-epic';
+    section.innerHTML = `
+      <div class="jira-epic-header" onclick="this.closest('.jira-epic').classList.toggle('collapsed')">
+        <span class="jira-collapse-icon">▾</span>
+        <span class="jira-epic-color-dot" style="background:${epic.color}"></span>
+        ${epic.key ? `<span class="jira-epic-key">${epic.key}</span>` : ''}
+        <span style="font-weight:600;font-size:13px;flex:1">${epic.summary}</span>
+        ${epic.status ? `<span class="badge badge-${jiraStatusBadgeClass(epic.status)}" style="font-size:10px">${jiraStatusLabel(epic.status)}</span>` : ''}
+        <div class="jira-epic-progress">
+          <div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:${epicPct}%;background:${epic.color}"></div></div>
+          <span class="progress-pct">${epicPct}%</span>
+          <span style="color:var(--text-muted);font-size:11px">${epicDone}/${epicTasks.length}</span>
+        </div>
+      </div>
+      <div class="jira-epic-tasks">
+        <div class="jira-tasks-header"><span>Clé</span><span>Intitulé</span><span>Statut</span><span>Responsable</span><span>Pts</span><span>Échéance</span><span>Avancement</span></div>
+        ${epicTasks.map(t => `<div class="jira-task-row">
+          <span class="jira-task-key">${t.key}</span>
+          <span class="jira-task-summary">${t.summary}</span>
+          <span class="badge badge-${jiraStatusBadgeClass(t.status)}" style="font-size:10px">${jiraStatusLabel(t.status)}</span>
+          <span style="font-size:12px;color:var(--text-muted)">${t.assignee ? formatTemplate(t.assignee) : '—'}</span>
+          <span style="font-size:12px;text-align:center">${t.storyPoints ? t.storyPoints + ' pts' : '—'}</span>
+          <span style="font-size:12px;color:var(--text-muted)">${t.dueDate ? new Date(t.dueDate).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'}) : '—'}</span>
+          <div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${t.progress||0}%;background:${epic.color}"></div></div><span class="progress-pct">${t.progress||0}%</span></div>
+        </div>`).join('')}
+      </div>`;
+    container.appendChild(section);
   });
 }
 
@@ -1781,6 +1990,7 @@ Object.assign(window, {
   closeModal, saveTask, savePhase,
   deleteTask, deleteTaskFromModal, removePhase, removePhaseFromModal, updateTask,
   scrollToToday, renderGantt, renderDashboard, exportPDF, exportCurrentTabPDF, toggleGanttEditMode,
+  renderJira, openJiraConfig, saveJiraConfig, syncJira,
   addInternalTask, openEditInternalTask, saveInternalTask, deleteInternalTask, deleteInternalTaskFromModal,
   addInterface, openEditInterface, saveInterface, deleteInterfaceFromModal,
   openEditFonctionnel, saveFonctionnel, deleteFonctionnelFromModal, addFonctionnel,

@@ -15,7 +15,8 @@
     "installDateComment": "",
     "endDate": "2026-10-16",
     "createdAt": "",
-    "updatedAt": ""
+    "updatedAt": "",
+    "jiraConfig": { "url": "", "projectKey": "", "email": "", "token": "" }
   },
   "phases": [
     { "id": "INDISPO", "name": "INDISPONIBILITÉS / CONGÉS",  "code": "I", "color": "#64748b" },
@@ -173,5 +174,19 @@
       { "id": "je_02", "jalon": "LIVRAISON ÉQUIPEMENT", "date": "", "echeance": "", "etat": "—", "pct": 50, "montant": 0 }
     ]
   },
-  "customTabs": []
+  "customTabs": [],
+  "jiraData": {
+    "lastSync": "",
+    "epics": [
+      { "id": "WMS-1", "key": "WMS-1", "summary": "Développements Fonctionnels WMS", "status": "IN_PROGRESS", "color": "#4f46e5" },
+      { "id": "WMS-2", "key": "WMS-2", "summary": "Intégrations ERP",                "status": "TO_DO",       "color": "#0891b2" }
+    ],
+    "tasks": [
+      { "id": "WMS-10", "key": "WMS-10", "epicId": "WMS-1", "summary": "Modélisation & Configuration Entrepôt", "status": "IN_PROGRESS", "assignee": "CDPName", "storyPoints": 5, "startDate": "2026-05-15", "dueDate": "2026-05-29", "progress": 50 },
+      { "id": "WMS-11", "key": "WMS-11", "epicId": "WMS-1", "summary": "Développements Fonctionnels",           "status": "TO_DO",       "assignee": "CDPName", "storyPoints": 8, "startDate": "2026-06-01", "dueDate": "2026-06-26", "progress": 0 },
+      { "id": "WMS-12", "key": "WMS-12", "epicId": "WMS-1", "summary": "Paramétrage TRF & Imprimantes",         "status": "TO_DO",       "assignee": "CDPName", "storyPoints": 3, "startDate": "2026-06-01", "dueDate": "2026-06-12", "progress": 0 },
+      { "id": "WMS-20", "key": "WMS-20", "epicId": "WMS-2", "summary": "Interface ITM - Base Article",          "status": "TO_DO",       "assignee": "CDPName", "storyPoints": 5, "startDate": "2026-05-15", "dueDate": "2026-06-15", "progress": 0 },
+      { "id": "WMS-21", "key": "WMS-21", "epicId": "WMS-2", "summary": "Commande Client - Interface SOR",       "status": "TO_DO",       "assignee": "CDPName", "storyPoints": 8, "startDate": "2026-06-01", "dueDate": "2026-06-26", "progress": 0 }
+    ]
+  }
 }
