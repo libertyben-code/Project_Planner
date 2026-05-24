@@ -670,16 +670,36 @@ function renderHeures() {
     const ecartColor = ecart == null ? '' : ecart > 0 ? '#dc2626' : ecart < 0 ? '#059669' : 'var(--text-muted)';
     const ecartHtml = ecart != null ? `<span style="color:${ecartColor};font-weight:500">${ecart>0?'+':''}${ecart}</span>` : '<span style="color:var(--text-muted)">—</span>';
     const rowType = row.type || (row.custom ? 'Custom' : 'Standard');
-    tr.innerHTML = `
-      <td>${dh()}</td>
-      <td style="font-weight:${row.bold?700:400}" contenteditable="true" onblur="heuresData.find(r=>r.id==='${row.id}').cat=this.textContent.trim();_DS()">${row.cat}</td>
-      <td style="font-size:11px;color:var(--text-muted)">${rowType}</td>
-      <td style="text-align:right"><input class="h-input" type="number" value="${row.vente!=null?row.vente:''}" placeholder="0" min="0" onchange="updateHeures('${row.id}','vente',this.value===''?null:+this.value)"></td>
-      <td style="text-align:right"><input class="h-input" type="number" value="${row.actuel!=null?row.actuel:''}" placeholder="—" min="0" onchange="updateHeures('${row.id}','actuel',this.value===''?null:+this.value)"></td>
-      <td style="text-align:right">${ecartHtml}</td>
-      <td style="text-align:center">${(row.history||[]).length > 0 ? `<span title="Voir l'historique" style="cursor:pointer;color:var(--text-muted);font-size:14px" onclick="toggleHeuresHistory('${row.id}',this)">🕐</span>` : ''}</td>
-      <td contenteditable="true" style="color:var(--text-muted)" onblur="updateHeuresDesc('${row.id}',this.textContent.trim())">${row.desc||''}</td>
-      <td style="text-align:center"><button class="btn btn-ghost btn-icon btn-sm" onclick="openEditHeure('${row.id}')" title="Modifier">✏</button></td>`;
+    const isLocked = !!row.bold; // total/header rows are non-editable
+    if (isLocked) {
+      tr.innerHTML = `
+        <td>${dh()}</td>
+        <td style="font-weight:700">${row.cat}</td>
+        <td style="font-size:11px;color:var(--text-muted)">${rowType}</td>
+        <td style="text-align:right;font-weight:600">${row.vente!=null?row.vente:'—'}</td>
+        <td style="text-align:right;font-weight:600">${row.actuel!=null?row.actuel:'—'}</td>
+        <td style="text-align:right">${ecartHtml}</td>
+        <td></td>
+        <td style="color:var(--text-muted)">${row.desc||''}</td>
+        <td></td>`;
+    } else {
+      tr.innerHTML = `
+        <td>${dh()}</td>
+        <td style="font-weight:400" contenteditable="true" onblur="heuresData.find(r=>r.id==='${row.id}').cat=this.textContent.trim();_DS()">${row.cat}</td>
+        <td style="padding:2px 4px"></td>
+        <td style="text-align:right"><input class="h-input" type="number" value="${row.vente!=null?row.vente:''}" placeholder="0" min="0" onchange="updateHeures('${row.id}','vente',this.value===''?null:+this.value)"></td>
+        <td style="text-align:right"><input class="h-input" type="number" value="${row.actuel!=null?row.actuel:''}" placeholder="—" min="0" onchange="updateHeures('${row.id}','actuel',this.value===''?null:+this.value)"></td>
+        <td style="text-align:right">${ecartHtml}</td>
+        <td style="text-align:center">${(row.history||[]).length > 0 ? `<span title="Voir l'historique" style="cursor:pointer;color:var(--text-muted);font-size:14px" onclick="toggleHeuresHistory('${row.id}',this)">🕐</span>` : ''}</td>
+        <td contenteditable="true" style="color:var(--text-muted)" onblur="updateHeuresDesc('${row.id}',this.textContent.trim())">${row.desc||''}</td>
+        <td style="text-align:center"><button class="btn btn-secondary btn-sm" onclick="openEditHeure('${row.id}')" title="Modifier">✏</button></td>`;
+      // Inline type select
+      const typeSel = document.createElement('select');
+      typeSel.className = 'gantt-select'; typeSel.style.width = '100%';
+      HEURE_TYPES.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; if (t === rowType) o.selected = true; typeSel.appendChild(o); });
+      typeSel.onchange = () => { row.type = typeSel.value; debouncedSave(); };
+      tr.cells[2].appendChild(typeSel);
+    }
     makeReorderable(tr, heuresData, renderHeures);
   });
   const vente = heuresVenteTotale(), actuel = heuresActuelTotal();
