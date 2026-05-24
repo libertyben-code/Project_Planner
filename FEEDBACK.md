@@ -34,8 +34,8 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] si l'on hover sur une celulle colorié du planning, on doit pouvoir voir la date hovered. - OK
   - [x] Améliorer les infos du la bulle. - OK
 - [x] Le statut des tache doit être Non commencé par défaut.  
-- [ ] Un bouton edit planning doit permettre de drag and drop les taches dans toutes les phases.
-- [ ] Ce meme bouton doit permettre de drag and drop une phase avec toute ses taches.
+- [x] Un bouton edit planning doit permettre de drag and drop les taches dans toutes les phases. - OK
+- [x] Ce meme bouton doit permettre de drag and drop une phase avec toute ses taches. - OK
 - [ ] Une phase Développement pour regrouper les taches de dev venues de JIRA via API. à prévoir mais pas mettre en place pour le moment.
 
 ## Suivi Heures

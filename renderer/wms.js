@@ -22,6 +22,7 @@ let installData = [];
 let jalonsProjet = [];
 let jalonsEquip = [];
 let customTabs = [];
+let _ganttEditMode = false;
 
 // ═══ IPC / SAVE ═══
 function buildState() {
@@ -435,25 +436,29 @@ function renderGantt() {
   const visFC = fixedCols.filter(c => c[2]);
   const fixedCount = visFC.length;
 
-  const r1 = table.insertRow();
+  const r1 = table.insertRow(); r1.className = 'gantt-hrow';
   const thB = document.createElement('th'); thB.colSpan = fixedCount; thB.className = 'th-month'; thB.style.background = '#1a2332'; r1.appendChild(thB);
   mGroups.forEach(mg => { const th = document.createElement('th'); th.colSpan = mg.span; th.className = 'th-month'; th.textContent = mg.label; r1.appendChild(th); });
 
-  const r2 = table.insertRow();
+  const r2 = table.insertRow(); r2.className = 'gantt-hrow';
   visFC.forEach(([lbl,cls]) => { const th = document.createElement('th'); th.className = 'th-fixed '+cls; th.textContent = lbl; r2.appendChild(th); });
   WEEKS.forEach(w => { const th = document.createElement('th'); th.className = 'th-week col-week'; th.textContent = weekLabel(w); if (isToday(w)) th.style.borderLeft = '2px solid #f97316'; r2.appendChild(th); });
 
   phases.forEach(phase => {
     const phaseTasks = tasks.filter(t => t.phaseId === phase.id);
-    const rp = table.insertRow(); rp.className = 'tr-phase';
+    const rp = table.insertRow(); rp.className = 'tr-phase'; rp.dataset.phaseId = phase.id;
     const tdPh = document.createElement('td'); tdPh.colSpan = fixedCount; tdPh.style.background = phase.color;
     const phStarts = phaseTasks.map(t => t.start).filter(Boolean).map(d => new Date(d).getTime());
     const phEnds   = phaseTasks.map(t => t.end).filter(Boolean).map(d => new Date(d).getTime());
     const phDurStr = phStarts.length && phEnds.length ? ` <span style="opacity:.75;font-size:10px;font-weight:400">(${Math.round((Math.max(...phEnds) - Math.min(...phStarts)) / 86400000) + 1}j)</span>` : '';
-    tdPh.innerHTML = `<span style="cursor:pointer" title="Modifier la phase" onclick="openEditPhase('${phase.id}')">${phase.name}${phDurStr}</span>
-      <span style="float:right;display:flex;gap:6px;align-items:center">
-        <button onclick="openAddTaskModal('${phase.id}')" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;font-family:inherit">+ Tâche</button>
-      </span>`;
+    if (_ganttEditMode) {
+      tdPh.innerHTML = `<span class="drag-handle gantt-drag-handle" style="color:rgba(255,255,255,.85);margin-right:8px;font-size:15px;vertical-align:middle">⠿</span>${phase.name}${phDurStr}`;
+    } else {
+      tdPh.innerHTML = `<span style="cursor:pointer" title="Modifier la phase" onclick="openEditPhase('${phase.id}')">${phase.name}${phDurStr}</span>
+        <span style="float:right;display:flex;gap:6px;align-items:center">
+          <button onclick="openAddTaskModal('${phase.id}')" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;font-family:inherit">+ Tâche</button>
+        </span>`;
+    }
     rp.appendChild(tdPh);
     WEEKS.forEach(w => { const td = document.createElement('td'); td.className = 'gantt-cell'; td.style.background = phase.color; td.style.opacity = '.2'; if (isToday(w)) td.style.borderLeft = '2px solid #f97316'; rp.appendChild(td); });
 
@@ -473,8 +478,12 @@ function renderGantt() {
         const td = document.createElement('td'); td.className = cls;
 
         if (lbl === 'STATUT') {
-          td.className += ' status-cell'; td.innerHTML = statusBadgeHTML(task.status); td.style.cursor = 'pointer';
-          td.addEventListener('click', e => { e.stopPropagation(); showDropdown(td.querySelector('.badge'), STATUS_OPTS, val => { updateTask(task.id,'status',val); renderGantt(); renderDashboard(); }); });
+          if (_ganttEditMode) {
+            td.innerHTML = `<span class="drag-handle gantt-drag-handle" title="Déplacer la tâche" style="display:block;text-align:center">⠿</span>`;
+          } else {
+            td.className += ' status-cell'; td.innerHTML = statusBadgeHTML(task.status); td.style.cursor = 'pointer';
+            td.addEventListener('click', e => { e.stopPropagation(); showDropdown(td.querySelector('.badge'), STATUS_OPTS, val => { updateTask(task.id,'status',val); renderGantt(); renderDashboard(); }); });
+          }
         } else if (lbl === 'PRIORITÉ') {
           td.style.padding = '2px 6px'; td.innerHTML = prioHTML(task.priority); td.style.cursor = 'pointer';
           td.addEventListener('click', e => { e.stopPropagation(); showDropdown(td.querySelector('span'), PRIO_OPTS, val => { updateTask(task.id,'priority',val); renderGantt(); }); });
@@ -529,6 +538,65 @@ function renderGantt() {
         rt.appendChild(td);
       });
     });
+  });
+  if (_ganttEditMode) {
+    const tbody = table.tBodies[0];
+    if (tbody) initGanttSort(tbody);
+  }
+}
+
+function toggleGanttEditMode() {
+  _ganttEditMode = !_ganttEditMode;
+  const btn = document.getElementById('btn-edit-planning');
+  btn.textContent = _ganttEditMode ? '✓ Terminer' : '✏ Réorganiser';
+  btn.style.cssText = _ganttEditMode
+    ? 'background:var(--accent);color:#fff;border-color:var(--accent)'
+    : '';
+  renderGantt();
+}
+
+function initGanttSort(tbody) {
+  if (!window.Sortable) return;
+  const ex = Sortable.get(tbody);
+  if (ex) ex.destroy();
+  Sortable.create(tbody, {
+    handle: '.gantt-drag-handle',
+    animation: 150,
+    forceFallback: true,
+    fallbackTolerance: 3,
+    onMove(evt) {
+      // Block dropping before/onto header rows
+      if (evt.related.classList.contains('gantt-hrow')) return false;
+      return true;
+    },
+    onEnd({ item }) {
+      const rows = Array.from(tbody.rows);
+      if (item.classList.contains('tr-phase')) {
+        // Phase moved: reorder phases[], tasks keep their phaseId
+        const newOrder = rows
+          .filter(r => r.classList.contains('tr-phase') && r.dataset.phaseId)
+          .map(r => phases.find(p => p.id === r.dataset.phaseId))
+          .filter(Boolean);
+        phases = newOrder;
+      } else if (item.dataset.taskId) {
+        // Task moved: rebuild phaseId assignments + task order from DOM
+        let curPhaseId = null;
+        const taskAssign = [];
+        rows.forEach(tr => {
+          if (tr.classList.contains('tr-phase') && tr.dataset.phaseId) curPhaseId = tr.dataset.phaseId;
+          else if (tr.dataset.taskId) taskAssign.push({ id: tr.dataset.taskId, phaseId: curPhaseId });
+        });
+        taskAssign.forEach(({ id, phaseId }) => {
+          const t = tasks.find(t => t.id === id); if (t && phaseId) t.phaseId = phaseId;
+        });
+        tasks.sort((a, b) => {
+          const ia = taskAssign.findIndex(x => x.id === a.id);
+          const ib = taskAssign.findIndex(x => x.id === b.id);
+          return (ia === -1 ? Infinity : ia) - (ib === -1 ? Infinity : ib);
+        });
+      }
+      renderGantt(); debouncedSave();
+    }
   });
 }
 
@@ -1712,7 +1780,7 @@ Object.assign(window, {
   openAddPhaseModal, openAddTaskModal, openEditTask, openEditPhase,
   closeModal, saveTask, savePhase,
   deleteTask, deleteTaskFromModal, removePhase, removePhaseFromModal, updateTask,
-  scrollToToday, renderGantt, renderDashboard, exportPDF, exportCurrentTabPDF,
+  scrollToToday, renderGantt, renderDashboard, exportPDF, exportCurrentTabPDF, toggleGanttEditMode,
   addInternalTask, openEditInternalTask, saveInternalTask, deleteInternalTask, deleteInternalTaskFromModal,
   addInterface, openEditInterface, saveInterface, deleteInterfaceFromModal,
   openEditFonctionnel, saveFonctionnel, deleteFonctionnelFromModal, addFonctionnel,

@@ -112,6 +112,7 @@
       <div class="toggle-group"><label class="toggle-switch"><input type="checkbox" id="tog-avance" checked onchange="renderGantt()"><span class="toggle-slider"></span></label>Avancement</div>
       <div class="sep"></div>
       <button class="btn btn-secondary btn-sm" onclick="openAddPhaseModal()">+ Phase</button>
+      <button id="btn-edit-planning" class="btn btn-secondary btn-sm" onclick="toggleGanttEditMode()" title="Activer le mode réorganisation par glisser-déposer">✏ Réorganiser</button>
       <button class="btn btn-secondary btn-sm" onclick="exportPDF()">Export PDF</button>
     </div>
     <div class="gantt-wrapper" id="gantt-wrapper"><table class="gantt-table" id="gantt-table"></table></div>
