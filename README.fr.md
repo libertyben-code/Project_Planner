@@ -1,5 +1,7 @@
 # WMS Project Planner
 
+*[Read in English](README.md)*
+
 Application de bureau pour piloter les projets d'implémentation EasyWMS — du lancement jusqu'à la mise en production.
 
 ## Ce que ça fait
