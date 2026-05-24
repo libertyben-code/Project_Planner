@@ -120,6 +120,11 @@ td[contenteditable="true"]:focus{outline:2px solid var(--accent);outline-offset:
 /* GANTT INLINE SELECT */
 .gantt-select{border:none;background:transparent;font-family:inherit;font-size:11px;color:inherit;cursor:pointer;padding:1px 2px;border-radius:3px;}
 .gantt-select:hover,.gantt-select:focus{background:#f1f5f9;outline:none;}
+/* URGENCE CHIPS */
+.urg-chip{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:500;}
+.urg-faible{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;}
+.urg-moyenne{background:#fffbeb;color:#92400e;border:1px solid #fde68a;}
+.urg-haute{background:#fef2f2;color:#991b1b;border:1px solid #fecaca;}
 /* KPI */
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px;}
 .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}

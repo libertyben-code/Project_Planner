@@ -74,7 +74,7 @@
   <div class="project-header">
     <div class="info-item"><label>Projet</label><input id="pi-project" oninput="onMetaInput()"></div>
     <div class="info-item"><label>Dir. Projet</label><input id="pi-pm" oninput="onMetaInput()"></div>
-    <div class="info-item"><label>Client</label><input id="pi-client" oninput="onMetaInput()"></div>
+    <div class="info-item"><label>Client</label><input id="pi-client" oninput="onMetaInput()" onblur="renderGantt();renderTaches();renderInstall()"></div>
     <div class="info-item"><label>Chef de Projet Tech.</label><input id="pi-cdptech" oninput="onMetaInput()"></div>
     <div class="info-item"><label>Resp. Logistique Client</label><input id="pi-resplog" oninput="onMetaInput()"></div>
     <div class="info-item"><label>Consultant ERP</label><input id="pi-erpconsult" oninput="onMetaInput()"></div>
@@ -293,7 +293,7 @@
     <div class="form-row"><label>Action *</label><input id="einst-action" type="text"></div>
     <div class="form-2col">
       <div class="form-row"><label>État</label><select id="einst-etat"><option>Non</option><option>En cours</option><option>Oui</option><option>KO</option></select></div>
-      <div class="form-row"><label>Qui ?</label><select id="einst-qui"><option>MECALUX</option><option id="einst-qui-client">clientName</option><option>TOUS</option><option>Prestataire externe</option><option>—</option></select></div>
+      <div class="form-row"><label>Qui ?</label><select id="einst-qui"></select></div>
     </div>
     <div class="form-row"><label>Deadline</label><input id="einst-deadline" type="date"></div>
     <div class="form-row"><label>Commentaire</label><input id="einst-comment" type="text"></div>
@@ -332,10 +332,10 @@
   <div class="modal">
     <h3>Modifier la tâche interne</h3>
     <div class="form-row"><label>Action *</label><input id="et-action" type="text"></div>
-    <div class="form-row"><label>Propriétaire</label><input id="et-owner" type="text" placeholder="MECALUX, clientName…"></div>
+    <div class="form-row"><label>Propriétaire</label><select id="et-owner"></select></div>
     <div class="form-2col">
       <div class="form-row"><label>État</label><select id="et-etat"><option>À FAIRE</option><option>EN COURS</option><option>FAIT</option><option>EN ATTENTE</option><option>ANNULÉ</option></select></div>
-      <div class="form-row"><label>Urgence</label><select id="et-urg"><option value="0">— Aucune —</option><option value="1">⭐ Faible</option><option value="2">⭐⭐ Moyenne</option><option value="3">⭐⭐⭐ Haute</option></select></div>
+      <div class="form-row"><label>Urgence</label><select id="et-urg"><option value="0">— Aucune —</option><option value="1">Faible</option><option value="2">Moyenne</option><option value="3">Haute</option></select></div>
     </div>
     <div class="form-2col">
       <div class="form-row"><label>Temps (h)</label><input id="et-temps" type="number" min="0" value="0"></div>

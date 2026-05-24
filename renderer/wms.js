@@ -728,14 +728,16 @@ function toggleHeuresHistory(id, btn) {
 const ETAT_INT = ['FAIT','EN COURS','À FAIRE','EN ATTENTE','ANNULÉ'];
 const ETAT_B = {'FAIT':'cell-ok','EN COURS':'cell-wip','À FAIRE':'cell-none','EN ATTENTE':'cell-warn','ANNULÉ':'cell-ko'};
 const ETAT_D = {'FAIT':'#059669','EN COURS':'#2563eb','À FAIRE':'#94a3b8','EN ATTENTE':'#d97706','ANNULÉ':'#dc2626'};
-const URG_OPTS = [{label:'— Aucune —',value:0,dot:'#e2e7ed'},{label:'⭐ Faible',value:1,dot:'#94a3b8'},{label:'⭐⭐ Moyenne',value:2,dot:'#f59e0b'},{label:'⭐⭐⭐ Haute',value:3,dot:'#ef4444'}];
+const URG_OPTS = [{label:'— Aucune —',value:0,dot:'#e2e7ed'},{label:'Faible',value:1,dot:'#94a3b8'},{label:'Moyenne',value:2,dot:'#f59e0b'},{label:'Haute',value:3,dot:'#ef4444'}];
+const URG_CHIP = {0:'',1:'<span class="urg-chip urg-faible" style="cursor:pointer">Faible</span>',2:'<span class="urg-chip urg-moyenne" style="cursor:pointer">Moyenne</span>',3:'<span class="urg-chip urg-haute" style="cursor:pointer">Haute</span>'};
+function urgChipHTML(v) { return URG_CHIP[v||0] || '<span style="color:var(--text-muted);cursor:pointer;font-size:11px">—</span>'; }
 
 let _editingTacheId = null;
 function openEditInternalTask(id) {
   _editingTacheId = id;
   const t = internalTasks.find(t => t.id === id); if (!t) return;
   document.getElementById('et-action').value   = t.action || '';
-  document.getElementById('et-owner').value    = formatOwner(t.owner || '');
+  buildOwnerSelect(document.getElementById('et-owner'), t.owner || '');
   document.getElementById('et-etat').value     = t.etat || 'À FAIRE';
   document.getElementById('et-urg').value      = t.urg ?? 1;
   document.getElementById('et-temps').value    = t.temps || 0;
@@ -749,7 +751,7 @@ function saveInternalTask() {
   const action = document.getElementById('et-action').value.trim();
   if (!action) { alert('Veuillez saisir une action.'); return; }
   t.action   = action;
-  t.owner    = normalizeSpecialLabel(document.getElementById('et-owner').value.trim());
+  t.owner    = document.getElementById('et-owner').value;
   t.etat     = document.getElementById('et-etat').value;
   t.urg      = +document.getElementById('et-urg').value;
   t.temps    = +document.getElementById('et-temps').value || 0;
@@ -767,16 +769,22 @@ function renderTaches() {
   const tbody = document.getElementById('tbody-taches'); tbody.innerHTML = '';
   internalTasks.forEach(task => {
     const tr = tbody.insertRow(); tr.dataset.rowId = task.id;
-    const urgStr = task.urg ? '⭐'.repeat(task.urg) : '—';
+    const urgChip = urgChipHTML(task.urg);
     tr.innerHTML = `<td>${dh()}</td>
       <td style="font-weight:500;min-width:190px">${task.action}</td>
-      <td style="font-size:12px;color:var(--text-muted)">${formatOwner(task.owner||'')}</td>
+      <td style="padding:2px 4px"></td>
       <td style="min-width:98px"><span class="${ETAT_B[task.etat]||'cell-none'}" style="cursor:pointer">${task.etat}</span></td>
       <td style="text-align:center;font-size:12px">${task.temps||0} h</td>
       <td style="font-size:12px">${task.deadline||'—'}</td>
-      <td style="text-align:center"><span style="cursor:pointer">${urgStr}</span></td>
+      <td style="text-align:center">${urgChip}</td>
       <td style="color:var(--text-muted);min-width:120px;font-size:12px">${task.comment||''}</td>
       <td><button class="btn btn-secondary btn-sm" onclick="openEditInternalTask('${task.id}')">✏</button></td>`;
+    // Owner inline select
+    const ownerSel = document.createElement('select');
+    ownerSel.className = 'gantt-select'; ownerSel.style.width = '100%';
+    buildOwnerSelect(ownerSel, task.owner);
+    ownerSel.onchange = () => { task.owner = ownerSel.value; debouncedSave(); };
+    tr.cells[2].appendChild(ownerSel);
     const etatSp = tr.cells[3].querySelector('span');
     etatSp.addEventListener('click', e => { e.stopPropagation(); showDropdown(etatSp, ETAT_INT.map(v => ({label:v,value:v,dot:ETAT_D[v]})), val => { task.etat = val; renderTaches(); debouncedSave(); }); });
     tr.cells[6].querySelector('span').addEventListener('click', e => { e.stopPropagation(); showDropdown(tr.cells[6].querySelector('span'), URG_OPTS, val => { task.urg = val; renderTaches(); debouncedSave(); }); });
@@ -984,13 +992,9 @@ let _editingInstallId = null;
 function openEditInstall(id) {
   _editingInstallId = id;
   const r = installData.find(r => r.id === id); if (!r) return;
-  // Update client name option label dynamically
-  const clientOpt = document.getElementById('einst-qui-client');
-  if (clientOpt) clientOpt.textContent = getClientLabel();
   document.getElementById('einst-action').value   = r.action || '';
   document.getElementById('einst-etat').value     = r.etat || 'Non';
-  const quiVal = r.qui === TOKEN_CLIENT ? getClientLabel() : r.qui;
-  document.getElementById('einst-qui').value      = quiVal || 'MECALUX';
+  buildOwnerSelect(document.getElementById('einst-qui'), r.qui || 'MECALUX');
   document.getElementById('einst-deadline').value = r.deadline || '';
   document.getElementById('einst-comment').value  = r.comment || '';
   document.getElementById('modal-edit-install').classList.add('open');
@@ -1002,7 +1006,7 @@ function saveInstall() {
   if (!action) { alert('Veuillez saisir une action.'); return; }
   r.action   = action;
   r.etat     = document.getElementById('einst-etat').value;
-  r.qui      = normalizeSpecialLabel(document.getElementById('einst-qui').value);
+  r.qui      = document.getElementById('einst-qui').value;
   r.deadline = document.getElementById('einst-deadline').value;
   r.comment  = document.getElementById('einst-comment').value.trim();
   closeModal('modal-edit-install'); renderInstall(); renderDashboard(); debouncedSave();
