@@ -328,27 +328,24 @@ function showDropdown(anchorEl, options, onSelect) {
   dd.addEventListener('click', e => e.stopPropagation());
 }
 
-// ═══ ROW REORDER (↑↓ buttons) ═══
-function makeReorderable(tr, arr, renderFn) {
-  const up   = tr.querySelector('.row-up');
-  const down = tr.querySelector('.row-down');
-  if (!up || !down) return;
-  up.addEventListener('click', e => {
-    e.stopPropagation();
-    const idx = arr.findIndex(r => r.id === tr.dataset.rowId);
-    if (idx <= 0) return;
-    [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]];
-    renderFn(); debouncedSave();
-  });
-  down.addEventListener('click', e => {
-    e.stopPropagation();
-    const idx = arr.findIndex(r => r.id === tr.dataset.rowId);
-    if (idx < 0 || idx >= arr.length - 1) return;
-    [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]];
-    renderFn(); debouncedSave();
+// ═══ ROW REORDER (SortableJS drag & drop) ═══
+function makeSortable(tbody, arr, renderFn) {
+  if (!window.Sortable) return;
+  const existing = Sortable.get(tbody);
+  if (existing) existing.destroy();
+  Sortable.create(tbody, {
+    handle: '.drag-handle',
+    animation: 150,
+    onEnd({ oldIndex, newIndex }) {
+      if (oldIndex === newIndex) return;
+      const [moved] = arr.splice(oldIndex, 1);
+      arr.splice(newIndex, 0, moved);
+      renderFn();
+      debouncedSave();
+    }
   });
 }
-function dh() { return `<span class="row-order-btns"><button class="row-up" title="Monter">↑</button><button class="row-down" title="Descendre">↓</button></span>`; }
+function dh() { return `<span class="drag-handle" title="Déplacer">⠿</span>`; }
 
 // ═══ GANTT ENGINE ═══
 function mondayOf(d) { const day = new Date(d); day.setHours(0,0,0,0); const dow = day.getDay(); day.setDate(day.getDate() + (dow === 0 ? -6 : 1 - dow)); return day; }
@@ -720,8 +717,8 @@ function renderHeures() {
       typeSel.onchange = () => { row.type = typeSel.value; debouncedSave(); };
       tr.cells[2].appendChild(typeSel);
     }
-    makeReorderable(tr, heuresData, renderHeures);
   });
+  makeSortable(tbody, heuresData, renderHeures);
   const vente = heuresVenteTotale(), actuel = heuresActuelTotal();
   document.getElementById('kpi-heures').innerHTML = `
     <div class="kpi-card"><div class="kpi-label">Total Vente</div><div class="kpi-value">${vente} h</div><div class="kpi-sub">Budget initial</div></div>
@@ -828,8 +825,8 @@ function renderTaches() {
     const etatSp = tr.cells[3].querySelector('span');
     etatSp.addEventListener('click', e => { e.stopPropagation(); showDropdown(etatSp, ETAT_INT.map(v => ({label:v,value:v,dot:ETAT_D[v]})), val => { task.etat = val; renderTaches(); debouncedSave(); }); });
     tr.cells[6].querySelector('span').addEventListener('click', e => { e.stopPropagation(); showDropdown(tr.cells[6].querySelector('span'), URG_OPTS, val => { task.urg = val; renderTaches(); debouncedSave(); }); });
-    makeReorderable(tr, internalTasks, renderTaches);
   });
+  makeSortable(tbody, internalTasks, renderTaches);
 }
 function addInternalTask() { internalTasks.push({id:uid(),action:'Nouvelle tâche',owner:'',etat:'À FAIRE',temps:0,deadline:'',urg:1,comment:''}); renderTaches(); debouncedSave(); }
 function deleteInternalTask(id) {
@@ -895,8 +892,8 @@ function renderInterfaces() {
       const sp = tr.cells[fi+3].querySelector('span');
       sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, ITF_STATES.map(v => ({label:v,value:v,dot:ITF_D[v]})), val => { row[f] = val; sp.className = ITF_B[val]||'cell-none'; sp.textContent = val; renderDashboard(); debouncedSave(); }); });
     });
-    makeReorderable(tr, interfacesData, renderInterfaces);
   });
+  makeSortable(tbody, interfacesData, renderInterfaces);
 }
 function addInterface() { interfacesData.push({id:uid(),type:'Connecteur ERP',name:'Nouvelle interface',dev:'NON',preprod:'NON',recMecalux:'NON',recClient:'NON',valide:'NON',comment:''}); renderInterfaces(); debouncedSave(); }
 function deleteInterface(id) {
@@ -964,8 +961,8 @@ function renderFonctionnel() {
       sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, ITF_STATES.map(v => ({label:v,value:v,dot:ITF_D[v]})), val => { row[f] = val; sp.className = ITF_B[val]||'cell-none'; sp.textContent = val; debouncedSave(); }); });
     });
     tr.cells[3].querySelector('span').addEventListener('click', e => { e.stopPropagation(); showDropdown(tr.cells[3].querySelector('span'), [0,10,20,30,40,50,60,70,80,90,100].map(v=>({label:v+'%',value:v,dot:'#2563eb'})), val => { row.pct = val; renderFonctionnel(); debouncedSave(); }); });
-    makeReorderable(tr, fonctionnelData, renderFonctionnel);
   });
+  makeSortable(tbody, fonctionnelData, renderFonctionnel);
 }
 function addFonctionnel() { fonctionnelData.push({id:uid(),name:'Nouveau flux',dev:'NON',pct:0,testMec:'NON',preprod:'NON',formKU:'NON',testClient:'NON',formUsers:'NON',comment:''}); renderFonctionnel(); debouncedSave(); }
 
@@ -1011,8 +1008,8 @@ function renderDryrun() {
       <td><button class="btn btn-secondary btn-sm" onclick="openEditDryrun('${row.id}')">✏</button></td>`;
     const sp = tr.cells[2].querySelector('span');
     sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, DR_STATES.map(v => ({label:v,value:v,dot:DR_D[v]})), val => { row.etat = val; sp.className = DR_B[val]||'cell-none'; sp.textContent = val; renderDashboard(); debouncedSave(); }); });
-    makeReorderable(tr, dryrunData, renderDryrun);
   });
+  makeSortable(tbody, dryrunData, renderDryrun);
 }
 function addDryrun() { dryrunData.push({id:uid(),name:'Nouveau prérequis',etat:'NON',comment:''}); renderDryrun(); debouncedSave(); }
 function deleteDryrun(id) {
@@ -1072,8 +1069,8 @@ function renderInstall() {
       <td><button class="btn btn-secondary btn-sm" onclick="openEditInstall('${row.id}')">✏</button></td>`;
     const sp = tr.cells[2].querySelector('span');
     sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, INST_STATES.map(v => ({label:v,value:v,dot:INST_D[v]})), val => { row.etat = val; sp.className = INST_B[val]||'cell-none'; sp.textContent = val; renderDashboard(); debouncedSave(); }); });
-    makeReorderable(tr, installData, renderInstall);
   });
+  makeSortable(tbody, installData, renderInstall);
 }
 function addInstall() { installData.push({id:uid(),action:'Nouveau prérequis',etat:'Non',qui:'MECALUX',deadline:'',comment:''}); renderInstall(); debouncedSave(); }
 function deleteInstall(id) {
@@ -1152,8 +1149,8 @@ function renderFactRow(tbody, list, type) {
       <td><button class="btn btn-secondary btn-sm" onclick="openEditJalon('${row.id}','${type}')">✏</button></td>`;
     const sp = tr.cells[4].querySelector('span');
     sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, FACT_STATES.map(v => ({label:v,value:v,dot:FACT_D[v]})), val => { row.etat = val; sp.className = FACT_B[val]||'cell-none'; sp.textContent = val; renderFacturation(); renderDashboard(); debouncedSave(); }); });
-    makeReorderable(tr, list, renderFacturation);
   });
+  makeSortable(tbody, list, renderFacturation);
 }
 function del_fact_projet(id) {
   const idx = jalonsProjet.findIndex(r => r.id === id); if (idx < 0) return;
@@ -1398,8 +1395,8 @@ function renderCustomTabRows(tabId) {
     });
     cells += `<td><button class="btn btn-sm btn-danger" onclick="deleteCustomTabRow('${tabId}','${row.id}')">✕</button></td>`;
     tr.innerHTML = cells;
-    makeReorderable(tr, tab.rows, () => { renderCustomTabRows(tabId); debouncedSave(); });
   });
+  makeSortable(tbody, tab.rows, () => { renderCustomTabRows(tabId); debouncedSave(); });
 }
 
 function ctSetCell(tabId, rowId, key, value) {

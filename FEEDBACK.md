@@ -122,7 +122,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 ## Notes Techniques
 
 <!-- Implementation notes for future reference -->
-- [ ] **Drag & drop natif (futur)** : remplacer les boutons ↑↓ par SortableJS pour un vrai drag & drop.
+- [x] **Drag & drop natif** : SortableJS remplace les boutons ↑↓ — drag-handle ⠿ sur toutes les tables. - OK
   - Ajouter `<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>` dans app.html
   - Remplacer `makeReorderable(tr, arr, renderFn)` par `Sortable.create(tbody, { handle: '.drag-handle', animation: 150, onEnd: ({ oldIndex, newIndex }) => { const [item] = arr.splice(oldIndex, 1); arr.splice(newIndex, 0, item); renderFn(); debouncedSave(); } })`
   - SortableJS utilise les pointer events en interne — contourne le bug Chromium/WebView2 avec l'API HTML5 drag dans les tableaux.

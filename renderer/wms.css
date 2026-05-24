@@ -113,10 +113,11 @@ td[contenteditable="true"]:focus{outline:2px solid var(--accent);outline-offset:
 .data-table td{padding:6px 11px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);vertical-align:middle;}
 .data-table tbody tr:hover td{background:var(--accent-light);}
 .data-table td[contenteditable="true"]:focus{outline:2px solid var(--accent);outline-offset:-1px;border-radius:3px;}
-/* ROW ORDER BUTTONS */
-.row-order-btns{display:flex;flex-direction:column;gap:1px;align-items:center;}
-.row-up,.row-down{background:none;border:none;color:#cbd5e1;font-size:11px;line-height:1;padding:1px 3px;cursor:pointer;border-radius:3px;font-family:inherit;}
-.row-up:hover,.row-down:hover{background:#e2e8f0;color:#475569;}
+/* DRAG HANDLE */
+.drag-handle{cursor:grab;color:#c8d0da;font-size:15px;user-select:none;display:block;text-align:center;line-height:1;padding:0 4px;}
+.drag-handle:hover{color:#64748b;}
+.drag-handle:active{cursor:grabbing;}
+.sortable-ghost{opacity:.4;background:#e0e7ff !important;}
 /* GANTT INLINE SELECT */
 .gantt-select{border:none;background:transparent;font-family:inherit;font-size:11px;color:inherit;cursor:pointer;padding:1px 2px;border-radius:3px;}
 .gantt-select:hover,.gantt-select:focus{background:#f1f5f9;outline:none;}
