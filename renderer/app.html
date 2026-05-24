@@ -84,7 +84,7 @@
     <div class="info-item install-date-group">
       <label>Date d'installation prévue</label>
       <div class="install-dates">
-        <input id="pi-install-orig" type="date" onchange="onMetaInput()">
+        <input id="pi-install-orig" type="date" onchange="handleInstallOrigChange(this.value)">
         <div id="install-delay-section" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px">
           <span class="badge badge-retarde" style="font-size:10px">Reportée</span>
           <input id="pi-install-delayed" type="date" onchange="onMetaInput()">
@@ -318,7 +318,7 @@
       <div class="form-row"><label>État</label><select id="ej-etat"><option>—</option><option>En cours</option><option>Payé</option><option>Retard</option></select></div>
       <div class="form-row"><label>%</label><input id="ej-pct" type="number" min="0" max="100" value="0"></div>
     </div>
-    <div class="form-row"><label>Montant (€)</label><input id="ej-montant" type="number" min="0" value="0"></div>
+    <div class="form-row"><label>Montant (€)</label><input id="ej-montant" type="number" min="0" value="0" oninput="autoCalcJalonPct()"></div>
     <div class="modal-footer">
       <button class="btn btn-danger" onclick="deleteJalonFromModal()">Supprimer</button>
       <button class="btn btn-secondary" onclick="closeModal('modal-edit-jalon')">Annuler</button>

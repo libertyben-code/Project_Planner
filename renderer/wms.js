@@ -171,6 +171,20 @@ function _syncInstallDelayUI() {
   document.getElementById('install-delay-section').style.display = hasDelay ? 'flex' : 'none';
   document.getElementById('btn-signal-report').style.display    = hasDelay ? 'none' : '';
 }
+function handleInstallOrigChange(newVal) {
+  const prev = projectMeta.installDateOriginal;
+  if (prev && prev !== newVal) {
+    const isRetard = confirm(
+      'La date d\'installation a changé.\n\nClic OK = Retard : la date originale est conservée, la nouvelle date devient "Reportée".\nClic Annuler = Ajustement : la date originale est simplement mise à jour.'
+    );
+    if (isRetard) {
+      document.getElementById('pi-install-orig').value = prev; // restore original
+      document.getElementById('pi-install-delayed').value = newVal;
+      openInstallDelaySection();
+    }
+  }
+  onMetaInput();
+}
 function openInstallDelaySection() {
   document.getElementById('install-delay-section').style.display = 'flex';
   document.getElementById('btn-signal-report').style.display = 'none';
@@ -1069,6 +1083,18 @@ const FACT_D = {'Payé':'#059669','En cours':'#2563eb','Retard':'#dc2626','—':
 const FACT_B = {'Payé':'cell-ok','En cours':'cell-wip','Retard':'cell-ko','—':'cell-none'};
 
 let _editingJalonId = null, _editingJalonType = null;
+function _jalonTotalMontant() {
+  return [...jalonsProjet, ...jalonsEquip].reduce((s, j) => s + (j.montant || 0), 0);
+}
+function autoCalcJalonPct() {
+  const montant = +document.getElementById('ej-montant').value || 0;
+  const total   = _jalonTotalMontant();
+  // Subtract the current row's old montant to avoid double-counting it
+  const current = _editingJalonId ? (([...jalonsProjet,...jalonsEquip].find(j=>j.id===_editingJalonId)||{}).montant||0) : 0;
+  const base = total - current + montant;
+  const pct = base > 0 ? Math.round(montant / base * 100) : 0;
+  document.getElementById('ej-pct').value = pct;
+}
 function openEditJalon(id, type) {
   _editingJalonId = id; _editingJalonType = type;
   const list = type === 'projet' ? jalonsProjet : jalonsEquip;
@@ -1080,6 +1106,7 @@ function openEditJalon(id, type) {
   document.getElementById('ej-etat').value    = r.etat || '—';
   document.getElementById('ej-pct').value     = r.pct || 0;
   document.getElementById('ej-montant').value = r.montant || 0;
+  autoCalcJalonPct();
   document.getElementById('modal-edit-jalon').classList.add('open');
 }
 function saveJalon() {
@@ -1523,7 +1550,7 @@ async function openFilePicker() {
 // ═══ WINDOW EXPORTS (for onclick handlers in HTML) ═══
 Object.assign(window, {
   goHome, reloadProject, undoDelete,
-  syncNav, onMetaInput, openInstallDelaySection, clearInstallDelay,
+  syncNav, onMetaInput, handleInstallOrigChange, openInstallDelaySection, clearInstallDelay,
   openAddPhaseModal, openAddTaskModal, openEditTask, openEditPhase,
   closeModal, saveTask, savePhase,
   deleteTask, deleteTaskFromModal, removePhase, removePhaseFromModal, updateTask,
@@ -1533,7 +1560,7 @@ Object.assign(window, {
   openEditFonctionnel, saveFonctionnel, deleteFonctionnelFromModal, addFonctionnel,
   openEditDryrun, saveDryrun, deleteDryrunFromModal, addDryrun,
   addInstall, openEditInstall, saveInstall, deleteInstallFromModal, deleteInstall,
-  addJalon, openEditJalon, saveJalon, deleteJalonFromModal,
+  addJalon, openEditJalon, saveJalon, deleteJalonFromModal, autoCalcJalonPct,
   del_fact_projet, del_fact_equip, renderFacturation,
   addCustomHeuresRow, deleteHeuresRow, deleteHeuresFromModal, openEditHeure, saveHeures, toggleHeuresHistory,
   openExportHTMLModal, doExportHTML, exportSelectAll,
