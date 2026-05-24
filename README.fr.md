@@ -2,7 +2,7 @@
 
 *[Read in English](README.md)*
 
-Application de bureau pour piloter les projets d'implémentation EasyWMS — du lancement jusqu'à la mise en production.
+Application de bureau pour piloter les projets d'implémentation WMS — du lancement jusqu'à la mise en production.
 
 ## Ce que ça fait
 

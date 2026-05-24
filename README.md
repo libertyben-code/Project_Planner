@@ -2,7 +2,7 @@
 
 *[Lire en français](README.fr.md)*
 
-A desktop application for managing EasyWMS implementation projects — from kick-off to go-live.
+A desktop application for managing WMS implementation projects — from kick-off to go-live.
 
 ## What it does
 
