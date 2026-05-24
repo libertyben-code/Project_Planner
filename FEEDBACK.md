@@ -105,6 +105,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 <!-- KPI cards, charts, install drift block -->
 - [x] pour la facturation, utiliser un graphique d'une barreavec les différentes parties payé ou non et le montant global.
 - [x] Ajouter la possibilité de customiser ce dashboard en selectionnant les graphique à afficher. - OK
+- [x] Ajouter un graphique JIRA dans le dashboard : barres horizontales empilées par épic (Terminé / En cours / À faire), activable/désactivable comme les autres graphiques. - OK
   
 ## Onglets Personnalisés (Custom Tabs)
 

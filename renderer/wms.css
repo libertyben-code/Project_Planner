@@ -231,6 +231,8 @@ td[contenteditable="true"]:focus{outline:2px solid var(--accent);outline-offset:
 .jira-task-summary { overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500; }
 .jira-empty { text-align:center;padding:48px 20px;color:var(--text-muted); }
 .jira-no-tasks { padding:8px 28px;color:var(--text-muted);font-style:italic;font-size:12px;border-top:1px solid var(--border); }
+.btn-xs{padding:1px 6px;font-size:11px;line-height:1.4;}
+.badge-retarde{background:#fef3c7;color:#92400e;border:1px solid #fcd34d;}
 
 /* ══════════════════════════════════════════════════
    RESPONSIVE — tablet (≤1024px) and mobile (≤768px)

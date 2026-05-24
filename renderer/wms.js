@@ -1528,6 +1528,7 @@ const DASH_CHARTS = [
   { key: 'itf',     label: 'Interfaces ERP' },
   { key: 'install', label: 'Prérequis Installation' },
   { key: 'dryrun',  label: 'Prérequis Dry Run' },
+  { key: 'jira',    label: 'JIRA — Épics & Tâches' },
 ];
 function isChartVisible(key) {
   const v = projectMeta.dashboardCharts;
@@ -1608,6 +1609,36 @@ function renderDashboard() {
   destroyChart('dryrun');
   if (isChartVisible('dryrun')) {
     charts['dryrun'] = new Chart(document.getElementById('ch-dryrun'), {type:'doughnut',data:{labels:['OK','En cours','NON','KO'],datasets:[{data:[dryrunData.filter(r=>r.etat==='OK').length,dryrunData.filter(r=>r.etat==='En cours').length,dryrunData.filter(r=>r.etat==='NON').length,dryrunData.filter(r=>r.etat==='KO').length],backgroundColor:['#86efac','#93c5fd','#e2e7ed','#fca5a5'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}}}});
+  }
+
+  destroyChart('jira');
+  if (isChartVisible('jira')) {
+    const epics = jiraData.epics || [];
+    const tasks_j = jiraData.tasks || [];
+    if (epics.length) {
+      const epicLabels = epics.map(e => (e.key + ' ' + e.summary).slice(0, 30));
+      const doneData = epics.map(e => tasks_j.filter(t => t.epicKey === e.key && t.status === 'done').length);
+      const inProgData = epics.map(e => tasks_j.filter(t => t.epicKey === e.key && t.status === 'inprogress').length);
+      const todoData = epics.map(e => tasks_j.filter(t => t.epicKey === e.key && t.status === 'todo').length);
+      charts['jira'] = new Chart(document.getElementById('ch-jira'), {
+        type: 'bar',
+        data: { labels: epicLabels, datasets: [
+          { label: 'Terminé',   data: doneData,   backgroundColor: '#86efac', borderRadius: 3 },
+          { label: 'En cours',  data: inProgData, backgroundColor: '#93c5fd', borderRadius: 3 },
+          { label: 'À faire',   data: todoData,   backgroundColor: '#e2e7ed', borderRadius: 3 },
+        ]},
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10 } } },
+          scales: { x: { stacked: true, ticks: { stepSize: 1 }, grid: { color: '#f0f2f5' } }, y: { stacked: true, grid: { display: false } } }
+        }
+      });
+    } else {
+      const canvas = document.getElementById('ch-jira');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#94a3b8'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('Aucune donnée JIRA — synchronisez dans l\'onglet JIRA', canvas.width / 2, 60);
+    }
   }
 
   DASH_CHARTS.forEach(c => {
