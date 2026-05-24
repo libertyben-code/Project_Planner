@@ -509,7 +509,13 @@ function renderGantt() {
           if (done) bar.classList.add('gantt-bar-done');
           td.appendChild(bar);
           const wEnd = new Date(w); wEnd.setDate(wEnd.getDate() + 6);
-          td.title = `${fmtDateShort(w)} – ${fmtDateShort(wEnd)}`;
+          const phase = phases.find(p => p.id === task.phaseId);
+          td.title = [
+            formatTemplate(task.name),
+            phase ? phase.name : '',
+            `${fmtDateShort(new Date(task.start))} → ${fmtDateShort(new Date(task.end))}`,
+            task.progress ? `${task.progress}%` : ''
+          ].filter(Boolean).join('\n');
         }
         rt.appendChild(td);
       });
