@@ -30,7 +30,7 @@
     <button class="btn btn-ghost btn-sm" id="btn-export-html" onclick="openExportHTMLModal()">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><path stroke-linecap="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>HTML
     </button>
-    <button class="btn btn-primary btn-sm" onclick="exportPDF()">
+    <button class="btn btn-primary btn-sm" id="btn-nav-pdf" onclick="exportCurrentTabPDF()">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>PDF
     </button>
   </div>
@@ -51,21 +51,24 @@
 
 <!-- DASHBOARD -->
 <div class="page active" id="page-dashboard">
+  <div class="dash-toolbar">
+    <button class="btn btn-ghost btn-sm" onclick="openDashCustomize()">⚙ Personnaliser</button>
+  </div>
   <div class="kpi-grid" id="dash-kpi"></div>
   <!-- Install date drift indicator -->
   <div class="install-drift-block" id="install-drift-block" style="display:none"></div>
   <div class="chart-grid">
-    <div class="chart-card"><div class="chart-card-title">Avancement par Phase</div><div class="chart-wrap"><canvas id="ch-phases"></canvas></div></div>
-    <div class="chart-card"><div class="chart-card-title">Répartition des Statuts</div><div class="chart-wrap"><canvas id="ch-statuts"></canvas></div></div>
+    <div class="chart-card" id="card-phases"><div class="chart-card-title">Avancement par Phase</div><div class="chart-wrap"><canvas id="ch-phases"></canvas></div></div>
+    <div class="chart-card" id="card-statuts"><div class="chart-card-title">Répartition des Statuts</div><div class="chart-wrap"><canvas id="ch-statuts"></canvas></div></div>
   </div>
   <div class="chart-grid">
-    <div class="chart-card"><div class="chart-card-title">Suivi Heures — Vente vs Actuel</div><div class="chart-wrap"><canvas id="ch-heures"></canvas></div></div>
-    <div class="chart-card"><div class="chart-card-title" id="ch-fact-title">Facturation</div><div class="chart-wrap"><canvas id="ch-fact"></canvas></div></div>
+    <div class="chart-card" id="card-heures"><div class="chart-card-title">Suivi Heures — Vente vs Actuel</div><div class="chart-wrap"><canvas id="ch-heures"></canvas></div></div>
+    <div class="chart-card" id="card-fact"><div class="chart-card-title" id="ch-fact-title">Facturation</div><div class="chart-wrap"><canvas id="ch-fact"></canvas></div></div>
   </div>
   <div class="chart-grid-3">
-    <div class="chart-card"><div class="chart-card-title">Interfaces ERP</div><div class="chart-wrap"><canvas id="ch-itf"></canvas></div></div>
-    <div class="chart-card"><div class="chart-card-title">Prérequis Installation</div><div class="chart-wrap"><canvas id="ch-install"></canvas></div></div>
-    <div class="chart-card"><div class="chart-card-title">Prérequis Dry Run</div><div class="chart-wrap"><canvas id="ch-dryrun"></canvas></div></div>
+    <div class="chart-card" id="card-itf"><div class="chart-card-title">Interfaces ERP</div><div class="chart-wrap"><canvas id="ch-itf"></canvas></div></div>
+    <div class="chart-card" id="card-install"><div class="chart-card-title">Prérequis Installation</div><div class="chart-wrap"><canvas id="ch-install"></canvas></div></div>
+    <div class="chart-card" id="card-dryrun"><div class="chart-card-title">Prérequis Dry Run</div><div class="chart-wrap"><canvas id="ch-dryrun"></canvas></div></div>
   </div>
 </div>
 
@@ -412,6 +415,19 @@
 </div>
 
 <!-- HTML Export modal -->
+<!-- ── DASHBOARD CUSTOMIZE MODAL ── -->
+<div class="modal-overlay" id="modal-dash-customize">
+  <div class="modal" style="max-width:320px">
+    <h3>Personnaliser le tableau de bord</h3>
+    <p style="color:var(--text-muted);font-size:13px;margin-bottom:12px">Sélectionnez les graphiques à afficher :</p>
+    <div id="dash-customize-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-dash-customize')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveDashCustomize()">Appliquer</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-export-html">
   <div class="modal">
     <h3>Exporter en HTML (lecture seule)</h3>

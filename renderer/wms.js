@@ -629,6 +629,38 @@ async function exportPDF() {
   btn.innerHTML = orig; btn.disabled = false;
 }
 
+async function exportCurrentTabPDF() {
+  const activeTab = document.querySelector('.nav-tab.active');
+  const pageId = activeTab?.dataset?.page;
+  const panel = pageId === 'page-planning'
+    ? document.getElementById('planning-panel')
+    : document.getElementById(pageId);
+  if (!panel) return;
+  const btn = document.getElementById('btn-nav-pdf');
+  const orig = btn?.innerHTML; if (btn) { btn.innerHTML = 'Génération…'; btn.disabled = true; }
+  try {
+    const { jsPDF } = window.jspdf;
+    const wr = pageId === 'page-planning' ? document.getElementById('gantt-wrapper') : null;
+    const prev = wr?.style.overflow; if (wr) wr.style.overflow = 'visible';
+    const canvas = await html2canvas(panel, {scale:1.3,useCORS:true,backgroundColor:'#fff',logging:false,scrollX:0,scrollY:0,windowWidth:panel.scrollWidth,width:panel.scrollWidth});
+    if (wr) wr.style.overflow = prev;
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({orientation:'landscape',unit:'mm',format:'a3'});
+    const pageW = pdf.internal.pageSize.getWidth(), pageH = pdf.internal.pageSize.getHeight();
+    const m = 10, aw = pageW - m*2, ah = pageH - m*2 - 14;
+    const ratio = canvas.width / canvas.height; let dw = aw, dh = dw / ratio; if (dh > ah) { dh = ah; dw = dh * ratio; }
+    const tabName = activeTab?.textContent?.trim() || 'Export';
+    const proj = projectMeta.name || '', cli = projectMeta.client || '', today = new Date().toLocaleDateString('fr-FR');
+    pdf.setFillColor(26,35,50); pdf.rect(m,m,pageW-m*2,10,'F');
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(11); pdf.setTextColor(255,255,255); pdf.text(`${tabName.toUpperCase()} — ${proj.toUpperCase()}`, m+4, m+6.5);
+    pdf.setFont('helvetica','normal'); pdf.setFontSize(9); pdf.text(`Client: ${cli}  |  ${today}`, pageW-m-4, m+6.5, {align:'right'});
+    pdf.addImage(imgData,'PNG', m+(aw-dw)/2, m+12, dw, dh);
+    pdf.setFontSize(8); pdf.setTextColor(150,150,150); pdf.text(`Document confidentiel — ${proj}`, m, pageH-4); pdf.text('Page 1', pageW-m, pageH-4, {align:'right'});
+    pdf.save(`${tabName.replace(/\s+/g,'_')}_${proj.replace(/\s+/g,'_')}_${today.replace(/\//g,'-')}.pdf`);
+  } catch (e) { console.error(e); alert('Erreur PDF.'); }
+  if (btn) { btn.innerHTML = orig; btn.disabled = false; }
+}
+
 // ═══ HEURES ═══
 function updateHeures(id, field, val) {
   const r = heuresData.find(r => r.id === id);
@@ -1184,6 +1216,19 @@ function renderFacturation() {
 // ═══ DASHBOARD ═══
 const charts = {};
 function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+const DASH_CHARTS = [
+  { key: 'phases',  label: 'Avancement par Phase' },
+  { key: 'statuts', label: 'Répartition des Statuts' },
+  { key: 'heures',  label: 'Suivi Heures' },
+  { key: 'fact',    label: 'Facturation' },
+  { key: 'itf',     label: 'Interfaces ERP' },
+  { key: 'install', label: 'Prérequis Installation' },
+  { key: 'dryrun',  label: 'Prérequis Dry Run' },
+];
+function isChartVisible(key) {
+  const v = projectMeta.dashboardCharts;
+  return !v || v.includes(key);
+}
 
 function renderDashboard() {
   const totalTasks = tasks.length, doneTasks = tasks.filter(t => t.status === 'Terminé').length;
@@ -1200,52 +1245,91 @@ function renderDashboard() {
     <div class="kpi-card"><div class="kpi-label">Phases</div><div class="kpi-value">${phases.length}</div><div class="kpi-sub">${tasks.length} tâches réparties</div></div>`;
 
   destroyChart('phases');
-  const phaseLabels = phases.map(p => p.name.length>20 ? p.name.slice(0,20)+'…' : p.name);
-  const phaseData = phases.map(ph => { const pt = tasks.filter(t => t.phaseId === ph.id); return pt.length ? Math.round(pt.reduce((s,t) => s+(t.progress||0), 0)/pt.length) : 0; });
-  charts['phases'] = new Chart(document.getElementById('ch-phases'), {type:'bar',data:{labels:phaseLabels,datasets:[{label:'Avancement %',data:phaseData,backgroundColor:phases.map(p=>p.color+'cc'),borderColor:phases.map(p=>p.color),borderWidth:2,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{max:100,ticks:{callback:v=>v+'%'},grid:{color:'#f0f2f5'}},y:{grid:{display:false}}}}});
+  if (isChartVisible('phases')) {
+    const phaseLabels = phases.map(p => p.name.length>20 ? p.name.slice(0,20)+'…' : p.name);
+    const phaseData = phases.map(ph => { const pt = tasks.filter(t => t.phaseId === ph.id); return pt.length ? Math.round(pt.reduce((s,t) => s+(t.progress||0), 0)/pt.length) : 0; });
+    charts['phases'] = new Chart(document.getElementById('ch-phases'), {type:'bar',data:{labels:phaseLabels,datasets:[{label:'Avancement %',data:phaseData,backgroundColor:phases.map(p=>p.color+'cc'),borderColor:phases.map(p=>p.color),borderWidth:2,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{max:100,ticks:{callback:v=>v+'%'},grid:{color:'#f0f2f5'}},y:{grid:{display:false}}}}});
+  }
 
   destroyChart('statuts');
-  const statusCounts = {}; tasks.forEach(t => { const s = t.status||'Non défini'; statusCounts[s] = (statusCounts[s]||0)+1; });
-  const statusColors = {'Terminé':'#059669','En cours':'#2563eb','Non commencé':'#94a3b8','En attente':'#d97706','En retard':'#dc2626','Vérification requise':'#7c3aed','Mise à jour requise':'#0891b2','Non défini':'#e2e7ed'};
-  charts['statuts'] = new Chart(document.getElementById('ch-statuts'), {type:'doughnut',data:{labels:Object.keys(statusCounts),datasets:[{data:Object.values(statusCounts),backgroundColor:Object.keys(statusCounts).map(s=>statusColors[s]||'#e2e7ed'),borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12}}}}});
+  if (isChartVisible('statuts')) {
+    const statusCounts = {}; tasks.forEach(t => { const s = t.status||'Non défini'; statusCounts[s] = (statusCounts[s]||0)+1; });
+    const statusColors = {'Terminé':'#059669','En cours':'#2563eb','Non commencé':'#94a3b8','En attente':'#d97706','En retard':'#dc2626','Vérification requise':'#7c3aed','Mise à jour requise':'#0891b2','Non défini':'#e2e7ed'};
+    charts['statuts'] = new Chart(document.getElementById('ch-statuts'), {type:'doughnut',data:{labels:Object.keys(statusCounts),datasets:[{data:Object.values(statusCounts),backgroundColor:Object.keys(statusCounts).map(s=>statusColors[s]||'#e2e7ed'),borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12}}}}});
+  }
 
   destroyChart('heures');
-  const hRows = heuresData.filter(r => !r.sep && !r.bold && r.vente);
-  charts['heures'] = new Chart(document.getElementById('ch-heures'), {type:'bar',data:{labels:hRows.map(r=>r.cat.length>14?r.cat.slice(0,14)+'…':r.cat),datasets:[{label:'Vente',data:hRows.map(r=>r.vente||0),backgroundColor:'#bfdbfe',borderColor:'#2563eb',borderWidth:1,borderRadius:3},{label:'Actuel',data:hRows.map(r=>r.actuel||0),backgroundColor:'#fca5a5',borderColor:'#dc2626',borderWidth:1,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:12}}},scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{grid:{color:'#f0f2f5'}}}}});
+  if (isChartVisible('heures')) {
+    const hRows = heuresData.filter(r => !r.sep && !r.bold && r.vente);
+    charts['heures'] = new Chart(document.getElementById('ch-heures'), {type:'bar',data:{labels:hRows.map(r=>r.cat.length>14?r.cat.slice(0,14)+'…':r.cat),datasets:[{label:'Vente',data:hRows.map(r=>r.vente||0),backgroundColor:'#bfdbfe',borderColor:'#2563eb',borderWidth:1,borderRadius:3},{label:'Actuel',data:hRows.map(r=>r.actuel||0),backgroundColor:'#fca5a5',borderColor:'#dc2626',borderWidth:1,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:12}}},scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{grid:{color:'#f0f2f5'}}}}});
+  }
 
   destroyChart('fact');
-  const allJ = [...jalonsProjet,...jalonsEquip];
-  const totM   = allJ.reduce((s,j)=>s+(j.montant||0),0);
-  const payeM  = allJ.filter(j=>j.etat==='Payé').reduce((s,j)=>s+(j.montant||0),0);
-  const coursM = allJ.filter(j=>j.etat==='En cours').reduce((s,j)=>s+(j.montant||0),0);
-  const retardM= allJ.filter(j=>j.etat==='Retard').reduce((s,j)=>s+(j.montant||0),0);
-  const resteM = Math.max(0, totM - payeM - coursM - retardM);
-  const fmtEur = v => v.toLocaleString('fr-FR') + ' €';
-  const factTitle = document.getElementById('ch-fact-title');
-  if (factTitle) factTitle.textContent = `Facturation — ${fmtEur(payeM)} payé / ${fmtEur(totM)} total`;
-  charts['fact'] = new Chart(document.getElementById('ch-fact'), {
-    type:'bar',
-    data:{labels:[''],datasets:[
-      {label:'Payé',    data:[payeM],  backgroundColor:'#86efac'},
-      {label:'En cours',data:[coursM], backgroundColor:'#93c5fd'},
-      {label:'Retard',  data:[retardM],backgroundColor:'#fca5a5'},
-      {label:'Restant', data:[resteM], backgroundColor:'#e2e7ed'},
-    ]},
-    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}},
-        tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${fmtEur(ctx.raw)}`}}},
-      scales:{x:{stacked:true,ticks:{callback:v=>fmtEur(v),font:{size:10}},grid:{color:'#f0f2f5'}},y:{stacked:true,display:false}}}
-  });
+  if (isChartVisible('fact')) {
+    const allJ = [...jalonsProjet,...jalonsEquip];
+    const totM   = allJ.reduce((s,j)=>s+(j.montant||0),0);
+    const payeM  = allJ.filter(j=>j.etat==='Payé').reduce((s,j)=>s+(j.montant||0),0);
+    const coursM = allJ.filter(j=>j.etat==='En cours').reduce((s,j)=>s+(j.montant||0),0);
+    const retardM= allJ.filter(j=>j.etat==='Retard').reduce((s,j)=>s+(j.montant||0),0);
+    const resteM = Math.max(0, totM - payeM - coursM - retardM);
+    const fmtEur = v => v.toLocaleString('fr-FR') + ' €';
+    const factTitle = document.getElementById('ch-fact-title');
+    if (factTitle) factTitle.textContent = `Facturation — ${fmtEur(payeM)} payé / ${fmtEur(totM)} total`;
+    charts['fact'] = new Chart(document.getElementById('ch-fact'), {
+      type:'bar',
+      data:{labels:[''],datasets:[
+        {label:'Payé',    data:[payeM],  backgroundColor:'#86efac'},
+        {label:'En cours',data:[coursM], backgroundColor:'#93c5fd'},
+        {label:'Retard',  data:[retardM],backgroundColor:'#fca5a5'},
+        {label:'Restant', data:[resteM], backgroundColor:'#e2e7ed'},
+      ]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}},
+          tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${fmtEur(ctx.raw)}`}}},
+        scales:{x:{stacked:true,ticks:{callback:v=>fmtEur(v),font:{size:10}},grid:{color:'#f0f2f5'}},y:{stacked:true,display:false}}}
+    });
+  }
 
   destroyChart('itf');
-  const itfCounts = ITF_STATES.reduce((o,s) => { o[s] = interfacesData.filter(r=>r.valide===s).length; return o; }, {});
-  charts['itf'] = new Chart(document.getElementById('ch-itf'), {type:'doughnut',data:{labels:['Validé (OUI)','En cours','Non validé (NON)','KO'],datasets:[{data:[itfCounts.OUI||0,itfCounts['EN COURS']||0,itfCounts.NON||0,itfCounts.KO||0],backgroundColor:['#86efac','#93c5fd','#e2e7ed','#fca5a5'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}}}});
+  if (isChartVisible('itf')) {
+    const itfCounts = ITF_STATES.reduce((o,s) => { o[s] = interfacesData.filter(r=>r.valide===s).length; return o; }, {});
+    charts['itf'] = new Chart(document.getElementById('ch-itf'), {type:'doughnut',data:{labels:['Validé (OUI)','En cours','Non validé (NON)','KO'],datasets:[{data:[itfCounts.OUI||0,itfCounts['EN COURS']||0,itfCounts.NON||0,itfCounts.KO||0],backgroundColor:['#86efac','#93c5fd','#e2e7ed','#fca5a5'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}}}});
+  }
 
   destroyChart('install');
-  charts['install'] = new Chart(document.getElementById('ch-install'), {type:'doughnut',data:{labels:['Oui','En cours','Non','KO'],datasets:[{data:[installData.filter(r=>r.etat==='Oui').length,installData.filter(r=>r.etat==='En cours').length,installData.filter(r=>r.etat==='Non').length,installData.filter(r=>r.etat==='KO').length],backgroundColor:['#86efac','#93c5fd','#e2e7ed','#fca5a5'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}}}});
+  if (isChartVisible('install')) {
+    charts['install'] = new Chart(document.getElementById('ch-install'), {type:'doughnut',data:{labels:['Oui','En cours','Non','KO'],datasets:[{data:[installData.filter(r=>r.etat==='Oui').length,installData.filter(r=>r.etat==='En cours').length,installData.filter(r=>r.etat==='Non').length,installData.filter(r=>r.etat==='KO').length],backgroundColor:['#86efac','#93c5fd','#e2e7ed','#fca5a5'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}}}});
+  }
 
   destroyChart('dryrun');
-  charts['dryrun'] = new Chart(document.getElementById('ch-dryrun'), {type:'doughnut',data:{labels:['OK','En cours','NON','KO'],datasets:[{data:[dryrunData.filter(r=>r.etat==='OK').length,dryrunData.filter(r=>r.etat==='En cours').length,dryrunData.filter(r=>r.etat==='NON').length,dryrunData.filter(r=>r.etat==='KO').length],backgroundColor:['#86efac','#93c5fd','#e2e7ed','#fca5a5'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}}}});
+  if (isChartVisible('dryrun')) {
+    charts['dryrun'] = new Chart(document.getElementById('ch-dryrun'), {type:'doughnut',data:{labels:['OK','En cours','NON','KO'],datasets:[{data:[dryrunData.filter(r=>r.etat==='OK').length,dryrunData.filter(r=>r.etat==='En cours').length,dryrunData.filter(r=>r.etat==='NON').length,dryrunData.filter(r=>r.etat==='KO').length],backgroundColor:['#86efac','#93c5fd','#e2e7ed','#fca5a5'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}}}});
+  }
+
+  DASH_CHARTS.forEach(c => {
+    const card = document.getElementById('card-' + c.key);
+    if (card) card.style.display = isChartVisible(c.key) ? '' : 'none';
+  });
+}
+
+function openDashCustomize() {
+  const list = document.getElementById('dash-customize-list'); list.innerHTML = '';
+  const visible = projectMeta.dashboardCharts || DASH_CHARTS.map(c => c.key);
+  DASH_CHARTS.forEach(c => {
+    const label = document.createElement('label');
+    label.style.cssText = 'display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px';
+    const cb = document.createElement('input'); cb.type = 'checkbox'; cb.value = c.key; cb.checked = visible.includes(c.key);
+    label.appendChild(cb); label.appendChild(document.createTextNode(c.label));
+    list.appendChild(label);
+  });
+  document.getElementById('modal-dash-customize').classList.add('open');
+}
+
+function saveDashCustomize() {
+  projectMeta.dashboardCharts = [...document.getElementById('dash-customize-list').querySelectorAll('input:checked')].map(cb => cb.value);
+  closeModal('modal-dash-customize');
+  renderDashboard();
+  debouncedSave();
 }
 
 // ═══ CUSTOM TABS ═══
@@ -1552,6 +1636,48 @@ async function openFilePicker() {
   if (path) loadProject(path);
 }
 
+// ═══ COLUMN RESIZING ═══
+const RESIZABLE_TBODIES = ['tbody-heures','tbody-taches','tbody-interfaces','tbody-fonctionnel','tbody-dryrun','tbody-install','tbody-jalons-projet','tbody-jalons-equip'];
+
+function makeResizable(tbodyId) {
+  const tbody = document.getElementById(tbodyId);
+  const table = tbody?.closest('table');
+  if (!table) return;
+  const ths = Array.from(table.querySelectorAll('thead th'));
+  const storageKey = 'col-w:' + tbodyId;
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    ths.forEach((th, i) => { if (saved[i]) { th.style.width = saved[i] + 'px'; th.style.minWidth = saved[i] + 'px'; } });
+  } catch {}
+  ths.forEach((th, i) => {
+    if (th.querySelector('.col-resize-handle')) return;
+    const handle = document.createElement('div');
+    handle.className = 'col-resize-handle';
+    th.style.position = 'relative';
+    th.appendChild(handle);
+    let startX, startW;
+    handle.addEventListener('pointerdown', e => {
+      e.stopPropagation(); e.preventDefault();
+      startX = e.clientX; startW = th.offsetWidth;
+      handle.setPointerCapture(e.pointerId);
+    });
+    handle.addEventListener('pointermove', e => {
+      if (!(e.buttons & 1)) return;
+      const newW = Math.max(30, startW + (e.clientX - startX));
+      th.style.width = newW + 'px'; th.style.minWidth = newW + 'px';
+    });
+    handle.addEventListener('pointerup', () => {
+      const widths = {};
+      ths.forEach((t, idx) => { widths[idx] = t.offsetWidth; });
+      localStorage.setItem(storageKey, JSON.stringify(widths));
+    });
+  });
+}
+
+function initResizableTables() {
+  RESIZABLE_TBODIES.forEach(makeResizable);
+}
+
 // ═══ WINDOW EXPORTS (for onclick handlers in HTML) ═══
 Object.assign(window, {
   goHome, reloadProject, undoDelete,
@@ -1559,7 +1685,7 @@ Object.assign(window, {
   openAddPhaseModal, openAddTaskModal, openEditTask, openEditPhase,
   closeModal, saveTask, savePhase,
   deleteTask, deleteTaskFromModal, removePhase, removePhaseFromModal, updateTask,
-  scrollToToday, renderGantt, renderDashboard, exportPDF,
+  scrollToToday, renderGantt, renderDashboard, exportPDF, exportCurrentTabPDF,
   addInternalTask, openEditInternalTask, saveInternalTask, deleteInternalTask, deleteInternalTaskFromModal,
   addInterface, openEditInterface, saveInterface, deleteInterfaceFromModal,
   openEditFonctionnel, saveFonctionnel, deleteFonctionnelFromModal, addFonctionnel,
@@ -1569,11 +1695,14 @@ Object.assign(window, {
   del_fact_projet, del_fact_equip, renderFacturation,
   addCustomHeuresRow, deleteHeuresRow, deleteHeuresFromModal, openEditHeure, saveHeures, toggleHeuresHistory,
   openExportHTMLModal, doExportHTML, exportSelectAll,
+  openDashCustomize, saveDashCustomize,
   openAddCustomTabModal, openEditCustomTabModal, addCustomTabColumn, saveCustomTab,
   renderCtColumns, ctColLabel, ctColType, ctColOptions, ctColRemove,
   renderCustomTabs, renderCustomTabRows, addCustomTabRow, deleteCustomTabRow, deleteCustomTab, ctSetCell,
   normalizeSpecialLabel, buildState,
 });
+
+initResizableTables();
 
 // ═══ INIT ═══
 const params = new URLSearchParams(window.location.search);

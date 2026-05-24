@@ -98,7 +98,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 
 <!-- KPI cards, charts, install drift block -->
 - [x] pour la facturation, utiliser un graphique d'une barreavec les différentes parties payé ou non et le montant global.
-- [ ] Ajouter la possibilité de customiser ce dashboard en selectionnant les graphique à afficher.
+- [x] Ajouter la possibilité de customiser ce dashboard en selectionnant les graphique à afficher. - OK
   
 ## Onglets Personnalisés (Custom Tabs)
 
@@ -107,7 +107,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 ## Export HTML
 
 <!-- Tab selection modal, exported file quality -->
-- [ ] Le bouton export HTML doit proposer un endroit de sauvegarde du fichier html
+- [x] Le bouton export HTML doit proposer un endroit de sauvegarde du fichier html - OK
   
 ## Export PDF
 
@@ -116,8 +116,8 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 ## General / Cross-cutting
 
 <!-- Nav, save indicator, undo toast, keyboard shortcuts, responsive layout, performance -->
-- [ ] Le bouton PDF dans le nav bar doit s'appliquer seulement à l'onglet sélectionné.
-- [ ] Permettre d'ajuster la largeur des colonnes comme dans excel.
+- [x] Le bouton PDF dans le nav bar doit s'appliquer seulement à l'onglet sélectionné. - OK
+- [x] Permettre d'ajuster la largeur des colonnes comme dans excel. - OK
 
 ## Notes Techniques
 

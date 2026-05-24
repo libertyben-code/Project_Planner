@@ -118,6 +118,11 @@ td[contenteditable="true"]:focus{outline:2px solid var(--accent);outline-offset:
 .drag-handle:hover{color:#64748b;}
 .drag-handle:active{cursor:grabbing;}
 .sortable-ghost{opacity:.4;background:#e0e7ff !important;}
+/* COLUMN RESIZE HANDLE */
+.col-resize-handle{position:absolute;right:0;top:0;width:5px;height:100%;cursor:col-resize;z-index:1;}
+.col-resize-handle:hover,.col-resize-handle:active{background:rgba(37,99,235,.25);}
+/* DASHBOARD TOOLBAR */
+.dash-toolbar{display:flex;align-items:center;gap:8px;padding:8px 20px 0;justify-content:flex-end;}
 /* GANTT INLINE SELECT */
 .gantt-select{border:none;background:transparent;font-family:inherit;font-size:11px;color:inherit;cursor:pointer;padding:1px 2px;border-radius:3px;}
 .gantt-select:hover,.gantt-select:focus{background:#f1f5f9;outline:none;}
