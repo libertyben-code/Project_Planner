@@ -61,7 +61,6 @@ function debouncedSave() {
   clearTimeout(_saveTimer);
   _saveTimer = setTimeout(saveProject, 800);
 }
-window._DS = debouncedSave;
 
 function showSaveIndicator(state) {
   const el = document.getElementById('save-indicator');
@@ -1617,9 +1616,9 @@ function renderDashboard() {
     const tasks_j = jiraData.tasks || [];
     if (epics.length) {
       const epicLabels = epics.map(e => (e.key + ' ' + e.summary).slice(0, 30));
-      const doneData = epics.map(e => tasks_j.filter(t => t.epicKey === e.key && t.status === 'done').length);
-      const inProgData = epics.map(e => tasks_j.filter(t => t.epicKey === e.key && t.status === 'inprogress').length);
-      const todoData = epics.map(e => tasks_j.filter(t => t.epicKey === e.key && t.status === 'todo').length);
+      const doneData = epics.map(e => tasks_j.filter(t => t.epicId === e.key && t.status === 'DONE').length);
+      const inProgData = epics.map(e => tasks_j.filter(t => t.epicId === e.key && (t.status === 'IN_PROGRESS' || t.status === 'IN_REVIEW')).length);
+      const todoData = epics.map(e => tasks_j.filter(t => t.epicId === e.key && (t.status === 'TO_DO' || t.status === 'BLOCKED')).length);
       charts['jira'] = new Chart(document.getElementById('ch-jira'), {
         type: 'bar',
         data: { labels: epicLabels, datasets: [
@@ -2022,6 +2021,7 @@ Object.assign(window, {
   deleteTask, deleteTaskFromModal, removePhase, removePhaseFromModal, updateTask,
   scrollToToday, renderGantt, renderDashboard, exportPDF, exportCurrentTabPDF, toggleGanttEditMode,
   renderJira, openJiraConfig, saveJiraConfig, syncJira,
+  renderTaches, renderInstall,
   addInternalTask, openEditInternalTask, saveInternalTask, deleteInternalTask, deleteInternalTaskFromModal,
   addInterface, openEditInterface, saveInterface, deleteInterfaceFromModal,
   openEditFonctionnel, saveFonctionnel, deleteFonctionnelFromModal, addFonctionnel,
