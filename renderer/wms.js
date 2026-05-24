@@ -95,6 +95,16 @@ function applyState(state) {
   phases        = state.phases        || [];
   tasks         = state.tasks         || [];
   heuresData    = state.heuresData    || [];
+  // Backwards-compat: add totalType/type to projects saved before dynamic totals
+  heuresData.forEach(r => {
+    if (r.bold && !r.totalType) {
+      const c = (r.cat || '').toLowerCase();
+      if (c.includes('standard')) r.totalType = 'Standard';
+      else if (c.includes('custom')) r.totalType = 'Custom';
+      else if (c.includes('comp')) r.totalType = 'Offre Comp';
+    }
+    if (!r.bold && !r.sep && !r.type) r.type = r.custom ? 'Custom' : 'Standard';
+  });
   internalTasks = state.internalTasks || [];
   interfacesData = state.interfaces   || [];
   fonctionnelData = state.functional  || [];
@@ -676,6 +686,12 @@ function updateHeures(id, field, val) {
 function updateHeuresDesc(id, val) {
   const r = heuresData.find(r => r.id === id); if (r) { r.desc = val; debouncedSave(); }
 }
+function updateHeureCat(id, val) {
+  const r = heuresData.find(r => r.id === id); if (r) { r.cat = val; debouncedSave(); }
+}
+function updateHeureHistNote(rowId, idx, val) {
+  const r = heuresData.find(r => r.id === rowId); if (r?.history?.[idx] != null) { r.history[idx].note = val; debouncedSave(); }
+}
 function heuresVenteTotale() { return heuresData.filter(r => !r.sep && !r.bold).reduce((s,r) => s + (r.vente||0), 0); }
 function heuresActuelTotal() { return heuresData.filter(r => !r.sep && !r.bold).reduce((s,r) => s + (r.actuel||0), 0); }
 function heuresVenteByType(type) { return heuresData.filter(r => !r.sep && !r.bold && (r.type||'Standard') === type).reduce((s,r) => s + (r.vente||0), 0); }
@@ -744,7 +760,7 @@ function renderHeures() {
     } else {
       tr.innerHTML = `
         <td>${dh()}</td>
-        <td style="font-weight:400" contenteditable="true" onblur="heuresData.find(r=>r.id==='${row.id}').cat=this.textContent.trim();_DS()">${row.cat}</td>
+        <td style="font-weight:400" contenteditable="true" onblur="updateHeureCat('${row.id}',this.textContent.trim())">${row.cat}</td>
         <td style="padding:2px 4px"></td>
         <td style="text-align:right"><input class="h-input" type="number" value="${row.vente!=null?row.vente:''}" placeholder="0" min="0" onchange="updateHeures('${row.id}','vente',this.value===''?null:+this.value)"></td>
         <td style="text-align:right"><input class="h-input" type="number" value="${row.actuel!=null?row.actuel:''}" placeholder="—" min="0" onchange="updateHeures('${row.id}','actuel',this.value===''?null:+this.value)"></td>
@@ -792,7 +808,7 @@ function toggleHeuresHistory(id, btn) {
   let rows = hist.map((h,i) => {
     const delta = i === 0 ? '' : (h.value - hist[i-1].value);
     const deltaHtml = delta === '' ? '' : `<span style="color:${delta>0?'#dc2626':delta<0?'#059669':'var(--text-muted)'}">${delta>0?'+':''}${delta}</span>`;
-    return `<tr><td style="font-size:11px;padding:2px 6px">${h.date}</td><td style="text-align:right;font-size:11px;padding:2px 6px">${h.value} h</td><td style="text-align:center;font-size:11px;padding:2px 6px">${deltaHtml}</td><td contenteditable="true" style="font-size:11px;color:var(--text-muted);padding:2px 6px" onblur="heuresData.find(r=>r.id==='${row.id}').history[${i}].note=this.textContent.trim();_DS()">${h.note||''}</td></tr>`;
+    return `<tr><td style="font-size:11px;padding:2px 6px">${h.date}</td><td style="text-align:right;font-size:11px;padding:2px 6px">${h.value} h</td><td style="text-align:center;font-size:11px;padding:2px 6px">${deltaHtml}</td><td contenteditable="true" style="font-size:11px;color:var(--text-muted);padding:2px 6px" onblur="updateHeureHistNote('${row.id}',${i},this.textContent.trim())">${h.note||''}</td></tr>`;
   }).join('');
   // mini sparkline
   const pts = hist.map(h => h.value); const max = Math.max(...pts, 1); const min = Math.min(...pts, 0);
@@ -1705,6 +1721,7 @@ Object.assign(window, {
   addJalon, openEditJalon, saveJalon, deleteJalonFromModal, autoCalcJalonPct,
   del_fact_projet, del_fact_equip, renderFacturation,
   addCustomHeuresRow, deleteHeuresRow, deleteHeuresFromModal, openEditHeure, saveHeures, toggleHeuresHistory,
+  updateHeures, updateHeuresDesc, updateHeureCat, updateHeureHistNote,
   openExportHTMLModal, doExportHTML, exportSelectAll,
   openDashCustomize, saveDashCustomize,
   openAddCustomTabModal, openEditCustomTabModal, addCustomTabColumn, saveCustomTab,
