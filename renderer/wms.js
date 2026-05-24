@@ -336,6 +336,8 @@ function makeSortable(tbody, arr, renderFn) {
   Sortable.create(tbody, {
     handle: '.drag-handle',
     animation: 150,
+    forceFallback: true,
+    fallbackTolerance: 3,
     onEnd({ oldIndex, newIndex }) {
       if (oldIndex === newIndex) return;
       const [moved] = arr.splice(oldIndex, 1);
