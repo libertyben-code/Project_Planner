@@ -1,0 +1,13 @@
+{
+  "name": "wms-project-planner",
+  "version": "1.0.0",
+  "description": "WMS Project Planning Tool — multi-project desktop app",
+  "scripts": {
+    "dev": "npx serve renderer -l 8080",
+    "build": "echo 'Tauri build: install Rust + MSVC first, then run: npx @tauri-apps/cli build'"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.11.2",
+    "serve": "^14.2.6"
+  }
+}

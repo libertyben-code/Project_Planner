@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WMS Project Planner</title>
+<link rel="stylesheet" href="home.css">
+</head>
+<body>
+
+<header class="home-header">
+  <div class="home-logo">● WMS <span>Planner</span></div>
+  <div class="home-search">
+    <span class="home-search-icon">🔍</span>
+    <input type="text" id="search-input" placeholder="Rechercher un projet ou client…" oninput="filterCards()">
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-secondary" onclick="openProject()">📂 Ouvrir…</button>
+    <button class="btn btn-primary" onclick="openNewProjectModal()">＋ Nouveau projet</button>
+  </div>
+</header>
+
+<main class="home-main">
+  <div class="home-section-title">Projets récents</div>
+  <div class="project-grid" id="project-grid">
+    <!-- Cards injected by home.js -->
+  </div>
+  <div class="empty-state" id="empty-state" style="display:none">
+    <div class="empty-icon">📋</div>
+    <h3>Aucun projet pour le moment</h3>
+    <p>Créez votre premier projet ou ouvrez un fichier <code>.wmsplan</code> existant.</p>
+    <button class="btn btn-primary" onclick="openNewProjectModal()">＋ Nouveau projet</button>
+  </div>
+</main>
+
+<!-- ── NEW PROJECT MODAL ── -->
+<div class="modal-overlay" id="modal-new-project">
+  <div class="modal">
+    <h3>Nouveau projet</h3>
+    <div class="form-2col">
+      <div class="form-row"><label>Nom du projet *</label><input id="np-name" type="text" placeholder="Projet EasyWMS" oninput="autoFillClient()"></div>
+      <div class="form-row"><label>Client *</label><input id="np-client" type="text" placeholder="Nom du client"></div>
+    </div>
+    <div class="form-2col">
+      <div class="form-row"><label>Dir. Projet</label><input id="np-pm" type="text" placeholder="DPName"></div>
+      <div class="form-row"><label>Chef de Projet Tech.</label><input id="np-cdptech" type="text" placeholder="CDPName"></div>
+    </div>
+    <div class="form-2col">
+      <div class="form-row"><label>Resp. Logistique Client</label><input id="np-resplog" type="text" placeholder="RespoLogClient"></div>
+      <div class="form-row"><label>Consultant ERP</label><input id="np-erpconsult" type="text" placeholder="ERP Consultant"></div>
+    </div>
+    <div class="form-2col">
+      <div class="form-row"><label>Date de début</label><input id="np-start" type="date"></div>
+      <div class="form-row"><label>Date d'installation prévue</label><input id="np-install" type="date"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeNewProjectModal()">Annuler</button>
+      <button class="btn btn-primary" onclick="createProject()">Créer le projet</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CONFIRM DIALOG ── -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <h4 id="confirm-title">Confirmer</h4>
+    <p id="confirm-msg"></p>
+    <div class="confirm-footer">
+      <button class="btn btn-secondary" onclick="closeConfirm()">Annuler</button>
+      <button class="btn btn-danger" id="confirm-ok-btn" onclick="confirmOk()">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast" id="toast"></div>
+
+<script type="module" src="home.js"></script>
+</body>
+</html>
