@@ -676,8 +676,10 @@ function updateHeures(id, field, val) {
 function updateHeuresDesc(id, val) {
   const r = heuresData.find(r => r.id === id); if (r) { r.desc = val; debouncedSave(); }
 }
-function heuresVenteTotale() { return heuresData.filter(r => !r.sep && r.bold).reduce((s,r) => s + (r.vente||0), 0); }
-function heuresActuelTotal() { return heuresData.filter(r => !r.sep).reduce((s,r) => s + (r.actuel||0), 0); }
+function heuresVenteTotale() { return heuresData.filter(r => !r.sep && !r.bold).reduce((s,r) => s + (r.vente||0), 0); }
+function heuresActuelTotal() { return heuresData.filter(r => !r.sep && !r.bold).reduce((s,r) => s + (r.actuel||0), 0); }
+function heuresVenteByType(type) { return heuresData.filter(r => !r.sep && !r.bold && (r.type||'Standard') === type).reduce((s,r) => s + (r.vente||0), 0); }
+function heuresActuelByType(type) { return heuresData.filter(r => !r.sep && !r.bold && (r.type||'Standard') === type).reduce((s,r) => s + (r.actuel||0), 0); }
 
 const HEURE_TYPES = ['Standard','Custom','Offre Comp'];
 let _editingHeureId = null;
@@ -723,13 +725,19 @@ function renderHeures() {
     const rowType = row.type || (row.custom ? 'Custom' : 'Standard');
     const isLocked = !!row.bold; // total/header rows are non-editable
     if (isLocked) {
+      const tType = row.totalType;
+      const bVente = tType ? heuresVenteByType(tType) : (row.vente||0);
+      const bActuel = tType ? heuresActuelByType(tType) : (row.actuel||0);
+      const bEcart = bActuel - bVente;
+      const bEcartColor = bEcart > 0 ? '#dc2626' : bEcart < 0 ? '#059669' : 'var(--text-muted)';
+      const bEcartHtml = `<span style="color:${bEcartColor};font-weight:500">${bEcart>0?'+':''}${bEcart}</span>`;
       tr.innerHTML = `
         <td>${dh()}</td>
         <td style="font-weight:700">${row.cat}</td>
-        <td style="font-size:11px;color:var(--text-muted)">${rowType}</td>
-        <td style="text-align:right;font-weight:600">${row.vente!=null?row.vente:'—'}</td>
-        <td style="text-align:right;font-weight:600">${row.actuel!=null?row.actuel:'—'}</td>
-        <td style="text-align:right">${ecartHtml}</td>
+        <td style="font-size:11px;color:var(--text-muted)">${tType||rowType}</td>
+        <td style="text-align:right;font-weight:600">${bVente}</td>
+        <td style="text-align:right;font-weight:600">${bActuel}</td>
+        <td style="text-align:right">${bEcartHtml}</td>
         <td></td>
         <td style="color:var(--text-muted)">${row.desc||''}</td>
         <td></td>`;
@@ -748,14 +756,17 @@ function renderHeures() {
       const typeSel = document.createElement('select');
       typeSel.className = 'gantt-select'; typeSel.style.width = '100%';
       HEURE_TYPES.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; if (t === rowType) o.selected = true; typeSel.appendChild(o); });
-      typeSel.onchange = () => { row.type = typeSel.value; debouncedSave(); };
+      typeSel.onchange = () => { row.type = typeSel.value; renderHeures(); renderDashboard(); debouncedSave(); };
       tr.cells[2].appendChild(typeSel);
     }
   });
   makeSortable(tbody, heuresData, renderHeures);
   const vente = heuresVenteTotale(), actuel = heuresActuelTotal();
+  const vStd = heuresVenteByType('Standard'),   aStd = heuresActuelByType('Standard');
+  const vCust = heuresVenteByType('Custom'),    aCust = heuresActuelByType('Custom');
+  const vComp = heuresVenteByType('Offre Comp'),aComp = heuresActuelByType('Offre Comp');
   document.getElementById('kpi-heures').innerHTML = `
-    <div class="kpi-card"><div class="kpi-label">Total Vente</div><div class="kpi-value">${vente} h</div><div class="kpi-sub">Budget initial</div></div>
+    <div class="kpi-card"><div class="kpi-label">Total Vente</div><div class="kpi-value">${vente} h</div><div class="kpi-sub">Std: ${vStd}h · Custom: ${vCust}h · Comp: ${vComp}h</div></div>
     <div class="kpi-card"><div class="kpi-label">Total Actuel</div><div class="kpi-value">${actuel} h</div><div class="kpi-sub">${vente>0?Math.round(actuel/vente*100):0}% du budget</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:${vente>0?Math.min(100,actuel/vente*100):0}%;background:${actuel>vente?'#dc2626':'var(--accent)'}"></div></div></div>
     <div class="kpi-card"><div class="kpi-label">Écart</div><div class="kpi-value" style="color:${actuel>vente?'#dc2626':actuel<vente?'#059669':'var(--text)'}">${actuel>vente?'+':''}${actuel-vente} h</div></div>
     <div class="kpi-card"><div class="kpi-label">Jours Restants (vente)</div><div class="kpi-value">${Math.round((vente-actuel)/7)}</div><div class="kpi-sub">Base 7h/jour</div></div>`;

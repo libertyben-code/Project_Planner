@@ -34,6 +34,8 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] si l'on hover sur une celulle colorié du planning, on doit pouvoir voir la date hovered. - OK
   - [x] Améliorer les infos du la bulle. - OK
 - [x] Le statut des tache doit être Non commencé par défaut.  
+- [ ] Un bouton edit planning doit permettre de drag and drop les taches dans toutes les phases.
+- [ ] Ce meme bouton doit permettre de drag and drop une phase avec toute ses taches.
 - [ ] Une phase Développement pour regrouper les taches de dev venues de JIRA via API. à prévoir mais pas mettre en place pour le moment.
 
 ## Suivi Heures
@@ -47,6 +49,10 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Touts les lignes autres que les totals des heures doivent avoir un boutton Edit avec un bouton delete dans la modale
   - [x] Le bouton edit doit être cohérent avec le reste du document. On ne le voit pas. - OK
 - [x] Toutes les lignes doivent pouvoir être réorganisées
+- [x] Les totaux (Heures Standard, Custom, Comp.) doivent se calculer automatiquement à partir des lignes de détail selon leur type — plus de valeurs codées en dur. - OK
+- [x] Ajouter une ligne Heures Comp. calculée (type Offre Comp). - OK
+- [x] Changer le type d'une ligne doit recalculer immédiatement les totaux et le dashboard. - OK
+- [x] Les KPI doivent afficher le détail par type (Std / Custom / Comp) en sous-titre. - OK
 
 ## Tâches Internes
 
@@ -126,3 +132,4 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
   - Ajouter `<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>` dans app.html
   - Remplacer `makeReorderable(tr, arr, renderFn)` par `Sortable.create(tbody, { handle: '.drag-handle', animation: 150, onEnd: ({ oldIndex, newIndex }) => { const [item] = arr.splice(oldIndex, 1); arr.splice(newIndex, 0, item); renderFn(); debouncedSave(); } })`
   - SortableJS utilise les pointer events en interne — contourne le bug Chromium/WebView2 avec l'API HTML5 drag dans les tableaux.
+- [x] **Heures dynamiques** : les lignes bold ont un champ `totalType` ("Standard", "Custom", "Offre Comp"). `renderHeures()` recalcule vente/actuel via `heuresVenteByType(type)` / `heuresActuelByType(type)`. Les lignes éditables ont un champ `type` qui détermine à quel total elles contribuent. Changer le type ou une valeur déclenche `renderHeures(); renderDashboard();` immédiatement.
