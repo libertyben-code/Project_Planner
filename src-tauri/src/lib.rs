@@ -89,6 +89,17 @@ fn export_html_write(path: String, content: String) -> Result<(), String> {
     fs::write(&path, content).map_err(|e| format!("Export HTML impossible: {}", e))
 }
 
+// ── Reveal file in Explorer ───────────────────────────────────────────────────
+
+#[tauri::command]
+fn reveal_file(path: String) -> Result<(), String> {
+    std::process::Command::new("explorer")
+        .arg(format!("/select,{}", path))
+        .spawn()
+        .map_err(|e| format!("Impossible d'ouvrir l'explorateur: {}", e))?;
+    Ok(())
+}
+
 // ── Window title ─────────────────────────────────────────────────────────────
 
 #[tauri::command]
@@ -128,6 +139,7 @@ pub fn run() {
             export_html_dialog,
             export_html_write,
             set_window_title,
+            reveal_file,
         ])
         .run(tauri::generate_context!())
         .expect("Erreur au démarrage de l'application");

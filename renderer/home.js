@@ -79,6 +79,7 @@ function cardHTML(p) {
     <div class="card-footer">
       <div class="card-date">Modifié ${updated}</div>
       <div class="card-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-ghost btn-icon btn-sm" title="Partager (ouvrir dans l'explorateur)" onclick="shareProject('${esc(p.path)}')">📤</button>
         <button class="btn btn-ghost btn-icon btn-sm" title="Dupliquer" onclick="duplicateProject('${esc(p.path)}')">⧉</button>
         <button class="btn btn-ghost btn-icon btn-sm" title="Retirer de la liste" onclick="removeFromRecent('${esc(p.path)}')">✕</button>
       </div>
@@ -247,6 +248,16 @@ window.duplicateProject = async function(path) {
     await addToRecent(newData.meta, fullPath);
     showToast(`Projet dupliqué : ${newName}`);
     render();
+  } catch (e) {
+    showToast('Erreur : ' + e.message);
+  }
+};
+
+// ── Share project (reveal file in Explorer for drag-to-Teams / email) ────────
+window.shareProject = async function(path) {
+  try {
+    await invoke('reveal_file', { path });
+    showToast('Fichier localisé dans l\'explorateur — partagez-le par Teams ou email.');
   } catch (e) {
     showToast('Erreur : ' + e.message);
   }

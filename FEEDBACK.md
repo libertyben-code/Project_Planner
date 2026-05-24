@@ -14,7 +14,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Dans la modale de création de projet, enlever (mecalux) du champ Dir Projet. - OK
 - [x] Dans la meme modale, enlever la date de fin. Celle ci sera renseignée automatiquement avec la date la plus eloignée d'une tâche du planning. - OK
 - [x] Enlever (Originiale) du champ date d'installation. - OK
-- [ ] En plus de supprimer et dupliquer un projet, ajouter la possibilité de partager un projet.
+- [x] En plus de supprimer et dupliquer un projet, ajouter la possibilité de partager un projet. - OK
 - [x] Remplir le nom du client en même temps que le nom de projet car c'est souvent le meme mais garder le champ editable. - OK
 
 ## Planning (Gantt)
