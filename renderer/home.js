@@ -72,12 +72,13 @@ function cardHTML(p) {
 
   // Path stored in data-path attribute (HTML-safe); onclick reads it back via dataset.path
   // This avoids JS escape sequence corruption of Windows backslashes in inline onclick strings.
-  const ragDot = p.rag ? `<span class="rag-dot rag-dot-${p.rag.toLowerCase()}" style="margin-left:6px" title="Statut : ${p.rag === 'G' ? 'OK' : p.rag === 'A' ? 'Attention' : 'Bloqué'}"></span>` : '';
-  return `<div class="project-card" data-path="${esc(p.path)}" onclick="openProjectCard(this.dataset.path)">
+  const ragClass = p.rag ? ` rag-border-${p.rag.toLowerCase()}` : '';
+  const ragTitle = p.rag ? ` title="Statut : ${p.rag === 'G' ? 'OK' : p.rag === 'A' ? 'Attention' : 'Bloqué'}"` : '';
+  return `<div class="project-card${ragClass}" data-path="${esc(p.path)}" onclick="openProjectCard(this.dataset.path)"${ragTitle}>
     <div class="card-top">
       <div class="card-icon">📋</div>
       <div class="card-title-block">
-        <div class="card-name">${esc(p.name)}${ragDot}</div>
+        <div class="card-name">${esc(p.name)}</div>
         <div class="card-client">${esc(p.client || '—')}</div>
       </div>
       ${badge}
@@ -646,7 +647,7 @@ function renderPortfolio(projects) {
     const hPct = p.hours.sold > 0 ? pct(p.hours.actual, p.hours.sold) : 0;
     const hOver = p.hours.actual > p.hours.sold;
     const bPct = p.billing.total > 0 ? pct(p.billing.paid, p.billing.total) : 0;
-    const ragDot = p.rag ? `<span class="rag-dot rag-dot-${p.rag.toLowerCase()}" style="width:10px;height:10px;display:inline-block;border-radius:50%;vertical-align:middle;margin-right:4px"></span>` : '<span style="display:inline-block;width:10px;margin-right:4px"></span>';
+    const ragDot = p.rag ? `<span class="rag-dot rag-dot-${p.rag.toLowerCase()}" style="width:13px;height:13px;display:inline-block;border-radius:50%;vertical-align:middle"></span>` : '<span style="display:inline-block;width:13px"></span>';
     const installStr = p.installActual ? `<span style="color:#059669">✓ ${fmtDateShort(p.installActual)}</span>`
       : p.installDate ? (p.installDelayed ? `<span style="color:#ea580c">⚠ ${fmtDateShort(p.installDate)}</span>` : fmtDateShort(p.installDate))
       : '—';
@@ -662,12 +663,12 @@ function renderPortfolio(projects) {
     </tr>`;
   }).join('');
 
-  const healthHtml = `<div class="pf-section">
+  const healthHtml = `<div class="pf-section pf-health-section">
     <div class="pf-section-title">🏥 Santé du portefeuille</div>
     <table class="pf-table pf-health-table"><thead><tr><th>Projet</th><th>Client</th><th>RAG</th><th>Tâches</th><th>Heures</th><th>Facturation</th><th>Install</th><th>Checklists</th></tr></thead><tbody>${healthRows}</tbody></table>
   </div>`;
 
-  body.innerHTML = kpis + weekHtml + upcomingHtml + healthHtml;
+  body.innerHTML = healthHtml + kpis + weekHtml + upcomingHtml;
 }
 
 function fmtDateShort(iso) {

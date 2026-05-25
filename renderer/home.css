@@ -128,12 +128,16 @@ body {
 .project-card {
   background: var(--surface);
   border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
   border-radius: var(--radius);
   padding: 20px;
   cursor: pointer;
   transition: border-color .15s, box-shadow .15s;
   position: relative;
 }
+.project-card.rag-border-g { border-left-color: #16a34a; }
+.project-card.rag-border-a { border-left-color: #ea580c; }
+.project-card.rag-border-r { border-left-color: #dc2626; }
 .project-card:hover {
   border-color: var(--accent);
   box-shadow: 0 4px 20px rgba(37,99,235,.15);
@@ -156,9 +160,6 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: flex;
-  align-items: center;
-  gap: 4px;
 }
 .rag-dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex-shrink:0;}
 .rag-dot-g{background:#16a34a;}.rag-dot-a{background:#ea580c;}.rag-dot-r{background:#dc2626;}
@@ -463,6 +464,14 @@ body {
 }
 .pf-row:last-child td { border-bottom: none; }
 .pf-row:hover td { background: var(--surface2); }
+
+/* Health table — bigger */
+.pf-health-section { margin-bottom: 28px; }
+.pf-health-table { font-size: 13.5px; }
+.pf-health-table th { font-size: 11.5px; padding: 8px 10px; }
+.pf-health-table td { padding: 11px 10px; }
+.pf-health-table .pf-mini-bar { width: 80px; height: 7px; }
+.pf-health-table .pf-bar-lbl { font-size: 12px; }
 
 /* Mini progress bar */
 .pf-mini-bar {
