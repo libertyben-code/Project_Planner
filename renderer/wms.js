@@ -138,6 +138,7 @@ function applyState(state) {
 
   const title = 'WMS Planning — ' + (m.name || 'Sans titre');
   setWindowTitle(title); document.title = title;
+  _applyTabConfig();
 }
 
 function setVal(id, v) { const el = document.getElementById(id); if (el) el.value = v; }
@@ -420,6 +421,7 @@ function openEditTask(taskId) {
   document.getElementById('task-progress').value = task.progress || 0;
   document.getElementById('task-deliverable').value = task.deliverable || '';
   document.getElementById('task-unavail').checked = !!task.isUnavail;
+  _buildDepsSelect(taskId, task.deps || []);
   document.getElementById('btn-delete-task').style.display = '';
   document.getElementById('modal-task').classList.add('open');
 }
@@ -476,7 +478,14 @@ function renderGantt() {
     }
 
     phaseTasks.forEach(task => {
+      const depViolation = (task.deps||[]).some(dId => {
+        const dep = tasks.find(x => x.id === dId); if (!dep) return false;
+        const depSegs = taskSegments(dep);
+        const depEnd = depSegs.length ? depSegs[depSegs.length-1].end : null;
+        return depEnd && task.start && depEnd > task.start;
+      });
       const rt = table.insertRow(); rt.className = task.isUnavail ? 'tr-unavail' : 'tr-task'; rt.dataset.taskId = task.id;
+      if (depViolation) rt.style.outline = '2px solid #f97316';
       const done = task.progress >= 100;
 
       fixedCols.forEach(([lbl,cls,vis]) => {
@@ -495,6 +504,7 @@ function renderGantt() {
           td.addEventListener('click', e => { e.stopPropagation(); showDropdown(td.querySelector('span'), PRIO_OPTS, val => { updateTask(task.id,'priority',val); renderGantt(); }); }); }
         } else if (lbl === 'INTITULÉ') {
           td.contentEditable = true; td.textContent = formatTemplate(task.name); td.style.padding = '2px 6px'; td.style.fontWeight = task.isUnavail ? '400' : '500';
+          if (task.deps && task.deps.length) { const ic = document.createElement('span'); ic.textContent = ' 🔗'; ic.contentEditable = 'false'; ic.style.cssText = 'font-size:10px;opacity:.6'; td.appendChild(ic); }
           if (done) { td.style.textDecoration = 'line-through'; td.style.color = 'var(--text-muted)'; }
           td.onblur = e => { updateTask(task.id,'name',e.target.textContent.trim()); debouncedSave(); };
         } else if (lbl === 'PROPRIÉTAIRE') {
@@ -953,6 +963,7 @@ function openAddTaskModal(phaseId) {
   document.getElementById('task-status').value = 'Non commencé';
   document.getElementById('task-priority').value = '';
   document.getElementById('task-unavail').checked = false;
+  _buildDepsSelect(null, []);
   document.getElementById('btn-delete-task').style.display = 'none';
   document.getElementById('modal-task').classList.add('open');
 }
@@ -990,13 +1001,15 @@ function saveTask() {
     priority: document.getElementById('task-priority').value,
     progress: +document.getElementById('task-progress').value || 0,
     deliverable: document.getElementById('task-deliverable').value.trim(),
-    isUnavail: document.getElementById('task-unavail').checked || undefined
+    isUnavail: document.getElementById('task-unavail').checked || undefined,
+    deps: _readDepsSelect().length ? _readDepsSelect() : undefined
   };
   if (_editingTaskId) {
     const t = tasks.find(t => t.id === _editingTaskId);
     Object.assign(t, data);
     if (!data.segments) delete t.segments;
     if (!data.isUnavail) delete t.isUnavail;
+    if (!data.deps) delete t.deps;
   } else {
     tasks.push({ id: uid(), ...data });
   }
@@ -1773,6 +1786,9 @@ function renderDashboard() {
     const card = document.getElementById('card-' + c.key);
     if (card) card.style.display = isChartVisible(c.key) ? '' : 'none';
   });
+
+  _syncRagUI();
+  renderThisWeek();
 }
 
 function openDashCustomize() {
@@ -1792,6 +1808,214 @@ function saveDashCustomize() {
   projectMeta.dashboardCharts = [...document.getElementById('dash-customize-list').querySelectorAll('input:checked')].map(cb => cb.value);
   closeModal('modal-dash-customize');
   renderDashboard();
+  debouncedSave();
+}
+
+// ═══ RAG STATUS ═══
+function setRag(val) {
+  projectMeta.rag = val || undefined;
+  _syncRagUI();
+  debouncedSave();
+}
+function _syncRagUI() {
+  const v = projectMeta.rag || '';
+  const dot = document.getElementById('rag-nav-dot');
+  const lbl = document.getElementById('rag-nav-lbl');
+  if (dot) dot.className = 'rag-nav-dot' + (v ? ' rag-dot-' + v.toLowerCase() : '');
+  if (lbl) lbl.textContent = v === 'G' ? 'OK' : v === 'A' ? 'Attention' : v === 'R' ? 'Bloqué' : '—';
+}
+function toggleRagDropdown(e) {
+  e.stopPropagation();
+  document.getElementById('rag-nav-dropdown')?.classList.toggle('open');
+}
+function closeRagDropdown() {
+  document.getElementById('rag-nav-dropdown')?.classList.remove('open');
+}
+document.addEventListener('click', closeRagDropdown);
+
+// ═══ THIS WEEK PANEL ═══
+function renderThisWeek() {
+  const panel = document.getElementById('dash-this-week');
+  if (!panel) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const weekEnd = new Date(today); weekEnd.setDate(today.getDate() + 7);
+
+  const overdue = [], thisWeek = [];
+  tasks.forEach(task => {
+    if (task.isUnavail || task.status === 'Terminé') return;
+    const segs = taskSegments(task);
+    segs.forEach(s => {
+      if (!s.end) return;
+      const end = new Date(s.end); end.setHours(0,0,0,0);
+      const start = s.start ? new Date(s.start) : null; if (start) start.setHours(0,0,0,0);
+      if (end < today) { if (!overdue.find(x => x.id === task.id)) overdue.push(task); }
+      else if (end <= weekEnd || (start && start <= weekEnd && start >= today)) { if (!thisWeek.find(x => x.id === task.id)) thisWeek.push(task); }
+    });
+  });
+
+  if (!overdue.length && !thisWeek.length) { panel.style.display = 'none'; return; }
+  panel.style.display = '';
+
+  const row = t => {
+    const ph = phases.find(p => p.id === t.phaseId);
+    const segs = taskSegments(t);
+    const endStr = segs.length ? (segs[segs.length-1].end || '—') : '—';
+    const depViolation = (t.deps||[]).some(dId => {
+      const dep = tasks.find(x => x.id === dId); if (!dep) return false;
+      const depSegs = taskSegments(dep);
+      const depEnd = depSegs.length ? depSegs[depSegs.length-1].end : null;
+      return depEnd && t.start && depEnd > t.start;
+    });
+    return `<tr>
+      <td style="padding:3px 8px;font-size:12px;font-weight:500">${formatTemplate(t.name)}${depViolation ? ' <span style="color:#f97316" title="Dépendance non respectée">⚠</span>' : ''}</td>
+      <td style="padding:3px 8px;font-size:11px;color:var(--text-muted)">${ph ? ph.name : ''}</td>
+      <td style="padding:3px 8px;font-size:11px">${t.owner || '—'}</td>
+      <td style="padding:3px 8px;font-size:11px">${endStr}</td>
+    </tr>`;
+  };
+
+  let html = '<div class="this-week-block">';
+  if (overdue.length) {
+    html += `<div class="this-week-section"><div class="this-week-title tw-overdue">⚠ En retard (${overdue.length})</div>
+      <table style="width:100%;border-collapse:collapse"><thead><tr>${['Tâche','Phase','Propriétaire','Fin prévue'].map(h=>`<th style="padding:3px 8px;font-size:10px;font-weight:600;color:var(--text-muted);text-align:left;border-bottom:1px solid var(--border)">${h}</th>`).join('')}</tr></thead>
+      <tbody>${overdue.map(row).join('')}</tbody></table></div>`;
+  }
+  if (thisWeek.length) {
+    html += `<div class="this-week-section"><div class="this-week-title tw-week">📅 Cette semaine (${thisWeek.length})</div>
+      <table style="width:100%;border-collapse:collapse"><thead><tr>${['Tâche','Phase','Propriétaire','Fin prévue'].map(h=>`<th style="padding:3px 8px;font-size:10px;font-weight:600;color:var(--text-muted);text-align:left;border-bottom:1px solid var(--border)">${h}</th>`).join('')}</tr></thead>
+      <tbody>${thisWeek.map(row).join('')}</tbody></table></div>`;
+  }
+  html += '</div>';
+  panel.innerHTML = html;
+}
+
+// ═══ TASK DEPENDENCIES ═══
+function _buildDepsSelect(currentTaskId, selectedDeps) {
+  const sel = document.getElementById('task-deps');
+  sel.innerHTML = '';
+  tasks.forEach(t => {
+    if (t.id === currentTaskId) return;
+    const ph = phases.find(p => p.id === t.phaseId);
+    const opt = document.createElement('option');
+    opt.value = t.id;
+    opt.textContent = (ph ? ph.name + ' — ' : '') + formatTemplate(t.name);
+    opt.selected = (selectedDeps || []).includes(t.id);
+    sel.appendChild(opt);
+  });
+}
+
+function _readDepsSelect() {
+  return Array.from(document.getElementById('task-deps').selectedOptions).map(o => o.value);
+}
+
+// ═══ TAB MANAGEMENT ═══
+const BUILTIN_TABS = [
+  { id: 'page-dashboard',   defaultLabel: 'Tableau de bord' },
+  { id: 'page-planning',    defaultLabel: 'Planning' },
+  { id: 'page-heures',      defaultLabel: 'Suivi Heures' },
+  { id: 'page-taches',      defaultLabel: 'Tâches Internes' },
+  { id: 'page-interfaces',  defaultLabel: 'Interfaces' },
+  { id: 'page-fonctionnel', defaultLabel: 'Fonctionnel' },
+  { id: 'page-dryrun',      defaultLabel: 'Prérequis Dry Run' },
+  { id: 'page-install',     defaultLabel: 'Prérequis Install' },
+  { id: 'page-facturation', defaultLabel: 'Facturation' },
+  { id: 'page-jira',        defaultLabel: '◈ JIRA' },
+];
+
+function _applyTabConfig() {
+  const tabLabels  = projectMeta.tabLabels  || {};
+  const tabOrder   = projectMeta.tabOrder   || [];
+  const tabHidden  = projectMeta.tabHidden  || [];
+  const navTabs    = document.getElementById('nav-tabs');
+  const addBtn     = navTabs.querySelector('.nav-tab-add');
+
+  // Apply labels to built-in tabs
+  BUILTIN_TABS.forEach(({ id, defaultLabel }) => {
+    const el = navTabs.querySelector(`[data-page="${id}"]`);
+    if (el) el.textContent = tabLabels[id] || defaultLabel;
+  });
+
+  // Apply labels to custom tabs
+  customTabs.forEach(tab => {
+    const el = navTabs.querySelector(`[data-page="page-ct-${tab.id}"]`);
+    if (el) el.textContent = tabLabels['page-ct-' + tab.id] || (tab.icon ? tab.icon + ' ' + tab.name : tab.name);
+  });
+
+  // Apply visibility
+  navTabs.querySelectorAll('.nav-tab').forEach(el => {
+    const pageId = el.dataset.page;
+    el.style.display = tabHidden.includes(pageId) ? 'none' : '';
+  });
+
+  // Apply order (move tab elements to match saved order, keep ＋ button last)
+  if (tabOrder.length) {
+    tabOrder.forEach(pageId => {
+      const el = navTabs.querySelector(`[data-page="${pageId}"]`);
+      if (el) navTabs.insertBefore(el, addBtn);
+    });
+  }
+}
+
+function openManageTabsModal() {
+  const tabLabels = projectMeta.tabLabels || {};
+  const tabHidden = projectMeta.tabHidden || [];
+  const tabOrder  = projectMeta.tabOrder  || [];
+
+  const allTabs = [
+    ...BUILTIN_TABS.map(t => ({ id: t.id, label: tabLabels[t.id] || t.defaultLabel, defaultLabel: t.defaultLabel })),
+    ...customTabs.map(t => ({ id: 'page-ct-' + t.id, label: tabLabels['page-ct-' + t.id] || (t.icon ? t.icon + ' ' + t.name : t.name), defaultLabel: t.name })),
+  ];
+
+  // Sort by saved order if exists
+  if (tabOrder.length) allTabs.sort((a, b) => {
+    const ai = tabOrder.indexOf(a.id), bi = tabOrder.indexOf(b.id);
+    return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi);
+  });
+
+  const list = document.getElementById('manage-tabs-list');
+  list.innerHTML = '';
+  allTabs.forEach(tab => {
+    const row = document.createElement('div');
+    row.className = 'manage-tab-row';
+    row.dataset.pageId = tab.id;
+    row.innerHTML = `<span class="drag-handle" style="cursor:grab;font-size:16px;color:var(--text-muted)">⠿</span>
+      <input type="checkbox" class="mt-visible" ${tabHidden.includes(tab.id) ? '' : 'checked'} style="width:auto;cursor:pointer">
+      <input type="text" class="mt-label" value="${tab.label}" placeholder="${tab.defaultLabel}" style="flex:1;border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-size:13px;font-family:inherit">`;
+    list.appendChild(row);
+  });
+
+  // Make sortable
+  const ex = Sortable.get(list); if (ex) ex.destroy();
+  Sortable.create(list, { handle: '.drag-handle', animation: 150, forceFallback: true, fallbackTolerance: 3 });
+  document.getElementById('modal-manage-tabs').classList.add('open');
+}
+
+function saveManageTabs() {
+  const rows = Array.from(document.querySelectorAll('#manage-tabs-list .manage-tab-row'));
+  projectMeta.tabOrder  = rows.map(r => r.dataset.pageId);
+  projectMeta.tabHidden = rows.filter(r => !r.querySelector('.mt-visible').checked).map(r => r.dataset.pageId);
+  const labels = {};
+  rows.forEach(r => {
+    const val = r.querySelector('.mt-label').value.trim();
+    if (val) labels[r.dataset.pageId] = val;
+  });
+  projectMeta.tabLabels = labels;
+  closeModal('modal-manage-tabs');
+  _applyTabConfig();
+  debouncedSave();
+}
+
+function resetTabOrder() {
+  delete projectMeta.tabOrder;
+  delete projectMeta.tabHidden;
+  delete projectMeta.tabLabels;
+  closeModal('modal-manage-tabs');
+  _applyTabConfig();
+  // Restore default tab labels explicitly
+  BUILTIN_TABS.forEach(({ id, defaultLabel }) => {
+    const el = document.querySelector(`[data-page="${id}"]`);
+    if (el) el.textContent = defaultLabel;
+  });
   debouncedSave();
 }
 
@@ -1897,6 +2121,8 @@ function renderCustomTabs() {
     page.innerHTML = buildCustomTabHTML(tab);
     document.getElementById('custom-tabs-container').appendChild(page);
   });
+
+  _applyTabConfig();
 }
 
 function buildCustomTabHTML(tab) {
@@ -2472,13 +2698,15 @@ function initResizableTables() {
 
 // ═══ WINDOW EXPORTS (for onclick handlers in HTML) ═══
 Object.assign(window, {
-  goHome, reloadProject, undoDelete,
+  goHome, reloadProject, undoDelete, toggleRagDropdown, closeRagDropdown,
   syncNav, onMetaInput, handleInstallOrigChange, openInstallDelaySection, clearInstallDelay,
   openAddPhaseModal, openAddTaskModal, openEditTask, openEditPhase,
   closeModal, saveTask, savePhase,
   deleteTask, deleteTaskFromModal, removePhase, removePhaseFromModal, updateTask,
   scrollToToday, renderGantt, renderDashboard, exportPDF, exportCurrentTabPDF, toggleGanttEditMode,
   addTaskSegment, removeTaskSegment,
+  setRag,
+  openManageTabsModal, saveManageTabs, resetTabOrder,
   renderJira, openJiraConfig, saveJiraConfig, syncJira,
   renderTaches, renderInstall,
   addInternalTask, openEditInternalTask, saveInternalTask, deleteInternalTask, deleteInternalTaskFromModal,

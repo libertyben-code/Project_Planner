@@ -43,6 +43,23 @@ L'application crée un fichier `.wmsplan` vierge et ouvre le projet. Chaque modi
 - Chaque membre de l'équipe l'ouvre avec sa propre copie de l'application.
 - Si quelqu'un d'autre sauvegarde pendant que vous avez le fichier ouvert, une bannière apparaît en haut : cliquez sur **Recharger** pour récupérer ses modifications.
 
+## Écran d'accueil — Vue d'ensemble du portefeuille
+
+Une section **📊 Vue d'ensemble du portefeuille** repliable s'affiche au-dessus des cartes projets et donne une vue transversale :
+
+- **Santé du portefeuille** — toujours visible en tête : une ligne par projet avec statut RAG, avancement des tâches, heures consommées/vendues, facturation, date d'installation et scores des checklists.
+- **Bandeau KPIs** — projets actifs, répartition RAG, total des tâches en retard, facturation encaissée, heures consommées.
+- **Cette semaine & retards** — replié par défaut ; cliquez sur l'en-tête pour déplier. Tâches en retard ou se terminant dans les 7 prochains jours, regroupées par projet. Cliquer sur une ligne ouvre le projet.
+- **Événements à venir — 30 jours** — replié par défaut ; cliquez sur l'en-tête pour déplier. Jalons de facturation et dates d'installation prévus dans les 30 prochains jours, regroupés par projet, avec compteur J-N.
+
+Chaque carte projet a une **bordure gauche colorée** indiquant le statut RAG (vert / orange / rouge). Cliquez sur l'en-tête du portefeuille pour replier/déplier l'ensemble du tableau de bord.
+
+## Tableau de bord
+
+- **Statut RAG** — cliquez sur la pastille de statut à côté de **WMS Planning** dans la barre de navigation pour définir le statut du projet (Vert = OK, Orange = Attention, Rouge = Bloqué). La pastille se met à jour immédiatement et la bordure de la carte à l'accueil reflète le statut après le prochain chargement du portefeuille.
+- **Cette semaine** — un panneau sous les KPIs liste les tâches en retard et celles qui se terminent dans les 7 prochains jours, avec propriétaire et date de fin.
+- **⇄ Onglets** — ouvre le gestionnaire d'onglets depuis la barre de navigation : glissez pour réordonner, renommez, masquez les onglets inutilisés. Paramètre enregistré par projet.
+
 ## Planning (Gantt)
 
 - **Ajouter une tâche** : cliquez sur **＋** à droite de n'importe quelle ligne de phase.
@@ -50,6 +67,7 @@ L'application crée un fichier `.wmsplan` vierge et ouvre le projet. Chaque modi
 - **Réordonner** : cliquez sur **✏ Réorganiser** pour activer le glisser-déposer. Faites glisser la poignée ⠿ pour déplacer des tâches entre les phases ou réordonner les phases entières. Cliquez sur **✓ Terminer** quand c'est fait.
 - **Date d'installation reportée** : modifiez la date d'installation et l'application demande s'il s'agit d'un retard ou d'un simple ajustement. Un retard affiche les deux dates avec un badge orange.
 - **Redimensionner les colonnes** : faites glisser le bord droit d'un en-tête de colonne (Statut, Intitulé, etc.) pour ajuster sa largeur. Les largeurs sont mémorisées.
+- **Dépendances** : dans la modale d'édition d'une tâche, sélectionnez une ou plusieurs tâches prédécesseurs sous **Dépendances**. Si la tâche démarre avant qu'un prédécesseur soit terminé, la ligne est encadrée en orange sur le Gantt et signalée dans le panneau "Cette semaine".
 
 ### Tâches multi-périodes (congés / indisponibilités)
 

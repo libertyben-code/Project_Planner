@@ -23,6 +23,7 @@ async function init() {
     recent = typeof raw === 'string' ? JSON.parse(raw) : (Array.isArray(raw) ? raw : []);
   } catch { recent = []; }
   render();
+  loadPortfolioData();
 }
 
 async function persistSettings() {
@@ -71,7 +72,9 @@ function cardHTML(p) {
 
   // Path stored in data-path attribute (HTML-safe); onclick reads it back via dataset.path
   // This avoids JS escape sequence corruption of Windows backslashes in inline onclick strings.
-  return `<div class="project-card" data-path="${esc(p.path)}" onclick="openProjectCard(this.dataset.path)">
+  const ragClass = p.rag ? ` rag-border-${p.rag.toLowerCase()}` : '';
+  const ragTitle = p.rag ? ` title="Statut : ${p.rag === 'G' ? 'OK' : p.rag === 'A' ? 'Attention' : 'Bloqué'}"` : '';
+  return `<div class="project-card${ragClass}" data-path="${esc(p.path)}" onclick="openProjectCard(this.dataset.path)"${ragTitle}>
     <div class="card-top">
       <div class="card-icon">📋</div>
       <div class="card-title-block">
@@ -330,6 +333,7 @@ async function addToRecent(meta, path) {
     installDateOriginal: meta.installDateOriginal,
     installDateDelayed:  meta.installDateDelayed,
     installDateActual:   meta.installDateActual,
+    rag:                meta.rag || '',
     path,
     updatedAt:          meta.updatedAt,
     installProgress,
@@ -437,6 +441,290 @@ document.addEventListener('keydown', e => {
     closeConfirm();
   }
 });
+
+// ══════════════════════════════════════════════════════
+//  PORTFOLIO DASHBOARD
+// ══════════════════════════════════════════════════════
+
+let _portfolioOpen = true;
+
+window.togglePortfolio = function() {
+  _portfolioOpen = !_portfolioOpen;
+  document.getElementById('portfolio-body').style.display = _portfolioOpen ? '' : 'none';
+  document.getElementById('portfolio-chevron').textContent = _portfolioOpen ? '▾' : '▸';
+};
+
+window.togglePfSection = function(id) {
+  const section = document.getElementById(id);
+  if (!section) return;
+  const open = section.classList.toggle('open');
+  section.querySelector('.pf-chevron').textContent = open ? '▾' : '▸';
+};
+
+async function loadPortfolioData() {
+  if (!recent.length) {
+    document.getElementById('portfolio-loading').textContent = 'Aucun projet dans la liste récente.';
+    return;
+  }
+
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const weekEnd = new Date(today); weekEnd.setDate(today.getDate() + 7);
+  const monthEnd = new Date(today); monthEnd.setDate(today.getDate() + 30);
+
+  const results = await Promise.allSettled(
+    recent.map(async p => {
+      const raw = await invoke('read_project', { path: p.path });
+      const data = typeof raw === 'string' ? JSON.parse(raw) : (raw || {});
+      const meta = data.meta || {};
+      const tasks = data.tasks || [];
+      const billing = [...(data.billing?.jalonsProjet || []), ...(data.billing?.jalonsEquipement || [])];
+      const heures = data.heuresData || [];
+      const install = data.install || [];
+      const dryrun = data.dryRun || [];
+
+      // Task stats
+      const nonUnavail = tasks.filter(t => !t.isUnavail);
+      const done = nonUnavail.filter(t => t.status === 'Terminé').length;
+      const overdueList = nonUnavail.filter(t => {
+        if (t.status === 'Terminé') return false;
+        const end = t.segments?.length ? t.segments[t.segments.length-1].end : t.end;
+        return end && new Date(end) < today;
+      });
+      const thisWeekList = nonUnavail.filter(t => {
+        if (t.status === 'Terminé') return false;
+        const end = t.segments?.length ? t.segments[t.segments.length-1].end : t.end;
+        if (!end) return false;
+        const d = new Date(end);
+        return d >= today && d <= weekEnd;
+      });
+
+      // Hours
+      const hVente  = heures.filter(r => !r.bold && !r.sep).reduce((s, r) => s + (r.vente || 0), 0);
+      const hActuel = heures.filter(r => !r.bold && !r.sep).reduce((s, r) => s + (r.actuel || 0), 0);
+
+      // Billing
+      const bTotal = billing.reduce((s, j) => s + (j.montant || 0), 0);
+      const bPaid  = billing.filter(j => j.etat === 'Payé').reduce((s, j) => s + (j.montant || 0), 0);
+
+      // Upcoming billing milestones (unpaid, with date, within 30 days)
+      const upcomingBilling = billing
+        .filter(j => j.etat !== 'Payé' && j.date)
+        .filter(j => { const d = new Date(j.date); return d >= today && d <= monthEnd; })
+        .map(j => ({ date: j.date, label: j.label || j.jalon || 'Jalon', montant: j.montant || 0, project: meta.name || p.name, path: p.path }));
+
+      // Upcoming install date (not yet done)
+      const installDate = meta.installDateDelayed || meta.installDateOriginal;
+      const upcomingInstall = (!meta.installDateActual && installDate)
+        ? [{ date: installDate, label: 'Mise en production', project: meta.name || p.name, path: p.path, delayed: !!meta.installDateDelayed }]
+        : [];
+
+      return {
+        name: meta.name || p.name,
+        client: meta.client || p.client || '—',
+        pm: meta.pm || p.pm || '',
+        rag: meta.rag || '',
+        path: p.path,
+        installDate,
+        installActual: meta.installDateActual,
+        installDelayed: !!meta.installDateDelayed,
+        tasks: { total: nonUnavail.length, done, overdue: overdueList, thisWeek: thisWeekList },
+        hours: { sold: hVente, actual: hActuel },
+        billing: { total: bTotal, paid: bPaid },
+        install: { done: install.filter(r => r.etat === 'Oui').length, total: install.length },
+        dryrun: { done: dryrun.filter(r => r.etat === 'OK').length, total: dryrun.length },
+        upcomingBilling,
+        upcomingInstall,
+      };
+    })
+  );
+
+  const projects = results.filter(r => r.status === 'fulfilled').map(r => r.value);
+  const failed = results.filter(r => r.status === 'rejected').length;
+
+  if (!projects.length) {
+    const msg = failed ? `Impossible de lire les fichiers projet (${failed} erreur${failed > 1 ? 's' : ''}).` : 'Aucune donnée disponible.';
+    document.getElementById('portfolio-body').innerHTML = `<div class="portfolio-loading">${msg}</div>`;
+    return;
+  }
+
+  // Sync fresh RAG values back to home screen cards
+  let ragChanged = false;
+  projects.forEach(proj => {
+    const entry = recent.find(r => r.path === proj.path);
+    if (entry && entry.rag !== proj.rag) { entry.rag = proj.rag; ragChanged = true; }
+  });
+  if (ragChanged) { render(); persistRecent(); }
+
+  try {
+    renderPortfolio(projects);
+  } catch (e) {
+    document.getElementById('portfolio-body').innerHTML = `<div class="portfolio-loading" style="color:#dc2626">Erreur d'affichage : ${e.message}</div>`;
+  }
+}
+
+function renderPortfolio(projects) {
+  const body = document.getElementById('portfolio-body');
+  if (!projects.length) { body.innerHTML = '<div class="portfolio-loading">Aucune donnée disponible.</div>'; return; }
+
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const monthEnd = new Date(today); monthEnd.setDate(today.getDate() + 30);
+
+  // ── KPIs ──
+  const total = projects.length;
+  const active = projects.filter(p => !p.installActual).length;
+  const completed = total - active;
+  const ragG = projects.filter(p => p.rag === 'G').length;
+  const ragA = projects.filter(p => p.rag === 'A').length;
+  const ragR = projects.filter(p => p.rag === 'R').length;
+  const totalOverdue = projects.reduce((s, p) => s + p.tasks.overdue.length, 0);
+  const totalBillingPaid = projects.reduce((s, p) => s + p.billing.paid, 0);
+  const totalBillingAll  = projects.reduce((s, p) => s + p.billing.total, 0);
+  const totalHoursSold   = projects.reduce((s, p) => s + p.hours.sold, 0);
+  const totalHoursActual = projects.reduce((s, p) => s + p.hours.actual, 0);
+
+  const fmtEur = n => n.toLocaleString('fr-FR') + ' €';
+  const pct = (a, b) => b > 0 ? Math.round(a / b * 100) : 0;
+
+  const kpis = `<div class="pf-kpi-strip">
+    <div class="pf-kpi"><div class="pf-kpi-val">${active}</div><div class="pf-kpi-lbl">Projets actifs</div><div class="pf-kpi-sub">${completed} terminé${completed > 1 ? 's' : ''}</div></div>
+    <div class="pf-kpi"><div class="pf-kpi-val" style="display:flex;gap:10px;align-items:center;justify-content:center">
+      <span class="rag-dot rag-dot-g" style="width:12px;height:12px"></span><span>${ragG}</span>
+      <span class="rag-dot rag-dot-a" style="width:12px;height:12px"></span><span>${ragA}</span>
+      <span class="rag-dot rag-dot-r" style="width:12px;height:12px"></span><span>${ragR}</span>
+    </div><div class="pf-kpi-lbl">Statut RAG</div><div class="pf-kpi-sub">${total - ragG - ragA - ragR} sans statut</div></div>
+    <div class="pf-kpi"><div class="pf-kpi-val" style="color:${totalOverdue ? '#dc2626' : '#059669'}">${totalOverdue}</div><div class="pf-kpi-lbl">Tâches en retard</div><div class="pf-kpi-sub">Tous projets confondus</div></div>
+    <div class="pf-kpi"><div class="pf-kpi-val">${fmtEur(totalBillingPaid)}</div><div class="pf-kpi-lbl">Facturation encaissée</div><div class="pf-kpi-sub">/ ${fmtEur(totalBillingAll)} — ${pct(totalBillingPaid, totalBillingAll)} %</div></div>
+    <div class="pf-kpi"><div class="pf-kpi-val">${totalHoursActual} h</div><div class="pf-kpi-lbl">Heures consommées</div><div class="pf-kpi-sub">/ ${totalHoursSold} h vendues — ${pct(totalHoursActual, totalHoursSold)} %</div></div>
+  </div>`;
+
+  // ── Cette semaine (grouped by project, sorted by project name then date) ──
+  const weekAllTasks = projects.flatMap(p =>
+    [...p.tasks.overdue.map(t => ({ ...t, _proj: p, _late: true })),
+     ...p.tasks.thisWeek.map(t => ({ ...t, _proj: p, _late: false }))]
+  );
+  weekAllTasks.sort((a, b) => {
+    const pCmp = a._proj.name.localeCompare(b._proj.name, 'fr');
+    if (pCmp !== 0) return pCmp;
+    if (a._late !== b._late) return a._late ? -1 : 1;
+    const aEnd = a.segments?.length ? a.segments[a.segments.length-1].end : a.end;
+    const bEnd = b.segments?.length ? b.segments[b.segments.length-1].end : b.end;
+    return (aEnd || '').localeCompare(bEnd || '');
+  });
+
+  let weekHtml = '';
+  if (weekAllTasks.length) {
+    let lastProj = null;
+    const rows = weekAllTasks.map(t => {
+      const end = t.segments?.length ? t.segments[t.segments.length-1].end : t.end;
+      let groupRow = '';
+      if (t._proj.name !== lastProj) {
+        lastProj = t._proj.name;
+        groupRow = `<tr class="pf-group-row" data-path="${esc(t._proj.path)}" onclick="window.openProjectCard(this.dataset.path)"><td colspan="4">${esc(t._proj.name)}</td></tr>`;
+      }
+      return groupRow + `<tr class="pf-row" data-path="${esc(t._proj.path)}" onclick="window.openProjectCard(this.dataset.path)" style="cursor:pointer">
+        <td style="padding-left:20px">${t._late ? '<span class="pf-late">⚠</span> ' : ''}${esc(t.name || '')}</td>
+        <td>${esc(t.owner || '—')}</td>
+        <td style="white-space:nowrap">${end ? fmtDateShort(end) : '—'}</td>
+        <td>${t._late ? '<span class="pf-late">Retard</span>' : ''}</td>
+      </tr>`;
+    }).join('');
+    weekHtml = `<div class="pf-section pf-collapsible" id="pf-week">
+      <div class="pf-section-title pf-toggle" onclick="window.togglePfSection('pf-week')">
+        <span>📅 Cette semaine &amp; retards</span>
+        <span class="pf-count-badge">${weekAllTasks.length}</span>
+        <span class="pf-chevron">▸</span>
+      </div>
+      <div class="pf-section-body">
+        <table class="pf-table"><thead><tr><th>Tâche</th><th>Propriétaire</th><th>Fin prévue</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      </div>
+    </div>`;
+  }
+
+  // ── Événements à venir (30 j, grouped by project) ──
+  const upcoming = projects.flatMap(p => [
+    ...p.upcomingInstall.filter(e => { const d = new Date(e.date); return d >= today && d <= monthEnd; }),
+    ...p.upcomingBilling,
+  ]);
+  upcoming.sort((a, b) => {
+    const pCmp = (a.project || '').localeCompare(b.project || '', 'fr');
+    if (pCmp !== 0) return pCmp;
+    return new Date(a.date) - new Date(b.date);
+  });
+
+  let upcomingHtml = '';
+  if (upcoming.length) {
+    let lastProjUp = null;
+    const rows = upcoming.map(e => {
+      const daysLeft = Math.round((new Date(e.date) - today) / 86400000);
+      const urgCls = daysLeft <= 7 ? 'pf-urgent' : daysLeft <= 14 ? 'pf-warn' : '';
+      const typeIcon = e.montant !== undefined ? '💶' : (e.delayed ? '⚠ ' : '🏭');
+      const detail = e.montant !== undefined ? fmtEur(e.montant) : (e.delayed ? 'Date reportée' : '');
+      let groupRow = '';
+      if (e.project !== lastProjUp) {
+        lastProjUp = e.project;
+        groupRow = `<tr class="pf-group-row" data-path="${esc(e.path)}" onclick="window.openProjectCard(this.dataset.path)"><td colspan="5">${esc(e.project)}</td></tr>`;
+      }
+      return groupRow + `<tr class="pf-row ${urgCls}" data-path="${esc(e.path)}" onclick="window.openProjectCard(this.dataset.path)" style="cursor:pointer">
+        <td style="white-space:nowrap;padding-left:20px">${fmtDateShort(e.date)}</td>
+        <td>${typeIcon} ${esc(e.label)}</td>
+        <td style="text-align:right">${detail}</td>
+        <td><span class="pf-days ${urgCls}">J-${daysLeft}</span></td>
+        <td></td>
+      </tr>`;
+    }).join('');
+    upcomingHtml = `<div class="pf-section pf-collapsible" id="pf-upcoming">
+      <div class="pf-section-title pf-toggle" onclick="window.togglePfSection('pf-upcoming')">
+        <span>🗓 Événements à venir — 30 jours</span>
+        <span class="pf-count-badge">${upcoming.length}</span>
+        <span class="pf-chevron">▸</span>
+      </div>
+      <div class="pf-section-body">
+        <table class="pf-table"><thead><tr><th>Date</th><th>Événement</th><th style="text-align:right">Montant</th><th>Délai</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      </div>
+    </div>`;
+  }
+
+  // ── Santé du portefeuille ──
+  const healthRows = projects.map(p => {
+    const taskPct = p.tasks.total > 0 ? pct(p.tasks.done, p.tasks.total) : 0;
+    const hPct = p.hours.sold > 0 ? pct(p.hours.actual, p.hours.sold) : 0;
+    const hOver = p.hours.actual > p.hours.sold;
+    const bPct = p.billing.total > 0 ? pct(p.billing.paid, p.billing.total) : 0;
+    const ragDot = p.rag ? `<span class="rag-dot rag-dot-${p.rag.toLowerCase()}" style="width:13px;height:13px;display:inline-block;border-radius:50%;vertical-align:middle"></span>` : '<span style="display:inline-block;width:13px"></span>';
+    const installStr = p.installActual ? `<span style="color:#059669">✓ ${fmtDateShort(p.installActual)}</span>`
+      : p.installDate ? (p.installDelayed ? `<span style="color:#ea580c">⚠ ${fmtDateShort(p.installDate)}</span>` : fmtDateShort(p.installDate))
+      : '—';
+    return `<tr class="pf-row" data-path="${esc(p.path)}" onclick="window.openProjectCard(this.dataset.path)" style="cursor:pointer">
+      <td><strong>${esc(p.name)}</strong></td>
+      <td style="color:var(--text-muted)">${esc(p.client)}</td>
+      <td>${ragDot}</td>
+      <td><div class="pf-mini-bar"><div style="width:${taskPct}%;background:var(--accent)"></div></div><span class="pf-bar-lbl">${p.tasks.done}/${p.tasks.total}</span>${p.tasks.overdue.length ? `<span class="pf-late"> ⚠${p.tasks.overdue.length}</span>` : ''}</td>
+      <td><span style="color:${hOver ? '#dc2626' : 'inherit'}">${p.hours.actual}/${p.hours.sold} h</span></td>
+      <td><div class="pf-mini-bar"><div style="width:${bPct}%;background:#059669"></div></div><span class="pf-bar-lbl">${fmtEur(p.billing.paid)}</span></td>
+      <td>${installStr}</td>
+      <td style="font-size:11px;color:var(--text-muted)">${p.install.total ? p.install.done+'/'+p.install.total : '—'} · ${p.dryrun.total ? p.dryrun.done+'/'+p.dryrun.total : '—'}</td>
+    </tr>`;
+  }).join('');
+
+  const healthHtml = `<div class="pf-section pf-health-section">
+    <div class="pf-section-title">🏥 Santé du portefeuille</div>
+    <table class="pf-table pf-health-table"><thead><tr><th>Projet</th><th>Client</th><th>RAG</th><th>Tâches</th><th>Heures</th><th>Facturation</th><th>Install</th><th>Checklists</th></tr></thead><tbody>${healthRows}</tbody></table>
+  </div>`;
+
+  body.innerHTML = healthHtml + kpis + weekHtml + upcomingHtml;
+}
+
+function fmtDateShort(iso) {
+  if (!iso) return '—';
+  try { return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: '2-digit' }); }
+  catch { return iso; }
+}
+
+// Expose so pf-row onclick works
+window.openProjectCard = async function(path) {
+  if (!path) return;
+  navigateToApp(path);
+};
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 init();

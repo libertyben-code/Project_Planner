@@ -11,7 +11,20 @@
 </head>
 <body>
 <nav class="app-nav">
-  <span class="nav-logo" onclick="goHome()" style="cursor:pointer" title="Retour accueil">● WMS <span>Planning</span></span>
+  <div class="nav-logo-group">
+    <span class="nav-logo" onclick="goHome()" style="cursor:pointer" title="Retour accueil">● WMS <span>Planning</span></span>
+    <div class="rag-nav-pill" id="rag-nav-pill" onclick="toggleRagDropdown(event)" title="Statut du projet">
+      <span class="rag-nav-dot" id="rag-nav-dot"></span>
+      <span class="rag-nav-lbl" id="rag-nav-lbl">—</span>
+      <span class="rag-nav-arrow">▾</span>
+      <div class="rag-nav-dropdown" id="rag-nav-dropdown">
+        <button class="rag-drop-item" onclick="event.stopPropagation();setRag('G');closeRagDropdown()"><span class="rag-dot rag-dot-g" style="width:8px;height:8px"></span>Vert — OK</button>
+        <button class="rag-drop-item" onclick="event.stopPropagation();setRag('A');closeRagDropdown()"><span class="rag-dot rag-dot-a" style="width:8px;height:8px"></span>Orange — Attention</button>
+        <button class="rag-drop-item" onclick="event.stopPropagation();setRag('R');closeRagDropdown()"><span class="rag-dot rag-dot-r" style="width:8px;height:8px"></span>Rouge — Bloqué</button>
+        <button class="rag-drop-item rag-drop-clear" onclick="event.stopPropagation();setRag('');closeRagDropdown()">✕ Effacer</button>
+      </div>
+    </div>
+  </div>
   <div class="nav-tabs" id="nav-tabs">
     <div class="nav-tab active" data-page="page-dashboard">Tableau de bord</div>
     <div class="nav-tab" data-page="page-planning">Planning</div>
@@ -27,6 +40,7 @@
     <button class="btn btn-ghost btn-sm nav-tab-add" title="Ajouter un onglet personnalisé" onclick="openAddCustomTabModal()">＋</button>
   </div>
   <div class="nav-right">
+    <button class="btn btn-ghost btn-sm" onclick="openManageTabsModal()" title="Gérer les onglets">⇄ Onglets</button>
     <span class="save-indicator" id="save-indicator"></span>
     <button class="btn btn-ghost btn-sm" id="btn-export-html" onclick="openExportHTMLModal()">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><path stroke-linecap="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>HTML
@@ -61,6 +75,8 @@
   <div class="kpi-grid" id="dash-kpi"></div>
   <!-- Install date drift indicator -->
   <div class="install-drift-block" id="install-drift-block" style="display:none"></div>
+  <!-- This week panel -->
+  <div id="dash-this-week" style="display:none"></div>
   <div class="chart-grid">
     <div class="chart-card" id="card-phases"><div class="chart-card-title">Avancement par Phase</div><div class="chart-wrap"><canvas id="ch-phases"></canvas></div></div>
     <div class="chart-card" id="card-statuts"><div class="chart-card-title">Répartition des Statuts</div><div class="chart-wrap"><canvas id="ch-statuts"></canvas></div></div>
@@ -239,6 +255,7 @@
     </div>
     <div class="form-row"><label>% Avancement</label><input id="task-progress" type="number" min="0" max="100" value="0"></div>
     <div class="form-row"><label>Livrable</label><input id="task-deliverable" type="text"></div>
+    <div class="form-row"><label>Dépendances</label><select id="task-deps" multiple style="height:72px;font-size:12px"></select><div style="font-size:11px;color:var(--text-muted);margin-top:3px">Ctrl+clic pour sélection multiple</div></div>
     <div class="form-row" style="flex-direction:row;align-items:center;gap:8px">
       <input id="task-unavail" type="checkbox" style="width:auto;margin:0">
       <label style="margin:0;font-weight:500;cursor:pointer" for="task-unavail">Indisponibilité / congé</label>
@@ -495,6 +512,20 @@
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modal-export-html')">Annuler</button>
       <button class="btn btn-primary" onclick="doExportHTML()">Exporter</button>
+    </div>
+  </div>
+</div>
+
+<!-- Manage tabs modal -->
+<div class="modal-overlay" id="modal-manage-tabs">
+  <div class="modal">
+    <h3>Gérer les onglets</h3>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Glissez pour réordonner · double-cliquez sur un nom pour le renommer · décochez pour masquer</p>
+    <div id="manage-tabs-list" style="display:flex;flex-direction:column;gap:6px;max-height:380px;overflow-y:auto"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="resetTabOrder()">Réinitialiser</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-manage-tabs')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveManageTabs()">Appliquer</button>
     </div>
   </div>
 </div>
