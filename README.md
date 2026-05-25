@@ -1,129 +1,129 @@
 # WMS Project Planner
 
-*[Lire en français](README.fr.md)*
+*[Read in English](README.en.md)*
 
-A desktop application for managing WMS implementation projects — from kick-off to go-live.
+Application de bureau pour piloter les projets d'implémentation WMS — du lancement jusqu'à la mise en production.
 
-## What it does
+## Ce que ça fait
 
-Each project is stored as a single `.wmsplan` file you can drop on a shared folder. Anyone on the team opens it with the app and edits in real time (the app detects external changes and prompts you to reload).
+Chaque projet est enregistré dans un seul fichier `.wmsplan` que vous pouvez déposer sur un dossier partagé. Tous les membres de l'équipe l'ouvrent avec l'application et travaillent en temps réel (l'app détecte les modifications externes et propose de recharger).
 
-The app covers every stage of a WMS deployment:
+L'application couvre toutes les étapes d'un déploiement WMS :
 
-- **Tableau de bord** — Live KPIs: task progress, billing collected, hours burned, install date drift
-- **Planning** — Gantt chart across 5 phases — drag tasks between phases, reorder phases
-- **Suivi Heures** — Hours sold vs. actual by category (Standard / Custom / Offre Comp) with history
-- **Tâches Internes** — Internal action list with urgency, owner, and deadline
-- **Interfaces ERP** — Validation status per interface (DEV → Préprod → Recette → Validé)
-- **Fonctionnel** — Functional flow advancement per process
-- **Prérequis Dry Run** — Go/No-Go checklist for the dry run
-- **Prérequis Install** — Go/No-Go checklist for go-live
-- **Facturation** — Billing milestones with automatic % calculations
-- **JIRA** — Epic & task status synced from your Jira instance via API
-- **Onglets personnalisés** — Add your own tabs with custom columns
+- **Tableau de bord** — KPIs en direct : avancement des tâches, facturation encaissée, heures consommées, dérive de la date d'installation
+- **Planning** — Diagramme de Gantt sur 5 phases — glisser les tâches entre les phases, réordonner les phases
+- **Suivi Heures** — Heures vendues vs. réelles par catégorie (Standard / Custom / Offre Comp) avec historique
+- **Tâches Internes** — Liste d'actions internes avec urgence, propriétaire et deadline
+- **Interfaces ERP** — Statut de validation par interface (DEV → Préprod → Recette → Validé)
+- **Fonctionnel** — Avancement par flux fonctionnel
+- **Prérequis Dry Run** — Checklist Go/No-Go pour le dry run
+- **Prérequis Install** — Checklist Go/No-Go pour la mise en production
+- **Facturation** — Jalons de facturation avec calcul automatique des pourcentages
+- **JIRA** — Statut des épics et tâches synchronisé depuis votre instance Jira via API
+- **Onglets personnalisés** — Créez vos propres onglets avec des colonnes sur mesure
 
-## Getting started
+## Prise en main
 
-### First launch
+### Premier lancement
 
-1. Download `WMSPlanner.exe` and double-click — no installation needed (Windows 11 required).
-2. The home screen opens. Click **Nouveau projet**.
-3. Fill in the project name, client, and key contacts. Click **Créer**.
+1. Téléchargez `WMSPlanner.exe` et double-cliquez — aucune installation requise (Windows 11 nécessaire).
+2. L'écran d'accueil s'ouvre. Cliquez sur **Nouveau projet**.
+3. Renseignez le nom du projet, le client et les contacts clés. Cliquez sur **Créer**.
 
-The app creates a blank `.wmsplan` file and opens the project. Every change is saved automatically within one second.
+L'application crée un fichier `.wmsplan` vierge et ouvre le projet. Chaque modification est sauvegardée automatiquement en moins d'une seconde.
 
-### Opening an existing project
+### Ouvrir un projet existant
 
-- **Recent projects** appear as cards on the home screen. Click **Ouvrir**.
-- **From a shared folder**: click **Ouvrir...** in the top bar and browse to the `.wmsplan` file.
+- **Projets récents** : ils apparaissent sous forme de cartes sur l'écran d'accueil. Cliquez sur **Ouvrir**.
+- **Depuis un dossier partagé** : cliquez sur **Ouvrir...** dans la barre du haut et naviguez jusqu'au fichier `.wmsplan`.
 
-### Sharing a project
+### Partager un projet
 
-- Copy the `.wmsplan` file to a shared network folder.
-- Each team member opens it with their own copy of the app.
-- If someone else saves while you have the file open, a banner appears at the top: click **Recharger** to get their changes.
+- Copiez le fichier `.wmsplan` dans un dossier réseau partagé.
+- Chaque membre de l'équipe l'ouvre avec sa propre copie de l'application.
+- Si quelqu'un d'autre sauvegarde pendant que vous avez le fichier ouvert, une bannière apparaît en haut : cliquez sur **Recharger** pour récupérer ses modifications.
 
-## Home screen — Portfolio dashboard
+## Écran d'accueil — Vue d'ensemble du portefeuille
 
-A collapsible **📊 Vue d'ensemble du portefeuille** section sits above the project cards and gives a cross-project view:
+Une section **📊 Vue d'ensemble du portefeuille** repliable s'affiche au-dessus des cartes projets et donne une vue transversale :
 
-- **Santé du portefeuille** — always visible at the top: one row per project showing RAG status, task progress bar, hours consumed vs. sold, billing collected, install date, and checklist counts.
-- **KPI strip** — active projects, RAG breakdown, total overdue tasks, total billing collected, total hours consumed.
-- **Cette semaine & retards** — collapsed by default; click the header to expand. Tasks overdue or due within 7 days, grouped by project. Clicking a row opens that project.
-- **Événements à venir — 30 jours** — collapsed by default; click the header to expand. Upcoming billing milestones and install dates in the next 30 days, grouped by project, with a J-N countdown chip.
+- **Santé du portefeuille** — toujours visible en tête : une ligne par projet avec statut RAG, avancement des tâches, heures consommées/vendues, facturation, date d'installation et scores des checklists.
+- **Bandeau KPIs** — projets actifs, répartition RAG, total des tâches en retard, facturation encaissée, heures consommées.
+- **Cette semaine & retards** — replié par défaut ; cliquez sur l'en-tête pour déplier. Tâches en retard ou se terminant dans les 7 prochains jours, regroupées par projet. Cliquer sur une ligne ouvre le projet.
+- **Événements à venir — 30 jours** — replié par défaut ; cliquez sur l'en-tête pour déplier. Jalons de facturation et dates d'installation prévus dans les 30 prochains jours, regroupés par projet, avec compteur J-N.
 
-Each project card has a **colored left border** showing its RAG status (green / orange / red). Click the portfolio header to collapse/expand the entire dashboard.
+Chaque carte projet a une **bordure gauche colorée** indiquant le statut RAG (vert / orange / rouge). Cliquez sur l'en-tête du portefeuille pour replier/déplier l'ensemble du tableau de bord.
 
 ## Tableau de bord
 
-- **Statut RAG** — click the status pill next to **WMS Planning** in the nav bar to set the project status (Vert = OK, Orange = Attention, Rouge = Bloqué). The pill updates immediately and the home screen card border reflects the status after the next portfolio load.
-- **Cette semaine** — a panel below the KPIs lists overdue tasks and tasks ending within 7 days, grouped by section, with owner and due date.
-- **⇄ Onglets** — opens the tab manager from the nav bar: drag to reorder, rename any tab, hide tabs you don't use. Resets per project.
+- **Statut RAG** — cliquez sur la pastille de statut à côté de **WMS Planning** dans la barre de navigation pour définir le statut du projet (Vert = OK, Orange = Attention, Rouge = Bloqué). La pastille se met à jour immédiatement et la bordure de la carte à l'accueil reflète le statut après le prochain chargement du portefeuille.
+- **Cette semaine** — un panneau sous les KPIs liste les tâches en retard et celles qui se terminent dans les 7 prochains jours, avec propriétaire et date de fin.
+- **⇄ Onglets** — ouvre le gestionnaire d'onglets depuis la barre de navigation : glissez pour réordonner, renommez, masquez les onglets inutilisés. Paramètre enregistré par projet.
 
 ## Planning (Gantt)
 
-- **Add a task**: click **＋** on the right side of any phase row.
-- **Edit a task**: click the ✏ button on the row or the task name to open the edit modal. Delete is inside the modal.
-- **Reorder**: click **✏ Réorganiser** to enable drag-and-drop. Drag the ⠿ handle to move tasks across phases or reorder phases entirely. Click **✓ Terminer** when done.
-- **Install date postponed**: change the install date and the app asks whether it is a delay or an adjustment. A delay shows both the original and new date with an orange badge.
-- **Resize columns**: drag the right edge of any column header (Statut, Intitulé, etc.) to resize it. Widths are saved per project.
-- **Task dependencies**: in the task edit modal, select one or more predecessor tasks under **Dépendances**. If the task starts before a predecessor finishes, the row gets an orange outline on the Gantt and a warning in the "Cette semaine" panel.
+- **Ajouter une tâche** : cliquez sur **＋** à droite de n'importe quelle ligne de phase.
+- **Modifier une tâche** : cliquez sur le bouton ✏ de la ligne ou sur le nom de la tâche. La suppression se fait depuis la modale.
+- **Réordonner** : cliquez sur **✏ Réorganiser** pour activer le glisser-déposer. Faites glisser la poignée ⠿ pour déplacer des tâches entre les phases ou réordonner les phases entières. Cliquez sur **✓ Terminer** quand c'est fait.
+- **Date d'installation reportée** : modifiez la date d'installation et l'application demande s'il s'agit d'un retard ou d'un simple ajustement. Un retard affiche les deux dates avec un badge orange.
+- **Redimensionner les colonnes** : faites glisser le bord droit d'un en-tête de colonne (Statut, Intitulé, etc.) pour ajuster sa largeur. Les largeurs sont mémorisées.
+- **Dépendances** : dans la modale d'édition d'une tâche, sélectionnez une ou plusieurs tâches prédécesseurs sous **Dépendances**. Si la tâche démarre avant qu'un prédécesseur soit terminé, la ligne est encadrée en orange sur le Gantt et signalée dans le panneau "Cette semaine".
 
-### Multi-period tasks (holidays / unavailability)
+### Tâches multi-périodes (congés / indisponibilités)
 
-A task can span several disconnected date ranges on a single row — useful for a holidays phase where people are away at different times:
+Une tâche peut couvrir plusieurs plages de dates disjointes sur une même ligne — pratique pour une phase congés où chaque personne est absente à des moments différents :
 
-- In the task edit modal, click **＋ Ajouter une période** to add a second (or third…) date range. Each period has its own Début and Fin. Use the 🗑 button to remove a period when there are two or more.
-- Check **Indisponibilité / congé** to mark the row as an absence: the row renders in italic/muted style and the Statut, Priorité, J, and % Avancement columns are left blank.
-- On the Gantt, each period shows as a separate coloured block on the same row. Hovering any block shows all date ranges in the tooltip.
-- The **J** column shows the total days across all periods; **Début** and **Fin** show the first and last dates with a `N×` indicator when multiple periods exist.
+- Dans la modale d'édition, cliquez sur **＋ Ajouter une période** pour ajouter une deuxième plage (ou plus). Chaque période a son propre Début et Fin. Le bouton 🗑 permet de supprimer une période dès qu'il y en a au moins deux.
+- Cochez **Indisponibilité / congé** pour marquer la ligne comme une absence : elle s'affiche en italique/atténué et les colonnes Statut, Priorité, J et % Avancement restent vides.
+- Sur le Gantt, chaque période apparaît sous forme d'un bloc coloré séparé sur la même ligne. Le survol affiche toutes les plages dans l'infobulle.
+- La colonne **J** affiche le total des jours sur toutes les périodes ; **Début** et **Fin** affichent les premières et dernières dates avec un indicateur `N×` lorsque plusieurs périodes existent.
 
 ## Suivi Heures
 
-- The three bold rows (**Heures Standard**, **Heures Custom**, **Heures Comp.**) are calculated totals — they update automatically as you fill in the rows below.
-- To change the type of a row (Standard / Custom / Offre Comp), click the type badge in the row and pick from the dropdown.
-- Click the clock icon on any row to see its full edit history.
-- **＋ Ajouter une catégorie** adds a custom row at the bottom.
+- Les trois lignes en gras (**Heures Standard**, **Heures Custom**, **Heures Comp.**) sont des totaux calculés — ils se mettent à jour automatiquement au fur et à mesure que vous remplissez les lignes en dessous.
+- Pour changer le type d'une ligne (Standard / Custom / Offre Comp), cliquez sur le badge de type dans la ligne et choisissez dans le menu déroulant.
+- Cliquez sur l'icône horloge d'une ligne pour voir son historique complet des modifications.
+- **＋ Ajouter une catégorie** ajoute une ligne personnalisée en bas du tableau.
 
 ## Onglets personnalisés
 
-- Click **＋** at the end of the tab bar to create a new tab. Define a name, icon, and up to 5 columns (text, select, date, or checkbox).
-- Each row has a **✏** button that opens an edit modal for all fields, including a **Supprimer** button.
-- Drag the ⠿ handle to reorder rows. Drag the right edge of any column header to resize it — widths are saved per tab.
-- Edit or delete the tab itself with the ✏ / 🗑 icons in the tab header.
+- Cliquez sur **＋** en fin de barre d'onglets pour créer un nouvel onglet. Définissez un nom, une icône et jusqu'à 5 colonnes (texte, liste, date ou case à cocher).
+- Chaque ligne dispose d'un bouton **✏** qui ouvre une modale d'édition pour tous les champs, avec un bouton **Supprimer**.
+- Faites glisser la poignée ⠿ pour réordonner les lignes. Faites glisser le bord droit d'un en-tête de colonne pour le redimensionner — les largeurs sont mémorisées par onglet.
+- Modifiez ou supprimez l'onglet lui-même avec les icônes ✏ / 🗑 dans l'en-tête de l'onglet.
 
-## JIRA integration
+## Intégration JIRA
 
-1. Go to the **JIRA** tab and click **⚙ Configurer**.
-2. Enter your Atlassian URL (e.g. `https://yourcompany.atlassian.net`), project key, email, and an API token.
-3. Click **↺ Synchroniser** to import epics and tasks.
+1. Allez dans l'onglet **JIRA** et cliquez sur **⚙ Configurer**.
+2. Saisissez votre URL Atlassian (ex. `https://votre-entreprise.atlassian.net`), la clé du projet, votre email et un token API.
+3. Cliquez sur **↺ Synchroniser** pour importer les épics et les tâches.
 
-The Gantt chart will display a JIRA phase below your manual phases, and the dashboard will show an epic-progress chart.
+Le diagramme de Gantt affichera une phase JIRA sous vos phases manuelles, et le tableau de bord présentera un graphique d'avancement par épic.
 
 ## Export
 
-Three export formats are available from the top bar:
+Trois formats d'export sont disponibles depuis la barre du haut :
 
-- **PDF** — exports the current tab as a PDF file (native save dialog).
-- **HTML** — choose which tabs to include and save a standalone read-only HTML file you can send to the client or open in any browser.
-- **MD** — exports the full project as a Markdown document (all sections, tables, and checklists).
+- **PDF** — exporte l'onglet courant en PDF (boîte de dialogue d'enregistrement native).
+- **HTML** — choisissez les onglets à inclure et enregistrez un fichier HTML autonome en lecture seule que vous pouvez envoyer au client ou ouvrir dans n'importe quel navigateur.
+- **MD** — exporte le projet complet en document Markdown (toutes les sections, tableaux et checklists).
 
-## Settings
+## Paramètres
 
-Click the **⚙** icon in the top-right of the home screen to open settings:
+Cliquez sur l'icône **⚙** en haut à droite de l'écran d'accueil pour ouvrir les paramètres :
 
-- **Default save folder** — choose where new projects are created. If unset, projects are saved to the application's AppData folder (always accessible, never lost).
+- **Dossier de sauvegarde par défaut** — choisissez où les nouveaux projets sont créés. Si non défini, les projets sont enregistrés dans le dossier AppData de l'application (toujours accessible, jamais perdu).
 
-## Example project
+## Projet exemple
 
-Click **📖 Exemple** in the home screen header (or the button on the empty state) to open a demo project. The app copies the example into your projects folder so you can freely edit it without affecting the original.
+Cliquez sur **📖 Exemple** dans l'en-tête de l'écran d'accueil (ou sur le bouton de l'état vide) pour ouvrir un projet de démonstration. L'application copie l'exemple dans votre dossier projets afin que vous puissiez le modifier librement sans affecter l'original.
 
-## Keyboard shortcuts
+## Raccourcis clavier
 
-- `Ctrl+O` — Open a project file
-- `Ctrl+S` — Force save immediately
-- `Escape` — Close the open modal
+- `Ctrl+O` — Ouvrir un fichier projet
+- `Ctrl+S` — Forcer la sauvegarde immédiatement
+- `Échap` — Fermer la modale ouverte
 
 ---
 
-*Project files are plain JSON — you can open them in any text editor. Do not rename the `.wmsplan` extension or the app won't recognise them on import.*
+*Les fichiers projet sont du JSON brut — vous pouvez les ouvrir dans n'importe quel éditeur de texte. Ne renommez pas l'extension `.wmsplan`, l'application ne les reconnaîtra plus à l'import.*
