@@ -1828,7 +1828,8 @@ function _syncRagUI() {
     if (v) {
       const dot = document.createElement('span');
       dot.className = 'rag-dot rag-dot-' + v.toLowerCase();
-      logo.prepend(dot);
+      dot.style.cssText = 'margin-left:8px;vertical-align:middle;';
+      logo.append(dot);
     }
   }
 }

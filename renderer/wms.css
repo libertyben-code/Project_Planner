@@ -133,9 +133,10 @@ td[contenteditable="true"]:focus{outline:2px solid var(--accent);outline-offset:
 .rag-btn.rag-active,.rag-btn:hover{opacity:1;transform:scale(1.2);border-color:currentColor;}
 .rag-clear{font-size:11px;color:var(--text-muted);opacity:.6;width:20px;height:20px;}
 .rag-dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle;flex-shrink:0;}
+.nav-logo .rag-dot{width:8px;height:8px;box-shadow:0 0 0 2px rgba(255,255,255,.2);}
 .rag-dot-g{background:#16a34a;}.rag-dot-a{background:#ea580c;}.rag-dot-r{background:#dc2626;}
 /* This week panel */
-.this-week-block{display:flex;gap:16px;flex-wrap:wrap;padding:0 20px 16px;}
+.this-week-block{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;}
 .this-week-section{flex:1;min-width:300px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
 .this-week-title{font-size:12px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);}
 .tw-overdue{color:#dc2626;}.tw-week{color:var(--accent);}

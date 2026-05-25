@@ -1,0 +1,925 @@
+{
+  "meta": {
+    "id": "_test_gamma_003",
+    "name": "Projet Gamma Industrie",
+    "client": "Gamma Industrie SAS",
+    "pm": "Julie Renard",
+    "cdptech": "Pierre Blanc",
+    "respLog": "Nathalie Vidal",
+    "erpConsult": "François Dupuis",
+    "notes": "Projet en difficulté. Dépenses heures très au-dessus du budget. Jalons de facturation bloqués.",
+    "startDate": "2025-07-01",
+    "installDateOriginal": "2026-03-01",
+    "installDateDelayed": "2026-09-01",
+    "installDateActual": "",
+    "installDateComment": "Report de 6 mois — périmètre élargi en cours de projet, ressources client non disponibles.",
+    "endDate": "",
+    "createdAt": "2025-07-01T08:00:00.000Z",
+    "updatedAt": "2026-05-25T19:52:09.848Z",
+    "jiraConfig": {
+      "url": "",
+      "projectKey": "",
+      "email": "",
+      "token": ""
+    },
+    "tabOrder": [
+      "page-dashboard",
+      "page-taches",
+      "page-planning",
+      "page-heures",
+      "page-interfaces",
+      "page-fonctionnel",
+      "page-dryrun",
+      "page-install",
+      "page-facturation",
+      "page-jira"
+    ],
+    "tabHidden": [],
+    "tabLabels": {
+      "page-dashboard": "Tableau de bord",
+      "page-taches": "Tâches Internes",
+      "page-planning": "Planning",
+      "page-heures": "Suivi Heures",
+      "page-interfaces": "Interfaces",
+      "page-fonctionnel": "Fonctionnel",
+      "page-dryrun": "Prérequis Dry Run",
+      "page-install": "Prérequis Install",
+      "page-facturation": "Facturation",
+      "page-jira": "◈ JIRA"
+    }
+  },
+  "phases": [
+    {
+      "id": "INDISPO",
+      "name": "INDISPONIBILITÉS / CONGÉS",
+      "code": "I",
+      "color": "#64748b"
+    },
+    {
+      "id": "PLAN",
+      "name": "PLANIFICATION DU PROJET",
+      "code": "P",
+      "color": "#2563eb"
+    },
+    {
+      "id": "ERP",
+      "name": "INTERFACE ERP",
+      "code": "E",
+      "color": "#7c3aed"
+    },
+    {
+      "id": "DEV",
+      "name": "DÉVELOPPEMENTS",
+      "code": "D",
+      "color": "#0891b2"
+    },
+    {
+      "id": "FORM",
+      "name": "FORMATION & UAT",
+      "code": "F",
+      "color": "#059669"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task_indispo_dp",
+      "phaseId": "INDISPO",
+      "name": "Dir. Projet - Julie Renard",
+      "owner": "MECALUX",
+      "start": "2025-12-22",
+      "end": "2026-01-02",
+      "status": "",
+      "priority": "",
+      "progress": 0,
+      "deliverable": "",
+      "isUnavail": true
+    },
+    {
+      "id": "task_plan_1",
+      "phaseId": "PLAN",
+      "name": "Visite d'Analyse Fonctionnelle",
+      "owner": "TOUS",
+      "start": "2025-07-07",
+      "end": "2025-07-11",
+      "status": "Terminé",
+      "priority": "Haute",
+      "progress": 100,
+      "deliverable": ""
+    },
+    {
+      "id": "task_plan_2",
+      "phaseId": "PLAN",
+      "name": "Ateliers & Rédaction AF",
+      "owner": "TOUS",
+      "start": "2025-07-14",
+      "end": "2025-09-19",
+      "status": "Terminé",
+      "priority": "Haute",
+      "progress": 100,
+      "deliverable": ""
+    },
+    {
+      "id": "task_plan_3",
+      "phaseId": "PLAN",
+      "name": "Validation AF",
+      "owner": "TOUS",
+      "start": "2025-09-22",
+      "end": "2025-10-10",
+      "status": "Terminé",
+      "priority": "Haute",
+      "progress": 100,
+      "deliverable": ""
+    },
+    {
+      "id": "task_plan_4",
+      "phaseId": "PLAN",
+      "name": "Ateliers Mapping ERP",
+      "owner": "TOUS",
+      "start": "2025-10-13",
+      "end": "2025-11-28",
+      "status": "Terminé",
+      "priority": "Haute",
+      "progress": 100,
+      "deliverable": ""
+    },
+    {
+      "id": "task_plan_5",
+      "phaseId": "PLAN",
+      "name": "Analyse technique DEV",
+      "owner": "MECALUX",
+      "start": "2025-11-10",
+      "end": "2025-12-05",
+      "status": "Terminé",
+      "priority": "Haute",
+      "progress": 100,
+      "deliverable": ""
+    },
+    {
+      "id": "task_erp_spec",
+      "phaseId": "ERP",
+      "name": "Rédaction spécifications interface",
+      "owner": "Pierre Blanc",
+      "start": "2025-10-06",
+      "end": "2025-12-19",
+      "status": "Terminé",
+      "priority": "Haute",
+      "progress": 100,
+      "deliverable": ""
+    },
+    {
+      "id": "task_erp_dev",
+      "phaseId": "ERP",
+      "name": "Développement interfaces (lot 1)",
+      "owner": "François Dupuis",
+      "start": "2026-01-05",
+      "end": "2026-03-27",
+      "status": "En cours",
+      "priority": "Haute",
+      "progress": 70,
+      "deliverable": ""
+    },
+    {
+      "id": "task_erp_dev2",
+      "phaseId": "ERP",
+      "name": "Développement interfaces (lot 2 — périmètre étendu)",
+      "owner": "François Dupuis",
+      "start": "2026-02-16",
+      "end": "2026-05-08",
+      "status": "En retard",
+      "priority": "Haute",
+      "progress": 40,
+      "deliverable": ""
+    },
+    {
+      "id": "task_erp_tests",
+      "phaseId": "ERP",
+      "name": "Tests interfaces en préproduction",
+      "owner": "TOUS",
+      "start": "2026-04-01",
+      "end": "2026-05-15",
+      "status": "En retard",
+      "priority": "Haute",
+      "progress": 20,
+      "deliverable": ""
+    },
+    {
+      "id": "task_dev_1",
+      "phaseId": "DEV",
+      "name": "Modélisation Entrepôt",
+      "owner": "MECALUX",
+      "start": "2026-01-05",
+      "end": "2026-02-06",
+      "status": "Terminé",
+      "priority": "Haute",
+      "progress": 100,
+      "deliverable": ""
+    },
+    {
+      "id": "task_dev_2",
+      "phaseId": "DEV",
+      "name": "Développements Fonctionnels",
+      "owner": "MECALUX",
+      "start": "2026-01-26",
+      "end": "2026-04-17",
+      "status": "En cours",
+      "priority": "Haute",
+      "progress": 65,
+      "deliverable": ""
+    },
+    {
+      "id": "task_dev_3",
+      "phaseId": "DEV",
+      "name": "Tests Fonctionnels (retard — non commencé)",
+      "owner": "MECALUX",
+      "start": "2026-03-30",
+      "end": "2026-04-24",
+      "status": "En retard",
+      "priority": "Haute",
+      "progress": 0,
+      "deliverable": ""
+    },
+    {
+      "id": "task_dev_4",
+      "phaseId": "DEV",
+      "name": "Paramétrage Environnement Client",
+      "owner": "MECALUX",
+      "start": "2026-04-27",
+      "end": "2026-05-08",
+      "status": "En retard",
+      "priority": "Haute",
+      "progress": 0,
+      "deliverable": ""
+    },
+    {
+      "id": "task_dev_scope",
+      "phaseId": "DEV",
+      "name": "Développements périmètre additionnel",
+      "owner": "Pierre Blanc",
+      "start": "2026-05-04",
+      "end": "2026-06-26",
+      "status": "À faire",
+      "priority": "Haute",
+      "progress": 0,
+      "deliverable": ""
+    },
+    {
+      "id": "task_form_1",
+      "phaseId": "FORM",
+      "name": "Formation Key Users",
+      "owner": "MECALUX",
+      "start": "2026-08-03",
+      "end": "2026-08-07",
+      "status": "À faire",
+      "priority": "Haute",
+      "progress": 0,
+      "deliverable": ""
+    },
+    {
+      "id": "task_form_5",
+      "phaseId": "FORM",
+      "name": "DRY RUN & GO/NO GO",
+      "owner": "TOUS",
+      "start": "2026-08-17",
+      "end": "2026-08-19",
+      "status": "À faire",
+      "priority": "Haute",
+      "progress": 0,
+      "deliverable": "",
+      "barColor": "#dc2626"
+    },
+    {
+      "id": "task_form_7",
+      "phaseId": "FORM",
+      "name": "INSTALLATION",
+      "owner": "TOUS",
+      "start": "2026-09-01",
+      "end": "2026-09-01",
+      "status": "À faire",
+      "priority": "Haute",
+      "progress": 0,
+      "deliverable": "",
+      "barColor": "#ea580c"
+    },
+    {
+      "id": "task_form_8",
+      "phaseId": "FORM",
+      "name": "HyperCare",
+      "owner": "MECALUX",
+      "start": "2026-09-02",
+      "end": "2026-10-02",
+      "status": "À faire",
+      "priority": "Normale",
+      "progress": 0,
+      "deliverable": "",
+      "barColor": "#4f46e5"
+    }
+  ],
+  "heuresData": [
+    {
+      "id": "h_std",
+      "cat": "Heures Standard",
+      "vente": 0,
+      "actuel": 0,
+      "bold": true,
+      "totalType": "Standard",
+      "sep": false,
+      "custom": false,
+      "history": []
+    },
+    {
+      "id": "h_cust",
+      "cat": "Heures Custom",
+      "vente": 0,
+      "actuel": 0,
+      "bold": true,
+      "totalType": "Custom",
+      "sep": false,
+      "custom": false,
+      "history": []
+    },
+    {
+      "id": "h_comp",
+      "cat": "Heures Comp.",
+      "vente": 0,
+      "actuel": 0,
+      "bold": true,
+      "totalType": "Offre Comp",
+      "sep": false,
+      "custom": false,
+      "history": []
+    },
+    {
+      "id": "h_sep1",
+      "sep": true
+    },
+    {
+      "id": "h_impl",
+      "cat": "Implémentation Standard",
+      "vente": 120,
+      "actuel": 165,
+      "bold": false,
+      "sep": false,
+      "custom": false,
+      "type": "Standard",
+      "history": []
+    },
+    {
+      "id": "h_gp",
+      "cat": "Gestion Projet",
+      "vente": 60,
+      "actuel": 90,
+      "bold": false,
+      "sep": false,
+      "custom": false,
+      "type": "Standard",
+      "history": []
+    },
+    {
+      "id": "h_af",
+      "cat": "Analyse Fonctionnelle",
+      "vente": 100,
+      "actuel": 128,
+      "bold": false,
+      "sep": false,
+      "custom": false,
+      "type": "Standard",
+      "history": []
+    },
+    {
+      "id": "h_itf",
+      "cat": "Interfaces ERP",
+      "vente": 80,
+      "actuel": 140,
+      "bold": false,
+      "sep": false,
+      "custom": false,
+      "type": "Standard",
+      "history": []
+    },
+    {
+      "id": "h_form",
+      "cat": "Formation",
+      "vente": 50,
+      "actuel": 0,
+      "bold": false,
+      "sep": false,
+      "custom": false,
+      "type": "Standard",
+      "history": []
+    },
+    {
+      "id": "h_tests",
+      "cat": "Tests & Dry Run",
+      "vente": 40,
+      "actuel": 22,
+      "bold": false,
+      "sep": false,
+      "custom": false,
+      "type": "Standard",
+      "history": []
+    },
+    {
+      "id": "h_site",
+      "cat": "Mise sur Site",
+      "vente": 30,
+      "actuel": 0,
+      "bold": false,
+      "sep": false,
+      "custom": false,
+      "type": "Standard",
+      "history": []
+    },
+    {
+      "id": "h_hc",
+      "cat": "HyperCare",
+      "vente": 20,
+      "actuel": 0,
+      "bold": false,
+      "sep": false,
+      "custom": false,
+      "type": "Standard",
+      "history": []
+    },
+    {
+      "id": "h_env",
+      "cat": "Enveloppe Customs",
+      "vente": 80,
+      "actuel": 115,
+      "bold": false,
+      "sep": false,
+      "custom": false,
+      "type": "Custom",
+      "history": []
+    },
+    {
+      "id": "h_scope",
+      "cat": "Périmètre additionnel",
+      "vente": 60,
+      "actuel": 20,
+      "bold": false,
+      "sep": false,
+      "custom": false,
+      "type": "Offre Comp",
+      "history": []
+    }
+  ],
+  "internalTasks": [
+    {
+      "id": "it_01",
+      "action": "Plan de tests fonctionnel",
+      "etat": "FAIT",
+      "temps": 14,
+      "deadline": "2025-12-15",
+      "urg": 2,
+      "comment": ""
+    },
+    {
+      "id": "it_02",
+      "action": "Avenant contrat périmètre étendu",
+      "etat": "FAIT",
+      "temps": 8,
+      "deadline": "2026-02-01",
+      "urg": 1,
+      "comment": ""
+    },
+    {
+      "id": "it_03",
+      "action": "Réunion escalade direction client",
+      "etat": "FAIT",
+      "temps": 2,
+      "deadline": "2026-04-10",
+      "urg": 1,
+      "comment": "Réunion tenue le 08/04"
+    },
+    {
+      "id": "it_04",
+      "action": "Refactoring interfaces lot 2",
+      "etat": "EN COURS",
+      "temps": 24,
+      "deadline": "2026-05-29",
+      "urg": 1,
+      "comment": "Critique — bloque toute la validation"
+    },
+    {
+      "id": "it_05",
+      "action": "Tests de non-régression lot 1",
+      "etat": "À FAIRE",
+      "temps": 16,
+      "deadline": "2026-06-15",
+      "urg": 1,
+      "comment": ""
+    },
+    {
+      "id": "it_06",
+      "action": "Validation facturation JP_02 débloquée",
+      "etat": "À FAIRE",
+      "temps": 0,
+      "deadline": "2026-05-30",
+      "urg": 1,
+      "comment": "Dépend validation client AF"
+    },
+    {
+      "id": "it_07",
+      "action": "Plan de bascule v2 (nouveau périmètre)",
+      "etat": "À FAIRE",
+      "temps": 0,
+      "deadline": "2026-07-01",
+      "urg": 2,
+      "comment": ""
+    },
+    {
+      "id": "it_08",
+      "action": "Ressources supplémentaires à prévoir",
+      "etat": "À FAIRE",
+      "temps": 0,
+      "deadline": "2026-06-01",
+      "urg": 1,
+      "comment": "Dépassement budget actuel confirmé"
+    }
+  ],
+  "interfaces": [
+    {
+      "id": "itf_01",
+      "type": "Connecteur ERP",
+      "name": "Base Article - ITM",
+      "dev": "OUI",
+      "preprod": "OUI",
+      "recMecalux": "OUI",
+      "recClient": "OUI",
+      "valide": "OUI",
+      "comment": ""
+    },
+    {
+      "id": "itf_02",
+      "type": "Connecteur ERP",
+      "name": "Base Fournisseurs - SUP",
+      "dev": "OUI",
+      "preprod": "OUI",
+      "recMecalux": "OUI",
+      "recClient": "NON",
+      "valide": "NON",
+      "comment": ""
+    },
+    {
+      "id": "itf_03",
+      "type": "Connecteur ERP",
+      "name": "Préavis de Réception - ROR",
+      "dev": "OUI",
+      "preprod": "NON",
+      "recMecalux": "NON",
+      "recClient": "NON",
+      "valide": "NON",
+      "comment": "Régression sur lot 2"
+    },
+    {
+      "id": "itf_04",
+      "type": "Connecteur ERP",
+      "name": "Commande Client - SOR",
+      "dev": "OUI",
+      "preprod": "NON",
+      "recMecalux": "NON",
+      "recClient": "NON",
+      "valide": "NON",
+      "comment": "Développement en cours"
+    },
+    {
+      "id": "itf_05",
+      "type": "Connecteur ERP",
+      "name": "Clôture Commande Client - SOF",
+      "dev": "NON",
+      "preprod": "NON",
+      "recMecalux": "NON",
+      "recClient": "NON",
+      "valide": "NON",
+      "comment": "Non démarré"
+    },
+    {
+      "id": "itf_06",
+      "type": "Connecteur ERP",
+      "name": "Variation de Stock - STV",
+      "dev": "NON",
+      "preprod": "NON",
+      "recMecalux": "NON",
+      "recClient": "NON",
+      "valide": "NON",
+      "comment": "Périmètre étendu"
+    },
+    {
+      "id": "itf_07",
+      "type": "API REST",
+      "name": "Appel API Transporteur",
+      "dev": "NON",
+      "preprod": "NON",
+      "recMecalux": "NON",
+      "recClient": "NON",
+      "valide": "NON",
+      "comment": "Non démarré"
+    }
+  ],
+  "functional": [
+    {
+      "id": "fn_01",
+      "name": "RÉCEPTION / RETOUR",
+      "dev": "OUI",
+      "pct": 100,
+      "testMec": "OUI",
+      "preprod": "OUI",
+      "formKU": "NON",
+      "testClient": "NON",
+      "formUsers": "NON",
+      "comment": ""
+    },
+    {
+      "id": "fn_02",
+      "name": "RANGEMENT",
+      "dev": "OUI",
+      "pct": 80,
+      "testMec": "OUI",
+      "preprod": "NON",
+      "formKU": "NON",
+      "testClient": "NON",
+      "formUsers": "NON",
+      "comment": "Tests bloqués"
+    },
+    {
+      "id": "fn_03",
+      "name": "PRÉPARATION",
+      "dev": "OUI",
+      "pct": 60,
+      "testMec": "NON",
+      "preprod": "NON",
+      "formKU": "NON",
+      "testClient": "NON",
+      "formUsers": "NON",
+      "comment": "En cours"
+    },
+    {
+      "id": "fn_04",
+      "name": "PICKING",
+      "dev": "NON",
+      "pct": 40,
+      "testMec": "NON",
+      "preprod": "NON",
+      "formKU": "NON",
+      "testClient": "NON",
+      "formUsers": "NON",
+      "comment": "Périmètre étendu"
+    },
+    {
+      "id": "fn_05",
+      "name": "EXPÉDITION",
+      "dev": "NON",
+      "pct": 0,
+      "testMec": "NON",
+      "preprod": "NON",
+      "formKU": "NON",
+      "testClient": "NON",
+      "formUsers": "NON",
+      "comment": "Non démarré"
+    },
+    {
+      "id": "fn_06",
+      "name": "INVENTAIRE",
+      "dev": "OUI",
+      "pct": 100,
+      "testMec": "OUI",
+      "preprod": "OUI",
+      "formKU": "NON",
+      "testClient": "NON",
+      "formUsers": "NON",
+      "comment": ""
+    }
+  ],
+  "dryRun": [
+    {
+      "id": "dr_01",
+      "name": "Plan de l'entrepôt disponible",
+      "etat": "OK",
+      "comment": ""
+    },
+    {
+      "id": "dr_02",
+      "name": "Entrepôt créé dans le WMS",
+      "etat": "NON",
+      "comment": "En attente modélisation finale"
+    },
+    {
+      "id": "dr_03",
+      "name": "Validation Wifi",
+      "etat": "NON",
+      "comment": "Site non disponible"
+    },
+    {
+      "id": "dr_04",
+      "name": "Étiquetage entrepôt",
+      "etat": "NON",
+      "comment": ""
+    },
+    {
+      "id": "dr_05",
+      "name": "Plans de tests validés",
+      "etat": "NON",
+      "comment": ""
+    },
+    {
+      "id": "dr_06",
+      "name": "DRY RUN ERP validé",
+      "etat": "NON",
+      "comment": ""
+    },
+    {
+      "id": "dr_07",
+      "name": "Imprimantes configurées",
+      "etat": "NON",
+      "comment": ""
+    },
+    {
+      "id": "dr_08",
+      "name": "TRF configurés",
+      "etat": "NON",
+      "comment": ""
+    },
+    {
+      "id": "dr_09",
+      "name": "Développements validés",
+      "etat": "NON",
+      "comment": ""
+    },
+    {
+      "id": "dr_10",
+      "name": "Utilisateurs formés",
+      "etat": "NON",
+      "comment": ""
+    },
+    {
+      "id": "dr_11",
+      "name": "Inventaire des stocks",
+      "etat": "NON",
+      "comment": ""
+    }
+  ],
+  "install": [
+    {
+      "id": "in_01",
+      "action": "Plan de l'entrepôt à jour",
+      "etat": "Oui",
+      "qui": "Gamma Industrie SAS",
+      "deadline": "2026-04-01",
+      "comment": ""
+    },
+    {
+      "id": "in_02",
+      "action": "Entrepôt couvert par le WIFI",
+      "etat": "Non",
+      "qui": "",
+      "deadline": "2026-08-01",
+      "comment": "Infrastructure à valider"
+    },
+    {
+      "id": "in_03",
+      "action": "Serveur installé et WMS accessible sans VPN",
+      "etat": "Oui",
+      "qui": "MECALUX",
+      "deadline": "2026-02-01",
+      "comment": ""
+    },
+    {
+      "id": "in_04",
+      "action": "TRF disponibles et configurés",
+      "etat": "Non",
+      "qui": "Gamma Industrie SAS",
+      "deadline": "2026-08-15",
+      "comment": ""
+    },
+    {
+      "id": "in_05",
+      "action": "Racks installés et étiquetés",
+      "etat": "Non",
+      "qui": "Gamma Industrie SAS",
+      "deadline": "2026-08-15",
+      "comment": "Travaux en cours"
+    },
+    {
+      "id": "in_06",
+      "action": "Imprimantes disponibles et connectées",
+      "etat": "Non",
+      "qui": "Gamma Industrie SAS",
+      "deadline": "2026-08-15",
+      "comment": ""
+    },
+    {
+      "id": "in_07",
+      "action": "Ordinateurs EasyWMS disponibles",
+      "etat": "Non",
+      "qui": "Gamma Industrie SAS",
+      "deadline": "2026-08-15",
+      "comment": ""
+    },
+    {
+      "id": "in_08",
+      "action": "Communications WMS ↔ ERP fonctionnelles",
+      "etat": "Non",
+      "qui": "MECALUX",
+      "deadline": "2026-08-20",
+      "comment": ""
+    },
+    {
+      "id": "in_09",
+      "action": "Process AF en préproduction",
+      "etat": "Non",
+      "qui": "MECALUX",
+      "deadline": "2026-08-20",
+      "comment": ""
+    },
+    {
+      "id": "in_10",
+      "action": "Process testés par Key Users",
+      "etat": "Non",
+      "qui": "TOUS",
+      "deadline": "2026-08-28",
+      "comment": ""
+    },
+    {
+      "id": "in_11",
+      "action": "Plan de tests envoyé",
+      "etat": "Oui",
+      "qui": "MECALUX",
+      "deadline": "2025-12-20",
+      "comment": ""
+    },
+    {
+      "id": "in_12",
+      "action": "Plans de tests validés client",
+      "etat": "Non",
+      "qui": "Gamma Industrie SAS",
+      "deadline": "2026-08-28",
+      "comment": ""
+    }
+  ],
+  "billing": {
+    "jalonsProjet": [
+      {
+        "id": "jp_01",
+        "jalon": "OFFRE CONTRAT SIGNÉE",
+        "date": "2025-07-01",
+        "echeance": "2025-07-15",
+        "etat": "Payé",
+        "pct": 35,
+        "montant": 70000
+      },
+      {
+        "id": "jp_02",
+        "jalon": "ANALYSE FONCTIONNELLE LIVRÉE",
+        "date": "2026-05-29",
+        "echeance": "2026-06-10",
+        "etat": "—",
+        "pct": 25,
+        "montant": 50000
+      },
+      {
+        "id": "jp_03",
+        "jalon": "LIVRAISON DÉVELOPPEMENTS",
+        "date": "",
+        "echeance": "",
+        "etat": "—",
+        "pct": 30,
+        "montant": 60000
+      },
+      {
+        "id": "jp_04",
+        "jalon": "RÉCEPTION DÉFINITIVE",
+        "date": "",
+        "echeance": "",
+        "etat": "—",
+        "pct": 10,
+        "montant": 20000
+      }
+    ],
+    "jalonsEquipement": [
+      {
+        "id": "je_01",
+        "jalon": "COMMANDE ÉQUIPEMENT",
+        "date": "2025-07-05",
+        "echeance": "2025-07-20",
+        "etat": "Payé",
+        "pct": 50,
+        "montant": 40000
+      },
+      {
+        "id": "je_02",
+        "jalon": "LIVRAISON ÉQUIPEMENT",
+        "date": "",
+        "echeance": "",
+        "etat": "—",
+        "pct": 50,
+        "montant": 40000
+      }
+    ]
+  },
+  "customTabs": [],
+  "jiraData": {
+    "lastSync": "",
+    "epics": [],
+    "tasks": []
+  }
+}
