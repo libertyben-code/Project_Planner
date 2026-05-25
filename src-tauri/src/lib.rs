@@ -220,6 +220,19 @@ fn export_html_write(path: String, content: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+async fn save_md_dialog(app: AppHandle, name: String) -> Option<String> {
+    if let Some(win) = app.get_webview_window("main") {
+        let _ = win.set_focus();
+    }
+    app.dialog()
+        .file()
+        .set_file_name(format!("{}.md", name))
+        .add_filter("Markdown", &["md"])
+        .blocking_save_file()
+        .and_then(file_path_to_string)
+}
+
+#[tauri::command]
 async fn pick_folder(app: AppHandle) -> Option<String> {
     if let Some(win) = app.get_webview_window("main") {
         let _ = win.set_focus();
@@ -312,6 +325,7 @@ pub fn run() {
             set_window_title,
             reveal_file,
             delete_project,
+            save_md_dialog,
             pick_folder,
         ])
         .run(tauri::generate_context!())

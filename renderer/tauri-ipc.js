@@ -123,6 +123,11 @@ function _stub(cmd, args) {
       return suggested.endsWith('.pdf') ? suggested : suggested + '.pdf';
     }
 
+    case 'save_md_dialog': {
+      const suggested = (args.name || 'export').replace(/[^a-zA-Z0-9_\-]/g, '_');
+      return suggested.endsWith('.md') ? suggested : suggested + '.md';
+    }
+
     case 'write_file_bytes': {
       const blob = new Blob([new Uint8Array(args.bytes)], { type: 'application/octet-stream' });
       const url = URL.createObjectURL(blob);

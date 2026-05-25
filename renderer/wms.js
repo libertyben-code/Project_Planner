@@ -1970,6 +1970,163 @@ async function doExportHTML() {
   } catch (e) { console.error('Export HTML error:', e); alert('Erreur export HTML : ' + e); }
 }
 
+// ═══ MARKDOWN EXPORT ═══
+async function exportMarkdown() {
+  const m = projectMeta;
+  const d = s => { if (!s) return '—'; try { return fmtDateShort(new Date(s)); } catch { return s; } };
+  const c = s => String(s ?? '—').replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
+  const row = cells => '| ' + cells.map(c).join(' | ') + ' |';
+  const sep = n => '| ' + Array(n).fill('---').join(' | ') + ' |';
+
+  const lines = [];
+
+  // ── Header ──
+  lines.push(`# ${m.name || 'Projet'}`);
+  lines.push('');
+  lines.push(row(['', '']));
+  lines.push(sep(2));
+  lines.push(row(['**Client**', m.client || '—']));
+  lines.push(row(['**Dir. Projet**', m.pm || '—']));
+  lines.push(row(['**CDP Technique**', m.cdptech || '—']));
+  lines.push(row(['**Resp. Logistique**', m.respLog || '—']));
+  lines.push(row(['**Consultant ERP**', m.erpConsult || '—']));
+  lines.push(row(['**Date de début**', d(m.startDate)]));
+  if (m.installDateDelayed) {
+    lines.push(row(['**Installation (originale)**', `~~${d(m.installDateOriginal)}~~`]));
+    lines.push(row(['**Installation (reportée)**', d(m.installDateDelayed)]));
+    if (m.installDateComment) lines.push(row(['**Motif du report**', m.installDateComment]));
+  } else {
+    lines.push(row(['**Installation prévue**', d(m.installDateOriginal)]));
+  }
+  if (m.installDateActual) lines.push(row(['**Installation réelle**', d(m.installDateActual)]));
+  if (m.endDate) lines.push(row(['**Fin de projet**', d(m.endDate)]));
+  lines.push('');
+  if (m.notes) { lines.push(`> ${m.notes.replace(/\n/g, '\n> ')}`); lines.push(''); }
+
+  // ── Gantt ──
+  lines.push('## Planning du projet');
+  lines.push('');
+  phases.forEach(phase => {
+    const pt = tasks.filter(t => t.phaseId === phase.id);
+    if (!pt.length) return;
+    lines.push(`### ${phase.name}`);
+    lines.push('');
+    lines.push(row(['Tâche', 'Propriétaire', 'Début', 'Fin', 'Statut', '%']));
+    lines.push(sep(6));
+    pt.forEach(t => lines.push(row([t.name, t.owner || '—', d(t.start), d(t.end), t.status || '—', t.progress ? `${t.progress}%` : '—'])));
+    lines.push('');
+  });
+
+  // ── Hours ──
+  lines.push('## Suivi des heures');
+  lines.push('');
+  lines.push(row(['Catégorie', 'Vendu', 'Actuel', 'Écart']));
+  lines.push(sep(4));
+  heuresData.forEach(r => {
+    if (r.sep) return;
+    const ecart = (r.actuel || 0) - (r.vente || 0);
+    const label = r.bold ? `**${r.cat}**` : (r.cat || '');
+    lines.push(row([label, String(r.vente || 0), String(r.actuel || 0), ecart > 0 ? `+${ecart}` : String(ecart)]));
+  });
+  lines.push('');
+
+  // ── Interfaces ──
+  if (interfacesData.length) {
+    lines.push('## Interfaces ERP');
+    lines.push('');
+    lines.push(row(['Interface', 'Type', 'Dev', 'Préprod', 'Rec. Mecalux', 'Rec. Client', 'Validé', 'Commentaire']));
+    lines.push(sep(8));
+    interfacesData.forEach(i => lines.push(row([i.name, i.type, i.dev, i.preprod, i.recMecalux, i.recClient, i.valide, i.comment || ''])));
+    lines.push('');
+  }
+
+  // ── Functional ──
+  if (fonctionnelData.length) {
+    lines.push('## Avancement fonctionnel');
+    lines.push('');
+    lines.push(row(['Processus', 'Dev', '%', 'Test Mec.', 'Préprod', 'Form. KU', 'Test Client', 'Form. Users', 'Commentaire']));
+    lines.push(sep(9));
+    fonctionnelData.forEach(f => lines.push(row([f.name, f.dev, `${f.pct}%`, f.testMec, f.preprod, f.formKU, f.testClient, f.formUsers, f.comment || ''])));
+    lines.push('');
+  }
+
+  // ── Internal tasks ──
+  if (internalTasks.length) {
+    lines.push('## Tâches internes');
+    lines.push('');
+    lines.push(row(['Action', 'État', 'Temps (j)', 'Échéance', 'Commentaire']));
+    lines.push(sep(5));
+    internalTasks.forEach(t => lines.push(row([t.action, t.etat, String(t.temps || '—'), d(t.deadline), t.comment || ''])));
+    lines.push('');
+  }
+
+  // ── Dry Run ──
+  if (dryrunData.length) {
+    lines.push('## Checklist Dry Run');
+    lines.push('');
+    dryrunData.forEach(dr => {
+      lines.push(`- [${dr.etat === 'OK' ? 'x' : ' '}] ${dr.name}${dr.comment ? ` *(${dr.comment})*` : ''}`);
+    });
+    lines.push('');
+  }
+
+  // ── Install ──
+  if (installData.length) {
+    lines.push('## Checklist Installation');
+    lines.push('');
+    installData.forEach(i => {
+      lines.push(`- [${i.etat === 'Oui' ? 'x' : ' '}] ${i.action}${i.qui ? ` — *${i.qui}*` : ''}${i.comment ? ` *(${i.comment})*` : ''}`);
+    });
+    lines.push('');
+  }
+
+  // ── Billing ──
+  if (jalonsProjet.length) {
+    lines.push('## Facturation — Jalons Projet');
+    lines.push('');
+    lines.push(row(['Jalon', '%', 'Montant', 'Échéance', 'Date paiement', 'État']));
+    lines.push(sep(6));
+    jalonsProjet.forEach(j => lines.push(row([j.jalon, `${j.pct}%`, fmtMontant(j.montant), d(j.echeance), d(j.date), j.etat])));
+    lines.push('');
+  }
+  if (jalonsEquip.length) {
+    lines.push('## Facturation — Jalons Équipement');
+    lines.push('');
+    lines.push(row(['Jalon', '%', 'Montant', 'Échéance', 'Date paiement', 'État']));
+    lines.push(sep(6));
+    jalonsEquip.forEach(j => lines.push(row([j.jalon, `${j.pct}%`, fmtMontant(j.montant), d(j.echeance), d(j.date), j.etat])));
+    lines.push('');
+  }
+
+  // ── Custom tabs ──
+  customTabs.forEach(tab => {
+    lines.push(`## ${tab.icon ? tab.icon + ' ' : ''}${tab.name}`);
+    lines.push('');
+    if (tab.columns?.length && tab.rows?.length) {
+      lines.push(row(tab.columns.map(col => col.label)));
+      lines.push(sep(tab.columns.length));
+      tab.rows.forEach(r => lines.push(row(tab.columns.map(col => r[col.key] || ''))));
+    }
+    lines.push('');
+  });
+
+  lines.push('---');
+  lines.push(`*Exporté le ${new Date().toLocaleDateString('fr-FR')} — WMS Project Planner*`);
+
+  const md = lines.join('\n');
+  const name = ((m.client || 'export') + '_' + (m.name || 'projet')).replace(/\s+/g, '_').replace(/[^\w\-]/g, '');
+
+  try {
+    const savePath = await invoke('save_md_dialog', { name });
+    if (!savePath) return;
+    await invoke('write_project', { path: savePath, data: md });
+    showSaveIndicator('saved');
+  } catch (e) {
+    showSaveIndicator('error');
+    console.error('MD export failed:', e);
+  }
+}
+
 // ═══ KEYBOARD SHORTCUTS ═══
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveProject(); }
@@ -2045,7 +2202,7 @@ Object.assign(window, {
   del_fact_projet, del_fact_equip, renderFacturation,
   addCustomHeuresRow, deleteHeuresRow, deleteHeuresFromModal, openEditHeure, saveHeures, toggleHeuresHistory,
   updateHeures, updateHeuresDesc, updateHeureCat, updateHeureHistNote,
-  openExportHTMLModal, doExportHTML, exportSelectAll,
+  openExportHTMLModal, doExportHTML, exportSelectAll, exportMarkdown,
   openDashCustomize, saveDashCustomize,
   openAddCustomTabModal, openEditCustomTabModal, addCustomTabColumn, saveCustomTab,
   renderCtColumns, ctColLabel, ctColType, ctColOptions, ctColRemove,
