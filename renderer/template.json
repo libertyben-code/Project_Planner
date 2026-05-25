@@ -150,7 +150,7 @@
   ],
   "install": [
     { "id": "in_01", "action": "Plan de l'entrepôt à jour – autorisations vérifiées",    "etat": "Non", "qui": "clientName", "deadline": "", "comment": "" },
-    { "id": "in_02", "action": "Entrepôt couvert par le WIFI",                           "etat": "Non", "qui": "",           "deadline": "", "comment": "" },
+    { "id": "in_02", "action": "Entrepôt couvert par le WIFI",                           "etat": "Non", "qui": "clientName", "deadline": "", "comment": "" },
     { "id": "in_03", "action": "Serveur installé et WMS accessible sans VPN",            "etat": "Non", "qui": "MECALUX",    "deadline": "", "comment": "" },
     { "id": "in_04", "action": "TRF disponibles et configurés correctement",              "etat": "Non", "qui": "clientName", "deadline": "", "comment": "" },
     { "id": "in_05", "action": "Racks installés et étiquetés correctement",              "etat": "Non", "qui": "clientName", "deadline": "", "comment": "" },

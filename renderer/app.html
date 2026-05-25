@@ -11,7 +11,20 @@
 </head>
 <body>
 <nav class="app-nav">
-  <span class="nav-logo" onclick="goHome()" style="cursor:pointer" title="Retour accueil">● WMS <span>Planning</span></span>
+  <div class="nav-logo-group">
+    <span class="nav-logo" onclick="goHome()" style="cursor:pointer" title="Retour accueil">● WMS <span>Planning</span></span>
+    <div class="rag-nav-pill" id="rag-nav-pill" onclick="toggleRagDropdown(event)" title="Statut du projet">
+      <span class="rag-nav-dot" id="rag-nav-dot"></span>
+      <span class="rag-nav-lbl" id="rag-nav-lbl">—</span>
+      <span class="rag-nav-arrow">▾</span>
+      <div class="rag-nav-dropdown" id="rag-nav-dropdown">
+        <button class="rag-drop-item" onclick="event.stopPropagation();setRag('G');closeRagDropdown()"><span class="rag-dot rag-dot-g" style="width:8px;height:8px"></span>Vert — OK</button>
+        <button class="rag-drop-item" onclick="event.stopPropagation();setRag('A');closeRagDropdown()"><span class="rag-dot rag-dot-a" style="width:8px;height:8px"></span>Orange — Attention</button>
+        <button class="rag-drop-item" onclick="event.stopPropagation();setRag('R');closeRagDropdown()"><span class="rag-dot rag-dot-r" style="width:8px;height:8px"></span>Rouge — Bloqué</button>
+        <button class="rag-drop-item rag-drop-clear" onclick="event.stopPropagation();setRag('');closeRagDropdown()">✕ Effacer</button>
+      </div>
+    </div>
+  </div>
   <div class="nav-tabs" id="nav-tabs">
     <div class="nav-tab active" data-page="page-dashboard">Tableau de bord</div>
     <div class="nav-tab" data-page="page-planning">Planning</div>
@@ -57,13 +70,6 @@
 <!-- DASHBOARD -->
 <div class="page active" id="page-dashboard">
   <div class="dash-toolbar">
-    <div class="rag-selector" id="rag-selector">
-      <span class="rag-label">Statut projet :</span>
-      <button class="rag-btn" data-rag="G" onclick="setRag('G')" title="Vert — OK">●</button>
-      <button class="rag-btn" data-rag="A" onclick="setRag('A')" title="Orange — Attention">●</button>
-      <button class="rag-btn" data-rag="R" onclick="setRag('R')" title="Rouge — Bloqué">●</button>
-      <button class="rag-btn rag-clear" data-rag="" onclick="setRag('')" title="Effacer">✕</button>
-    </div>
     <button class="btn btn-secondary btn-sm" onclick="openDashCustomize()">⚙ Personnaliser</button>
   </div>
   <div class="kpi-grid" id="dash-kpi"></div>

@@ -466,7 +466,7 @@ async function loadPortfolioData() {
   const results = await Promise.allSettled(
     recent.map(async p => {
       const raw = await invoke('read_project', { path: p.path });
-      const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      const data = typeof raw === 'string' ? JSON.parse(raw) : (raw || {});
       const meta = data.meta || {};
       const tasks = data.tasks || [];
       const billing = [...(data.billing?.jalonsProjet || []), ...(data.billing?.jalonsEquipement || [])];
@@ -504,7 +504,7 @@ async function loadPortfolioData() {
         .filter(j => { const d = new Date(j.date); return d >= today && d <= monthEnd; })
         .map(j => ({ date: j.date, label: j.label || j.jalon || 'Jalon', montant: j.montant || 0, project: meta.name || p.name, path: p.path }));
 
-      // Upcoming install date (within 30 days, not yet done)
+      // Upcoming install date (not yet done)
       const installDate = meta.installDateDelayed || meta.installDateOriginal;
       const upcomingInstall = (!meta.installDateActual && installDate)
         ? [{ date: installDate, label: 'Mise en production', project: meta.name || p.name, path: p.path, delayed: !!meta.installDateDelayed }]
@@ -531,7 +531,27 @@ async function loadPortfolioData() {
   );
 
   const projects = results.filter(r => r.status === 'fulfilled').map(r => r.value);
-  renderPortfolio(projects);
+  const failed = results.filter(r => r.status === 'rejected').length;
+
+  if (!projects.length) {
+    const msg = failed ? `Impossible de lire les fichiers projet (${failed} erreur${failed > 1 ? 's' : ''}).` : 'Aucune donnée disponible.';
+    document.getElementById('portfolio-body').innerHTML = `<div class="portfolio-loading">${msg}</div>`;
+    return;
+  }
+
+  // Sync fresh RAG values back to home screen cards
+  let ragChanged = false;
+  projects.forEach(proj => {
+    const entry = recent.find(r => r.path === proj.path);
+    if (entry && entry.rag !== proj.rag) { entry.rag = proj.rag; ragChanged = true; }
+  });
+  if (ragChanged) { render(); persistRecent(); }
+
+  try {
+    renderPortfolio(projects);
+  } catch (e) {
+    document.getElementById('portfolio-body').innerHTML = `<div class="portfolio-loading" style="color:#dc2626">Erreur d'affichage : ${e.message}</div>`;
+  }
 }
 
 function renderPortfolio(projects) {
@@ -579,7 +599,7 @@ function renderPortfolio(projects) {
   if (weekTasks.length) {
     const rows = weekTasks.map(t => {
       const end = t.segments?.length ? t.segments[t.segments.length-1].end : t.end;
-      return `<tr class="pf-row" onclick="window.openProjectCard('${t._proj.path}')" style="cursor:pointer">
+      return `<tr class="pf-row" data-path="${esc(t._proj.path)}" onclick="window.openProjectCard(this.dataset.path)" style="cursor:pointer">
         <td>${t._late ? '<span class="pf-late">⚠</span> ' : ''}${esc(t.name || '')}</td>
         <td><span class="pf-proj-chip">${esc(t._proj.name)}</span></td>
         <td>${esc(t.owner || '—')}</td>
@@ -606,7 +626,7 @@ function renderPortfolio(projects) {
       const typeIcon = e.montant !== undefined ? '💶' : (e.delayed ? '⚠ ' : '🏭');
       const detail = e.montant !== undefined ? fmtEur(e.montant) : (e.delayed ? 'Date reportée' : '');
       const proj = upcoming.filter(x => x !== e && x.project === e.project).length || true; // always show project
-      return `<tr class="pf-row ${urgCls}" onclick="window.openProjectCard('${e.path}')" style="cursor:pointer">
+      return `<tr class="pf-row ${urgCls}" data-path="${esc(e.path)}" onclick="window.openProjectCard(this.dataset.path)" style="cursor:pointer">
         <td style="white-space:nowrap">${fmtDateShort(e.date)}</td>
         <td>${typeIcon} ${esc(e.label)}</td>
         <td><span class="pf-proj-chip">${esc(e.project)}</span></td>
@@ -630,7 +650,7 @@ function renderPortfolio(projects) {
     const installStr = p.installActual ? `<span style="color:#059669">✓ ${fmtDateShort(p.installActual)}</span>`
       : p.installDate ? (p.installDelayed ? `<span style="color:#ea580c">⚠ ${fmtDateShort(p.installDate)}</span>` : fmtDateShort(p.installDate))
       : '—';
-    return `<tr class="pf-row" onclick="window.openProjectCard('${p.path}')" style="cursor:pointer">
+    return `<tr class="pf-row" data-path="${esc(p.path)}" onclick="window.openProjectCard(this.dataset.path)" style="cursor:pointer">
       <td><strong>${esc(p.name)}</strong></td>
       <td style="color:var(--text-muted)">${esc(p.client)}</td>
       <td>${ragDot}</td>

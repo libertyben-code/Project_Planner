@@ -1819,20 +1819,19 @@ function setRag(val) {
 }
 function _syncRagUI() {
   const v = projectMeta.rag || '';
-  document.querySelectorAll('.rag-btn[data-rag]').forEach(btn => {
-    btn.classList.toggle('rag-active', btn.dataset.rag === v && v !== '');
-  });
-  const logo = document.querySelector('.nav-logo');
-  if (logo) {
-    logo.querySelector('.rag-dot')?.remove();
-    if (v) {
-      const dot = document.createElement('span');
-      dot.className = 'rag-dot rag-dot-' + v.toLowerCase();
-      dot.style.cssText = 'margin-left:8px;vertical-align:middle;';
-      logo.append(dot);
-    }
-  }
+  const dot = document.getElementById('rag-nav-dot');
+  const lbl = document.getElementById('rag-nav-lbl');
+  if (dot) dot.className = 'rag-nav-dot' + (v ? ' rag-dot-' + v.toLowerCase() : '');
+  if (lbl) lbl.textContent = v === 'G' ? 'OK' : v === 'A' ? 'Attention' : v === 'R' ? 'Bloqué' : '—';
 }
+function toggleRagDropdown(e) {
+  e.stopPropagation();
+  document.getElementById('rag-nav-dropdown')?.classList.toggle('open');
+}
+function closeRagDropdown() {
+  document.getElementById('rag-nav-dropdown')?.classList.remove('open');
+}
+document.addEventListener('click', closeRagDropdown);
 
 // ═══ THIS WEEK PANEL ═══
 function renderThisWeek() {
@@ -2699,7 +2698,7 @@ function initResizableTables() {
 
 // ═══ WINDOW EXPORTS (for onclick handlers in HTML) ═══
 Object.assign(window, {
-  goHome, reloadProject, undoDelete,
+  goHome, reloadProject, undoDelete, toggleRagDropdown, closeRagDropdown,
   syncNav, onMetaInput, handleInstallOrigChange, openInstallDelaySection, clearInstallDelay,
   openAddPhaseModal, openAddTaskModal, openEditTask, openEditPhase,
   closeModal, saveTask, savePhase,
