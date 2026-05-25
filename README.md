@@ -43,6 +43,12 @@ The app creates a blank `.wmsplan` file and opens the project. Every change is s
 - Each team member opens it with their own copy of the app.
 - If someone else saves while you have the file open, a banner appears at the top: click **Recharger** to get their changes.
 
+## Tableau de bord
+
+- **Statut RAG** — click the ●●● dots in the dashboard toolbar to set the project status (Green = OK, Amber = attention, Red = blocked). The dot appears in the nav bar and on the home screen project card.
+- **Cette semaine** — a panel below the KPIs lists overdue tasks and tasks ending within 7 days, grouped by section, with owner and due date.
+- **⇄ Onglets** — opens the tab manager: drag to reorder, rename any tab, hide tabs you don't use. Resets per project.
+
 ## Planning (Gantt)
 
 - **Add a task**: click **＋** on the right side of any phase row.
@@ -50,6 +56,7 @@ The app creates a blank `.wmsplan` file and opens the project. Every change is s
 - **Reorder**: click **✏ Réorganiser** to enable drag-and-drop. Drag the ⠿ handle to move tasks across phases or reorder phases entirely. Click **✓ Terminer** when done.
 - **Install date postponed**: change the install date and the app asks whether it is a delay or an adjustment. A delay shows both the original and new date with an orange badge.
 - **Resize columns**: drag the right edge of any column header (Statut, Intitulé, etc.) to resize it. Widths are saved per project.
+- **Task dependencies**: in the task edit modal, select one or more predecessor tasks under **Dépendances**. If the task starts before a predecessor finishes, the row gets an orange outline on the Gantt and a warning in the "Cette semaine" panel.
 
 ### Multi-period tasks (holidays / unavailability)
 

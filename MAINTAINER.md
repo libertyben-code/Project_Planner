@@ -82,6 +82,22 @@ Auto-save: every mutation calls `debouncedSave()` (800 ms debounce). `saveProjec
 - **Save folder**: passed as the optional `folder` param to `get_new_project_path`. If empty/null, Rust falls back to `AppData/projects/`.
 - **Example project**: `example.wmsplan` is fetched from the renderer directory, a copy is written to the projects folder with a fresh ID, and the user is navigated to it.
 
+### RAG status
+
+`projectMeta.rag` — `'R' | 'A' | 'G' | undefined`. Set by `setRag(val)` from the dashboard toolbar buttons. `_syncRagUI()` applies the active ring and the nav-logo dot; called at the end of `renderDashboard()`. The home screen reads `rag` from the recent entry (stored by `addToRecent`) and renders a `.rag-dot-{r|a|g}` span.
+
+### This week panel
+
+`renderThisWeek()` runs at the end of `renderDashboard()` and populates `#dash-this-week`. It scans `tasks[]` via `taskSegments()` and buckets into two groups: overdue (`end < today`) and active this week (`end <= today+7 || start in [today, today+7]`). Dependency violations are flagged inline with a ⚠ icon.
+
+### Task dependencies
+
+`task.deps = [taskId, …]` — optional array, omitted when empty. `_buildDepsSelect(currentTaskId, selectedDeps)` populates the `#task-deps` multi-select in the task modal; `_readDepsSelect()` reads it back. In `renderGantt()`, a row checks if any dep's last segment end > task.start — if so, the row gets `style.outline = '2px solid #f97316'` and the task name gets a 🔗 icon.
+
+### Tab management
+
+`projectMeta.tabOrder`, `projectMeta.tabHidden`, `projectMeta.tabLabels` persist tab configuration. `_applyTabConfig()` reads these and: applies custom labels to all `.nav-tab` elements, sets `display:none` for hidden tabs, and reorders tab elements in the DOM before the ＋ button. Called from `applyState()` and `renderCustomTabs()`. `BUILTIN_TABS` constant lists all built-in page IDs and default labels.
+
 ### Multi-segment tasks
 
 Tasks can carry an optional `segments: [{start, end}]` array for disconnected date ranges (holidays, unavailability). The root `start`/`end` fields always hold the overall span and are kept in sync for backwards compatibility.

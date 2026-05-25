@@ -43,6 +43,12 @@ L'application crée un fichier `.wmsplan` vierge et ouvre le projet. Chaque modi
 - Chaque membre de l'équipe l'ouvre avec sa propre copie de l'application.
 - Si quelqu'un d'autre sauvegarde pendant que vous avez le fichier ouvert, une bannière apparaît en haut : cliquez sur **Recharger** pour récupérer ses modifications.
 
+## Tableau de bord
+
+- **Statut RAG** — cliquez sur les boutons ●●● dans la barre du tableau de bord pour définir le statut projet (Vert = OK, Orange = attention, Rouge = bloqué). Le point apparaît dans la barre de navigation et sur la carte du projet à l'accueil.
+- **Cette semaine** — un panneau sous les KPIs liste les tâches en retard et celles qui se terminent dans les 7 prochains jours, avec propriétaire et date de fin.
+- **⇄ Onglets** — ouvre le gestionnaire d'onglets : glissez pour réordonner, renommez, masquez les onglets inutilisés. Paramètre enregistré par projet.
+
 ## Planning (Gantt)
 
 - **Ajouter une tâche** : cliquez sur **＋** à droite de n'importe quelle ligne de phase.
@@ -50,6 +56,7 @@ L'application crée un fichier `.wmsplan` vierge et ouvre le projet. Chaque modi
 - **Réordonner** : cliquez sur **✏ Réorganiser** pour activer le glisser-déposer. Faites glisser la poignée ⠿ pour déplacer des tâches entre les phases ou réordonner les phases entières. Cliquez sur **✓ Terminer** quand c'est fait.
 - **Date d'installation reportée** : modifiez la date d'installation et l'application demande s'il s'agit d'un retard ou d'un simple ajustement. Un retard affiche les deux dates avec un badge orange.
 - **Redimensionner les colonnes** : faites glisser le bord droit d'un en-tête de colonne (Statut, Intitulé, etc.) pour ajuster sa largeur. Les largeurs sont mémorisées.
+- **Dépendances** : dans la modale d'édition d'une tâche, sélectionnez une ou plusieurs tâches prédécesseurs sous **Dépendances**. Si la tâche démarre avant qu'un prédécesseur soit terminé, la ligne est encadrée en orange sur le Gantt et signalée dans le panneau "Cette semaine".
 
 ### Tâches multi-périodes (congés / indisponibilités)
 
