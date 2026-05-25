@@ -1,6 +1,6 @@
 // tauri-ipc.js
 // Thin wrapper around Tauri commands.
-// When running inside Tauri: delegates to window.__TAURI__.invoke().
+// When running inside Tauri: delegates to window.__TAURI__.core.invoke() (Tauri v2).
 // When running in a plain browser (dev mode): uses localStorage stubs.
 // This file is the ONLY place that knows whether Tauri is available.
 
@@ -8,7 +8,7 @@ const TAURI = typeof window !== 'undefined' && window.__TAURI__;
 
 export async function invoke(cmd, args = {}) {
   if (TAURI) {
-    return window.__TAURI__.invoke(cmd, args);
+    return window.__TAURI__.core.invoke(cmd, args);
   }
   return _stub(cmd, args);
 }

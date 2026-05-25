@@ -1803,14 +1803,14 @@ function renderCustomTabRows(tabId) {
     tab.columns.forEach(col => {
       const val = row[col.key] !== undefined ? row[col.key] : '';
       if (col.type === 'checkbox') {
-        cells += `<td style="text-align:center"><input type="checkbox" ${val?'checked':''} onchange="ctSetCell('${tabId}','${row.id}','${col.key}',this.checked);_DS()"></td>`;
+        cells += `<td style="text-align:center"><input type="checkbox" ${val?'checked':''} onchange="ctSetCell('${tabId}','${row.id}','${col.key}',this.checked);debouncedSave()"></td>`;
       } else if (col.type === 'date') {
-        cells += `<td><input type="date" value="${val}" style="border:none;background:transparent;font-family:inherit;font-size:11.5px;width:100%" onchange="ctSetCell('${tabId}','${row.id}','${col.key}',this.value);_DS()"></td>`;
+        cells += `<td><input type="date" value="${val}" style="border:none;background:transparent;font-family:inherit;font-size:11.5px;width:100%" onchange="ctSetCell('${tabId}','${row.id}','${col.key}',this.value);debouncedSave()"></td>`;
       } else if (col.type === 'select') {
         const opts = (col.options||[]).map(o=>`<option${o===val?' selected':''}>${o}</option>`).join('');
-        cells += `<td><select class="tbl-sel" onchange="ctSetCell('${tabId}','${row.id}','${col.key}',this.value);_DS()">${opts}</select></td>`;
+        cells += `<td><select class="tbl-sel" onchange="ctSetCell('${tabId}','${row.id}','${col.key}',this.value);debouncedSave()">${opts}</select></td>`;
       } else {
-        cells += `<td contenteditable="true" onblur="ctSetCell('${tabId}','${row.id}','${col.key}',this.textContent.trim());_DS()">${val}</td>`;
+        cells += `<td contenteditable="true" onblur="ctSetCell('${tabId}','${row.id}','${col.key}',this.textContent.trim());debouncedSave()">${val}</td>`;
       }
     });
     cells += `<td><button class="btn btn-sm btn-danger" onclick="deleteCustomTabRow('${tabId}','${row.id}')">✕</button></td>`;
@@ -1884,9 +1884,14 @@ async function doExportHTML() {
   closeModal('modal-export-html');
   const selectedIds = new Set([...document.getElementById('export-tab-list').querySelectorAll('input:checked')].map(cb => cb.dataset.tabId));
 
-  // Fetch and inline CSS
+  // Fetch and inline CSS (with timeout so a hanging fetch doesn't block the export)
   let inlineCSS = '';
-  try { inlineCSS = await fetch('./wms.css').then(r => r.text()); } catch {}
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 2000);
+    inlineCSS = await fetch('./wms.css', { signal: ctrl.signal }).then(r => r.text());
+    clearTimeout(t);
+  } catch {}
 
   const clone = document.documentElement.cloneNode(true);
 
