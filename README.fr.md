@@ -43,6 +43,17 @@ L'application crée un fichier `.wmsplan` vierge et ouvre le projet. Chaque modi
 - Chaque membre de l'équipe l'ouvre avec sa propre copie de l'application.
 - Si quelqu'un d'autre sauvegarde pendant que vous avez le fichier ouvert, une bannière apparaît en haut : cliquez sur **Recharger** pour récupérer ses modifications.
 
+## Écran d'accueil — Vue d'ensemble du portefeuille
+
+Une section **📊 Vue d'ensemble du portefeuille** repliable s'affiche au-dessus des cartes projets et donne une vue transversale :
+
+- **Bandeau KPIs** — projets actifs, répartition RAG, total des tâches en retard, facturation encaissée, heures consommées.
+- **Cette semaine & retards** — tâches en retard ou se terminant dans les 7 prochains jours sur tous les projets, avec projet, propriétaire et date de fin. Cliquer sur une ligne ouvre le projet.
+- **Événements à venir — 30 jours** — jalons de facturation et dates d'installation prévus dans les 30 prochains jours, avec compteur J-N.
+- **Santé du portefeuille** — une ligne par projet : statut RAG, avancement des tâches, heures consommées/vendues, facturation, date d'installation et scores des checklists.
+
+Cliquez sur l'en-tête pour replier/déplier le tableau de bord.
+
 ## Tableau de bord
 
 - **Statut RAG** — cliquez sur les boutons ●●● dans la barre du tableau de bord pour définir le statut projet (Vert = OK, Orange = attention, Rouge = bloqué). Le point apparaît dans la barre de navigation et sur la carte du projet à l'accueil.

@@ -43,6 +43,17 @@ The app creates a blank `.wmsplan` file and opens the project. Every change is s
 - Each team member opens it with their own copy of the app.
 - If someone else saves while you have the file open, a banner appears at the top: click **Recharger** to get their changes.
 
+## Home screen — Portfolio dashboard
+
+A collapsible **📊 Vue d'ensemble du portefeuille** section sits above the project cards and gives a cross-project view:
+
+- **KPI strip** — active projects, RAG breakdown, total overdue tasks, total billing collected, total hours consumed.
+- **Cette semaine & retards** — tasks overdue or due within 7 days across all projects, with project name, owner, and due date. Clicking a row opens that project.
+- **Événements à venir — 30 jours** — upcoming billing milestones and install dates in the next 30 days, with a J-N countdown chip.
+- **Santé du portefeuille** — one row per project showing RAG status, task progress bar, hours consumed vs. sold, billing collected, install date, and checklist counts.
+
+Click the header to collapse/expand the dashboard.
+
 ## Tableau de bord
 
 - **Statut RAG** — click the ●●● dots in the dashboard toolbar to set the project status (Green = OK, Amber = attention, Red = blocked). The dot appears in the nav bar and on the home screen project card.

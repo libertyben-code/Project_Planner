@@ -76,11 +76,26 @@ Auto-save: every mutation calls `debouncedSave()` (800 ms debounce). `saveProjec
 
 ### Home screen / settings
 
-`home.js` manages the project list, settings, and example project loading:
+`home.js` manages the project list, settings, example project loading, and the portfolio dashboard:
 
 - **Settings** (`appSettings`) are loaded from `settings.json` (AppData) on startup and cached in memory. Currently stores `saveFolder` (default save directory). Persisted via `write_settings` / `read_settings`.
 - **Save folder**: passed as the optional `folder` param to `get_new_project_path`. If empty/null, Rust falls back to `AppData/projects/`.
 - **Example project**: `example.wmsplan` is fetched from the renderer directory, a copy is written to the projects folder with a fresh ID, and the user is navigated to it.
+
+### Portfolio dashboard
+
+Shown above the project grid on the home screen. Loaded at startup by `loadPortfolioData()`, which reads every file in `recent[]` in parallel via `Promise.allSettled` and passes the results to `renderPortfolio(projects)`.
+
+Sections:
+
+- **KPI strip** — active/completed count, RAG distribution, total overdue tasks, total billing collected, total hours consumed.
+- **Cette semaine & retards** — cross-project list of overdue tasks and tasks due within 7 days (capped at 20 rows).
+- **Événements à venir — 30 jours** — upcoming billing milestones and install dates, sorted by date, with a J-N countdown chip.
+- **Santé du portefeuille** — one row per project: RAG dot, task progress bar, hours consumed vs. sold, billing collected, install date, checklist counts.
+
+Clicking any row navigates directly to that project via `openProjectCard(path)`.
+
+The section is collapsible (`togglePortfolio()`). Files that fail to read are silently skipped (graceful degradation).
 
 ### RAG status
 
