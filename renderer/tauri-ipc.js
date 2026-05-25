@@ -116,6 +116,15 @@ function _stub(cmd, args) {
       return;
     }
 
+    case 'delete_project': {
+      // Remove from localStorage (browser stub)
+      localStorage.removeItem(PREFIX + args.path);
+      return;
+    }
+
+    case 'reveal_file':
+      return; // no-op in browser
+
     case 'watch_file':
     case 'unwatch_file':
       return; // no-op in browser

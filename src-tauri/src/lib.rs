@@ -137,6 +137,10 @@ fn write_recent(app: AppHandle, data: String) -> Result<(), String> {
 
 // ── File dialogs ─────────────────────────────────────────────────────────────
 
+fn file_path_to_string(fp: tauri_plugin_dialog::FilePath) -> Option<String> {
+    fp.into_path().ok().map(|p| p.to_string_lossy().to_string())
+}
+
 #[tauri::command]
 async fn open_dialog(app: AppHandle) -> Option<String> {
     if let Some(win) = app.get_webview_window("main") {
@@ -146,7 +150,7 @@ async fn open_dialog(app: AppHandle) -> Option<String> {
         .file()
         .add_filter("WMS Plan", &["wmsplan", "json"])
         .blocking_pick_file()
-        .map(|p| p.to_string())
+        .and_then(file_path_to_string)
 }
 
 #[tauri::command]
@@ -159,7 +163,7 @@ async fn save_dialog(app: AppHandle, name: String) -> Option<String> {
         .set_file_name(format!("{}.wmsplan", name))
         .add_filter("WMS Plan", &["wmsplan"])
         .blocking_save_file()
-        .map(|p| p.to_string())
+        .and_then(file_path_to_string)
 }
 
 #[tauri::command]
@@ -172,7 +176,7 @@ async fn export_html_dialog(app: AppHandle, name: String) -> Option<String> {
         .set_file_name(format!("{}_export.html", name))
         .add_filter("HTML", &["html"])
         .blocking_save_file()
-        .map(|p| p.to_string())
+        .and_then(file_path_to_string)
 }
 
 #[tauri::command]
@@ -190,7 +194,19 @@ async fn save_pdf_dialog(app: AppHandle, name: String) -> Option<String> {
         .set_file_name(name)
         .add_filter("PDF", &["pdf"])
         .blocking_save_file()
-        .map(|p| p.to_string())
+        .and_then(file_path_to_string)
+}
+
+#[tauri::command]
+fn delete_project(path: String) -> Result<(), String> {
+    let p = PathBuf::from(&path);
+    if p.exists() {
+        fs::remove_file(&p).map_err(|e| format!("Suppression impossible: {}", e))?;
+    }
+    // Also remove .bak if present
+    let bak = PathBuf::from(format!("{}.bak", &path));
+    if bak.exists() { fs::remove_file(bak).ok(); }
+    Ok(())
 }
 
 // ── Reveal file in Explorer ───────────────────────────────────────────────────
@@ -247,6 +263,7 @@ pub fn run() {
             save_pdf_dialog,
             set_window_title,
             reveal_file,
+            delete_project,
         ])
         .run(tauri::generate_context!())
         .expect("Erreur au démarrage de l'application");

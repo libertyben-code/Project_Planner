@@ -81,7 +81,8 @@ function cardHTML(p) {
       <div class="card-actions" onclick="event.stopPropagation()">
         <button class="btn btn-ghost btn-icon btn-sm" title="Partager (ouvrir dans l'explorateur)" onclick="shareProject('${esc(p.path)}')">📤</button>
         <button class="btn btn-ghost btn-icon btn-sm" title="Dupliquer" onclick="duplicateProject('${esc(p.path)}')">⧉</button>
-        <button class="btn btn-ghost btn-icon btn-sm" title="Retirer de la liste" onclick="removeFromRecent('${esc(p.path)}')">✕</button>
+        <button class="btn btn-ghost btn-icon btn-sm" title="Retirer de la liste (conserver le fichier)" onclick="removeFromRecent('${esc(p.path)}')">✕</button>
+        <button class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="Supprimer définitivement" onclick="deleteProject('${esc(p.path)}')">🗑</button>
       </div>
     </div>
   </div>`;
@@ -268,6 +269,26 @@ window.removeFromRecent = function(path) {
     'Retirer de la liste',
     'Ce projet sera retiré de la liste récente. Le fichier ne sera pas supprimé.',
     async () => {
+      recent = recent.filter(p => p.path !== path);
+      await persistRecent();
+      render();
+    }
+  );
+};
+
+// ── Delete project (removes from list AND deletes file) ───────────────────────
+window.deleteProject = function(path) {
+  const entry = recent.find(p => p.path === path);
+  const name = entry ? entry.name : path.split(/[\\/]/).pop();
+  showConfirm(
+    'Supprimer le projet',
+    `"${name}" sera définitivement supprimé du disque. Cette action est irréversible.`,
+    async () => {
+      try {
+        await invoke('delete_project', { path });
+      } catch (e) {
+        showToast('Erreur suppression fichier : ' + e);
+      }
       recent = recent.filter(p => p.path !== path);
       await persistRecent();
       render();
