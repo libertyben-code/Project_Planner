@@ -46,9 +46,19 @@ The app creates a blank `.wmsplan` file and opens the project. Every change is s
 ## Planning (Gantt)
 
 - **Add a task**: click **＋** on the right side of any phase row.
-- **Edit a task**: click the task name to open the edit modal. Delete is inside the modal.
+- **Edit a task**: click the ✏ button on the row or the task name to open the edit modal. Delete is inside the modal.
 - **Reorder**: click **✏ Réorganiser** to enable drag-and-drop. Drag the ⠿ handle to move tasks across phases or reorder phases entirely. Click **✓ Terminer** when done.
 - **Install date postponed**: change the install date and the app asks whether it is a delay or an adjustment. A delay shows both the original and new date with an orange badge.
+- **Resize columns**: drag the right edge of any column header (Statut, Intitulé, etc.) to resize it. Widths are saved per project.
+
+### Multi-period tasks (holidays / unavailability)
+
+A task can span several disconnected date ranges on a single row — useful for a holidays phase where people are away at different times:
+
+- In the task edit modal, click **＋ Ajouter une période** to add a second (or third…) date range. Each period has its own Début and Fin. Use the 🗑 button to remove a period when there are two or more.
+- Check **Indisponibilité / congé** to mark the row as an absence: the row renders in italic/muted style and the Statut, Priorité, J, and % Avancement columns are left blank.
+- On the Gantt, each period shows as a separate coloured block on the same row. Hovering any block shows all date ranges in the tooltip.
+- The **J** column shows the total days across all periods; **Début** and **Fin** show the first and last dates with a `N×` indicator when multiple periods exist.
 
 ## Suivi Heures
 
@@ -56,6 +66,13 @@ The app creates a blank `.wmsplan` file and opens the project. Every change is s
 - To change the type of a row (Standard / Custom / Offre Comp), click the type badge in the row and pick from the dropdown.
 - Click the clock icon on any row to see its full edit history.
 - **＋ Ajouter une catégorie** adds a custom row at the bottom.
+
+## Onglets personnalisés
+
+- Click **＋** at the end of the tab bar to create a new tab. Define a name, icon, and up to 5 columns (text, select, date, or checkbox).
+- Each row has a **✏** button that opens an edit modal for all fields, including a **Supprimer** button.
+- Drag the ⠿ handle to reorder rows. Drag the right edge of any column header to resize it — widths are saved per tab.
+- Edit or delete the tab itself with the ✏ / 🗑 icons in the tab header.
 
 ## JIRA integration
 

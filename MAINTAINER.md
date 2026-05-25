@@ -28,6 +28,16 @@ Project_Planner/
 └── MAINTAINER.md                         — this file
 ```
 
+## Branch strategy
+
+| Branch | Purpose |
+| --- | --- |
+| `main` | Stable, smoke-tested releases |
+| `feature/tauri-rebuild` | Main development branch |
+| `feature/multi-segment-gantt` | Multi-period task bars (holidays / unavailability) |
+
+All work happens on feature branches. Merge to `main` only after the smoke test below.
+
 ## Dev setup
 
 ```bash
@@ -71,6 +81,28 @@ Auto-save: every mutation calls `debouncedSave()` (800 ms debounce). `saveProjec
 - **Settings** (`appSettings`) are loaded from `settings.json` (AppData) on startup and cached in memory. Currently stores `saveFolder` (default save directory). Persisted via `write_settings` / `read_settings`.
 - **Save folder**: passed as the optional `folder` param to `get_new_project_path`. If empty/null, Rust falls back to `AppData/projects/`.
 - **Example project**: `example.wmsplan` is fetched from the renderer directory, a copy is written to the projects folder with a fresh ID, and the user is navigated to it.
+
+### Multi-segment tasks
+
+Tasks can carry an optional `segments: [{start, end}]` array for disconnected date ranges (holidays, unavailability). The root `start`/`end` fields always hold the overall span and are kept in sync for backwards compatibility.
+
+Key helpers in `wms.js`:
+
+- `taskSegments(task)` — returns `[{start,end}]`. Falls back to `[{start:task.start, end:task.end}]` for tasks without `segments`, so all rendering code goes through one path.
+- `addTaskSegment()` / `removeTaskSegment(btn)` — called from the task modal to add/remove period rows.
+- `_populateSegments(segs)` — called by `openAddTaskModal` / `openEditTask` to fill the modal's segment list.
+
+The `isUnavail: true` flag on a task suppresses Statut, Priorité, J, and % Avancement cells in the Gantt — call sites check `if (!task.isUnavail)` before rendering those cells.
+
+When saving, `saveTask()` reads all `.task-seg-row` elements, filters out blanks, sets `task.segments` only when there are 2+, and deletes the property otherwise to keep the JSON clean.
+
+### Column resizing
+
+`makeResizable(tbodyId)` attaches pointer-event resize handles to all `thead th` elements of the table containing that tbody. Widths are persisted to `localStorage` under `col-w:<tbodyId>` and restored on each render call.
+
+- Called once on init for the standard tables (via `RESIZABLE_TBODIES`).
+- Called at the end of `renderCustomTabRows(tabId)` for every custom tab (key: `col-w:tbody-ct-<tabId>`).
+- The Gantt fixed columns use a separate `makeGanttResizable(table)` (key: `col-w:gantt`) called at the end of `renderGantt()`, targeting `th.th-fixed` elements only.
 
 ### Token system
 
@@ -131,14 +163,15 @@ The export (`doExportHTML`) is **data-driven** — it generates clean static HTM
 Custom tabs are rendered by `buildCustomTabHTML(tab)` + `renderCustomTabRows(tabId)`. Their panel header and button styles intentionally match the standard tabs:
 
 - Panel header: `<span class="panel-title">` + `btn-secondary btn-sm` add button + ghost icon buttons for edit (✏) and delete tab (🗑).
-- Row delete button: `btn-ghost btn-sm` (not the red `btn-danger` — consistent with standard tab "remove" actions).
+- Row edit button: `btn-secondary btn-sm` with ✏ — opens `modal-edit-ct-row`, which is dynamically populated by `openEditCustomTabRow(tabId, rowId)` based on the tab's column definitions.
+- `renderCustomTabRows` calls `makeResizable('tbody-ct-' + tabId)` after every render so column widths are drag-resizable and persisted to `localStorage`.
 
 ## Project file format
 
 Files are saved as `.wmsplan` (plain JSON). The schema is defined by `buildState()` in `wms.js`. Key fields:
 
 - `meta` — project header, install dates, JIRA config
-- `phases[]` / `tasks[]` — Gantt data
+- `phases[]` / `tasks[]` — Gantt data; tasks optionally carry `segments:[{start,end}]` for multi-period rows and `isUnavail:true` for holiday/absence rows
 - `heuresData[]` — hours rows; bold rows have `totalType`, editable rows have `type`
 - `jiraData` — `{ epics[], tasks[], lastSync }` populated by `syncJira()`
 - `customTabs[]` — user-defined tabs with column definitions and rows
@@ -198,9 +231,7 @@ Output:
 
 The portable `.exe` is the primary sharing artifact. WebView2 is pre-installed on Windows 11.
 
-## Branch strategy
-
-All work is on `feature/tauri-rebuild`. Merge to `main` only after an end-to-end smoke test:
+## Smoke test checklist
 
 1. Create a project, add tasks, change hours, add a billing jalon — verify auto-save writes the `.wmsplan` file.
 2. Close and reopen the project from the home screen — verify all data loads correctly.
@@ -209,4 +240,5 @@ All work is on `feature/tauri-rebuild`. Merge to `main` only after an end-to-end
 5. Export MD — open in a Markdown viewer, confirm all sections present.
 6. Open example project — verify it loads a pre-filled copy in the projects folder.
 7. Change save folder in settings — create a project and confirm it lands in the chosen folder.
-8. `WMSPlanner.exe` runs on a machine without Node or Rust installed.
+8. Add a multi-period task (2+ segments) with Indisponibilité checked — confirm Statut/Priorité/J/Avancement cells are blank and each period renders a separate bar.
+9. `WMSPlanner.exe` runs on a machine without Node or Rust installed.
