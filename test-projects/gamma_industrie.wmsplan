@@ -15,7 +15,7 @@
     "installDateComment": "Report de 6 mois — périmètre élargi en cours de projet, ressources client non disponibles.",
     "endDate": "",
     "createdAt": "2025-07-01T08:00:00.000Z",
-    "updatedAt": "2026-05-25T19:52:09.848Z",
+    "updatedAt": "2026-05-25T20:14:52.637Z",
     "jiraConfig": {
       "url": "",
       "projectKey": "",
@@ -46,7 +46,8 @@
       "page-install": "Prérequis Install",
       "page-facturation": "Facturation",
       "page-jira": "◈ JIRA"
-    }
+    },
+    "rag": "A"
   },
   "phases": [
     {
