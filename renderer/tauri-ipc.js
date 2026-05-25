@@ -48,6 +48,21 @@ function _stub(cmd, args) {
       return;
     }
 
+    case 'read_settings': {
+      return localStorage.getItem(PREFIX + 'settings') || '{}';
+    }
+
+    case 'write_settings': {
+      const str = typeof args.data === 'string' ? args.data : JSON.stringify(args.data);
+      localStorage.setItem(PREFIX + 'settings', str);
+      return;
+    }
+
+    case 'pick_folder': {
+      const folder = prompt('Chemin du dossier de sauvegarde (mode navigateur) :');
+      return folder || null;
+    }
+
     case 'read_project': {
       try {
         const raw = localStorage.getItem(PREFIX + args.path);
@@ -85,7 +100,8 @@ function _stub(cmd, args) {
 
     case 'get_new_project_path': {
       const safe = (args.name || 'projet').replace(/[^a-zA-Z0-9_\-]/g, '_');
-      return safe + '.wmsplan';
+      const prefix = args.folder ? args.folder.replace(/\\/g, '/') + '/' : '';
+      return prefix + safe + '.wmsplan';
     }
 
     case 'export_html_dialog': {

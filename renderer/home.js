@@ -7,15 +7,26 @@ setWindowTitle('WMS Project Planner');
 let recent = [];       // [{ name, client, pm, path, updatedAt, installStatus, installProgress, dryRunProgress }]
 let filteredRecent = [];
 let pendingConfirm = null;  // fn to call when user clicks "Confirmer"
+let appSettings = { saveFolder: '' };
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 async function init() {
+  try {
+    const rawSettings = await invoke('read_settings');
+    appSettings = typeof rawSettings === 'string' ? JSON.parse(rawSettings) : (rawSettings || {});
+    if (!appSettings.saveFolder) appSettings.saveFolder = '';
+  } catch { appSettings = { saveFolder: '' }; }
+
   try {
     const raw = await invoke('read_recent');
     // Tauri returns a JSON string; browser stub may return a parsed array — handle both
     recent = typeof raw === 'string' ? JSON.parse(raw) : (Array.isArray(raw) ? raw : []);
   } catch { recent = []; }
   render();
+}
+
+async function persistSettings() {
+  await invoke('write_settings', { data: JSON.stringify(appSettings) });
 }
 
 async function persistRecent() {
@@ -206,10 +217,9 @@ window.createProject = async function() {
 
   const projectData = { ...template, meta };
 
-  // Auto-generate path in app data folder (stable, always findable)
   let fullPath;
   try {
-    fullPath = await invoke('get_new_project_path', { name });
+    fullPath = await invoke('get_new_project_path', { name, folder: appSettings.saveFolder || null });
   } catch (e) {
     showToast('Erreur création chemin : ' + e);
     return;
@@ -244,7 +254,7 @@ window.duplicateProject = async function(path) {
       }
     };
 
-    const fullPath = await invoke('get_new_project_path', { name: newName });
+    const fullPath = await invoke('get_new_project_path', { name: newName, folder: appSettings.saveFolder || null });
 
     await invoke('write_project', { path: fullPath, data: JSON.stringify(newData, null, 2) });
     await addToRecent(newData.meta, fullPath);
@@ -336,6 +346,55 @@ function checklistProgress(items, doneValues) {
   return `${done}/${items.length}`;
 }
 
+// ── Settings modal ────────────────────────────────────────────────────────────
+window.openSettings = function() {
+  const display = document.getElementById('settings-folder-display');
+  display.textContent = appSettings.saveFolder || 'Dossier par défaut (AppData)';
+  document.getElementById('modal-settings').classList.add('open');
+};
+
+window.closeSettings = function() {
+  document.getElementById('modal-settings').classList.remove('open');
+};
+
+window.pickSaveFolder = async function() {
+  const folder = await invoke('pick_folder');
+  if (!folder) return;
+  appSettings.saveFolder = folder;
+  document.getElementById('settings-folder-display').textContent = folder;
+  await persistSettings();
+  showToast('Dossier de sauvegarde mis à jour.');
+};
+
+window.resetSaveFolder = async function() {
+  appSettings.saveFolder = '';
+  document.getElementById('settings-folder-display').textContent = 'Dossier par défaut (AppData)';
+  await persistSettings();
+  showToast('Dossier réinitialisé au défaut.');
+};
+
+document.getElementById('modal-settings').addEventListener('click', function(e) {
+  if (e.target === this) closeSettings();
+});
+
+// ── Example project ───────────────────────────────────────────────────────────
+window.openExampleProject = async function() {
+  try {
+    const res = await fetch('./example.wmsplan');
+    if (!res.ok) throw new Error('example.wmsplan introuvable');
+    const data = await res.json();
+    const now = new Date().toISOString();
+    data.meta.id = uid();
+    data.meta.updatedAt = now;
+    const fullPath = await invoke('get_new_project_path', { name: data.meta.name, folder: appSettings.saveFolder || null });
+    await invoke('write_project', { path: fullPath, data: JSON.stringify(data, null, 2) });
+    await addToRecent(data.meta, fullPath);
+    navigateToApp(fullPath);
+  } catch (e) {
+    showToast('Erreur chargement exemple : ' + e.message);
+  }
+};
+
 // ── Confirm dialog ────────────────────────────────────────────────────────────
 function showConfirm(title, msg, onOk) {
   document.getElementById('confirm-title').textContent = title;
@@ -374,6 +433,7 @@ document.getElementById('modal-new-project').addEventListener('click', function(
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     closeNewProjectModal();
+    closeSettings();
     closeConfirm();
   }
 });

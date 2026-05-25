@@ -81,15 +81,25 @@ fn write_project_backup(app: AppHandle, path: String) -> Result<(), String> {
 // ── App projects directory ────────────────────────────────────────────────────
 
 #[tauri::command]
-fn get_new_project_path(app: AppHandle, name: String) -> Result<String, String> {
-    let dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|e| e.to_string())?
-        .join("projects");
-
-    fs::create_dir_all(&dir)
-        .map_err(|e| format!("Création dossier projets impossible: {}", e))?;
+fn get_new_project_path(app: AppHandle, name: String, folder: Option<String>) -> Result<String, String> {
+    let dir = match folder.as_deref().filter(|f| !f.is_empty()) {
+        Some(f) => {
+            let p = PathBuf::from(f);
+            fs::create_dir_all(&p)
+                .map_err(|e| format!("Création dossier impossible: {}", e))?;
+            p
+        }
+        None => {
+            let p = app
+                .path()
+                .app_data_dir()
+                .map_err(|e| e.to_string())?
+                .join("projects");
+            fs::create_dir_all(&p)
+                .map_err(|e| format!("Création dossier projets impossible: {}", e))?;
+            p
+        }
+    };
 
     let safe: String = name
         .chars()
@@ -108,6 +118,31 @@ fn get_new_project_path(app: AppHandle, name: String) -> Result<String, String> 
         }
     }
     Err("Impossible de trouver un nom de fichier disponible".to_string())
+}
+
+// ── App settings ─────────────────────────────────────────────────────────────
+
+fn settings_path(app: &AppHandle) -> PathBuf {
+    app.path()
+        .app_data_dir()
+        .unwrap_or_else(|_| PathBuf::from("."))
+        .join("settings.json")
+}
+
+#[tauri::command]
+fn read_settings(app: AppHandle) -> String {
+    let path = settings_path(&app);
+    fs::read_to_string(path).unwrap_or_else(|_| "{}".to_string())
+}
+
+#[tauri::command]
+fn write_settings(app: AppHandle, data: String) -> Result<(), String> {
+    let path = settings_path(&app);
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("Création dossier impossible: {}", e))?;
+    }
+    fs::write(path, data).map_err(|e| format!("Écriture settings.json impossible: {}", e))
 }
 
 // ── Recent projects list (stored in app data directory) ──────────────────────
@@ -185,6 +220,17 @@ fn export_html_write(path: String, content: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+async fn pick_folder(app: AppHandle) -> Option<String> {
+    if let Some(win) = app.get_webview_window("main") {
+        let _ = win.set_focus();
+    }
+    app.dialog()
+        .file()
+        .blocking_pick_folder()
+        .and_then(file_path_to_string)
+}
+
+#[tauri::command]
 async fn save_pdf_dialog(app: AppHandle, name: String) -> Option<String> {
     if let Some(win) = app.get_webview_window("main") {
         let _ = win.set_focus();
@@ -256,6 +302,8 @@ pub fn run() {
             get_new_project_path,
             read_recent,
             write_recent,
+            read_settings,
+            write_settings,
             open_dialog,
             save_dialog,
             export_html_dialog,
@@ -264,6 +312,7 @@ pub fn run() {
             set_window_title,
             reveal_file,
             delete_project,
+            pick_folder,
         ])
         .run(tauri::generate_context!())
         .expect("Erreur au démarrage de l'application");
