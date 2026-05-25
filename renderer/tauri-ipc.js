@@ -83,18 +83,35 @@ function _stub(cmd, args) {
       return name || null;
     }
 
+    case 'get_new_project_path': {
+      const safe = (args.name || 'projet').replace(/[^a-zA-Z0-9_\-]/g, '_');
+      return safe + '.wmsplan';
+    }
+
     case 'export_html_dialog': {
       const suggested = (args.name || 'export').replace(/[^a-zA-Z0-9_\-]/g, '_');
-      // In browser mode, trigger a download using Blob
       return { _browserDownload: true, filename: suggested + '_export.html' };
     }
 
     case 'export_html_write': {
-      // args: { content: string, filename: string }
       const blob = new Blob([args.content], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url; a.download = args.filename; a.click();
+      URL.revokeObjectURL(url);
+      return;
+    }
+
+    case 'save_pdf_dialog': {
+      const suggested = (args.name || 'export').replace(/[^a-zA-Z0-9_\-]/g, '_');
+      return suggested.endsWith('.pdf') ? suggested : suggested + '.pdf';
+    }
+
+    case 'write_file_bytes': {
+      const blob = new Blob([new Uint8Array(args.bytes)], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = args.path.split(/[\\/]/).pop(); a.click();
       URL.revokeObjectURL(url);
       return;
     }

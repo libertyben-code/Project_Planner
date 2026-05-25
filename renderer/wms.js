@@ -910,8 +910,12 @@ async function exportPDF() {
     pdf.setFont('helvetica','normal'); pdf.setFontSize(9); pdf.text(`Client: ${cli}  |  Chef de Projet: ${pm}  |  ${today}`, pageW-m-4, m+6.5, {align:'right'});
     pdf.addImage(imgData,'PNG',m,m+12,dw,dh);
     pdf.setFontSize(8); pdf.setTextColor(150,150,150); pdf.text(`Document confidentiel — ${proj}`, m, pageH-4); pdf.text('Page 1', pageW-m, pageH-4, {align:'right'});
-    pdf.save(`Planning_${proj.replace(/\s+/g,'_')}_${today.replace(/\//g,'-')}.pdf`);
-  } catch (e) { console.error(e); alert('Erreur PDF.'); }
+    const fileName = `Planning_${proj.replace(/\s+/g,'_')}_${today.replace(/\//g,'-')}.pdf`;
+    const savePath = await invoke('save_pdf_dialog', { name: fileName });
+    if (!savePath) { btn.innerHTML = orig; btn.disabled = false; return; }
+    const arrayBuf = pdf.output('arraybuffer');
+    await invoke('write_file_bytes', { path: savePath, bytes: Array.from(new Uint8Array(arrayBuf)) });
+  } catch (e) { console.error(e); alert('Erreur PDF : ' + e); }
   btn.innerHTML = orig; btn.disabled = false;
 }
 
@@ -942,8 +946,12 @@ async function exportCurrentTabPDF() {
     pdf.setFont('helvetica','normal'); pdf.setFontSize(9); pdf.text(`Client: ${cli}  |  ${today}`, pageW-m-4, m+6.5, {align:'right'});
     pdf.addImage(imgData,'PNG', m+(aw-dw)/2, m+12, dw, dh);
     pdf.setFontSize(8); pdf.setTextColor(150,150,150); pdf.text(`Document confidentiel — ${proj}`, m, pageH-4); pdf.text('Page 1', pageW-m, pageH-4, {align:'right'});
-    pdf.save(`${tabName.replace(/\s+/g,'_')}_${proj.replace(/\s+/g,'_')}_${today.replace(/\//g,'-')}.pdf`);
-  } catch (e) { console.error(e); alert('Erreur PDF.'); }
+    const fileName = `${tabName.replace(/\s+/g,'_')}_${proj.replace(/\s+/g,'_')}_${today.replace(/\//g,'-')}.pdf`;
+    const savePath = await invoke('save_pdf_dialog', { name: fileName });
+    if (!savePath) { if (btn) { btn.innerHTML = orig; btn.disabled = false; } return; }
+    const arrayBuf = pdf.output('arraybuffer');
+    await invoke('write_file_bytes', { path: savePath, bytes: Array.from(new Uint8Array(arrayBuf)) });
+  } catch (e) { console.error(e); alert('Erreur PDF : ' + e); }
   if (btn) { btn.innerHTML = orig; btn.disabled = false; }
 }
 
@@ -1953,12 +1961,13 @@ async function doExportHTML() {
   try {
     const result = await invoke('export_html_dialog', { name });
     if (!result) return;
-    if (result && result._browserDownload) {
+    if (result._browserDownload) {
       await invoke('export_html_write', { content: html, filename: result.filename });
     } else {
-      await invoke('export_html_write', { path: result, content: html });
+      await invoke('write_project', { path: result, data: html });
     }
-  } catch (e) { console.error('Export HTML error:', e); alert('Erreur export HTML: ' + e); }
+    showSaveIndicator('saved');
+  } catch (e) { console.error('Export HTML error:', e); alert('Erreur export HTML : ' + e); }
 }
 
 // ═══ KEYBOARD SHORTCUTS ═══

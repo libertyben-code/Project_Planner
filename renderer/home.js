@@ -203,12 +203,14 @@ window.createProject = async function() {
 
   const projectData = { ...template, meta };
 
-  // Ask for save path
-  const suggestedName = name.replace(/[^a-zA-Z0-9_\-]/g, '_');
-  const savePath = await invoke('save_dialog', { name: suggestedName });
-  if (!savePath) return; // user cancelled
-
-  const fullPath = savePath.endsWith('.wmsplan') ? savePath : savePath + '.wmsplan';
+  // Auto-generate path in app data folder (stable, always findable)
+  let fullPath;
+  try {
+    fullPath = await invoke('get_new_project_path', { name });
+  } catch (e) {
+    showToast('Erreur création chemin : ' + e);
+    return;
+  }
 
   try {
     await invoke('write_project', { path: fullPath, data: JSON.stringify(projectData, null, 2) });
@@ -239,10 +241,7 @@ window.duplicateProject = async function(path) {
       }
     };
 
-    const suggestedName = newName.replace(/[^a-zA-Z0-9_\-]/g, '_');
-    const savePath = await invoke('save_dialog', { name: suggestedName });
-    if (!savePath) return;
-    const fullPath = savePath.endsWith('.wmsplan') ? savePath : savePath + '.wmsplan';
+    const fullPath = await invoke('get_new_project_path', { name: newName });
 
     await invoke('write_project', { path: fullPath, data: JSON.stringify(newData, null, 2) });
     await addToRecent(newData.meta, fullPath);
