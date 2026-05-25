@@ -414,12 +414,12 @@ function openEditTask(taskId) {
   phases.forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = p.name; if (p.id === task.phaseId) o.selected = true; sel.appendChild(o); });
   document.getElementById('task-name').value = task.name;
   buildOwnerSelect(document.getElementById('task-owner'), task.owner || '');
-  document.getElementById('task-start').value = task.start || '';
-  document.getElementById('task-end').value = task.end || '';
+  _populateSegments(taskSegments(task));
   document.getElementById('task-status').value = task.status || '';
   document.getElementById('task-priority').value = task.priority || '';
   document.getElementById('task-progress').value = task.progress || 0;
   document.getElementById('task-deliverable').value = task.deliverable || '';
+  document.getElementById('task-unavail').checked = !!task.isUnavail;
   document.getElementById('btn-delete-task').style.display = '';
   document.getElementById('modal-task').classList.add('open');
 }
@@ -504,14 +504,31 @@ function renderGantt() {
           ownSel.onchange = () => { updateTask(task.id,'owner',ownSel.value); debouncedSave(); };
           td.style.padding = '2px 4px'; td.appendChild(ownSel);
         } else if (lbl === 'DÉBUT' || lbl === 'FIN') {
-          const field = lbl === 'DÉBUT' ? 'start' : 'end';
-          const inp = document.createElement('input'); inp.type = 'date'; inp.value = task[field] || '';
-          inp.style.cssText = 'border:none;background:transparent;font-family:inherit;font-size:11px;color:inherit;width:100%;cursor:pointer;padding:1px 3px;';
-          inp.onchange = e => { updateTask(task.id,field,e.target.value); renderGantt(); debouncedSave(); };
-          td.appendChild(inp);
+          const segs = taskSegments(task);
+          if (segs.length > 1) {
+            td.style.cssText = 'padding:2px 6px;cursor:pointer;text-align:center';
+            const label = lbl === 'DÉBUT'
+              ? `<span class="seg-multi-chip">${segs.length}×</span> ${segs[0].start ? fmtDateShort(new Date(segs[0].start)) : '—'}`
+              : (segs[segs.length-1].end ? fmtDateShort(new Date(segs[segs.length-1].end)) : '—');
+            td.innerHTML = label;
+            td.title = segs.map(s => `${s.start||'?'} → ${s.end||'?'}`).join('\n');
+            td.onclick = () => openEditTask(task.id);
+          } else {
+            const field = lbl === 'DÉBUT' ? 'start' : 'end';
+            const inp = document.createElement('input'); inp.type = 'date'; inp.value = task[field] || '';
+            inp.style.cssText = 'border:none;background:transparent;font-family:inherit;font-size:11px;color:inherit;width:100%;cursor:pointer;padding:1px 3px;';
+            inp.onchange = e => { updateTask(task.id,field,e.target.value); renderGantt(); debouncedSave(); };
+            td.appendChild(inp);
+          }
         } else if (lbl === 'J') {
           td.style.textAlign = 'center'; td.style.fontSize = '11px';
-          if (task.start && task.end) { const d = Math.round((new Date(task.end) - new Date(task.start)) / 86400000) + 1; td.textContent = d > 0 ? d : ''; }
+          const segs = taskSegments(task);
+          const total = segs.reduce((sum, s) => {
+            if (!s.start || !s.end) return sum;
+            const d = Math.round((new Date(s.end) - new Date(s.start)) / 86400000) + 1;
+            return sum + (d > 0 ? d : 0);
+          }, 0);
+          if (total > 0) td.textContent = total;
         } else if (lbl === '% AVA.') {
           td.style.padding = '2px 6px'; td.style.cursor = 'pointer';
           const pct = task.progress || 0; const color = getPhaseColor(task);
@@ -525,21 +542,20 @@ function renderGantt() {
       });
 
       const phColor = getPhaseColor(task);
+      const taskSegs = taskSegments(task);
+      const phase = phases.find(p => p.id === task.phaseId);
+      const segDesc = taskSegs.map(s =>
+        (s.start ? fmtDateShort(new Date(s.start)) : '?') + ' → ' + (s.end ? fmtDateShort(new Date(s.end)) : '?')
+      ).join(' | ');
+      const tooltipLines = [formatTemplate(task.name), phase ? phase.name : '', segDesc, task.progress ? `${task.progress}%` : ''].filter(Boolean).join('\n');
       WEEKS.forEach(w => {
         const td = document.createElement('td'); td.className = 'gantt-cell';
         if (isToday(w)) td.classList.add('today-col');
-        if (isInWeek(task.start, task.end, w)) {
+        if (taskSegs.some(s => isInWeek(s.start, s.end, w))) {
           const bar = document.createElement('span'); bar.className = 'gantt-bar'; bar.style.background = phColor;
           if (done) bar.classList.add('gantt-bar-done');
           td.appendChild(bar);
-          const wEnd = new Date(w); wEnd.setDate(wEnd.getDate() + 6);
-          const phase = phases.find(p => p.id === task.phaseId);
-          td.title = [
-            formatTemplate(task.name),
-            phase ? phase.name : '',
-            `${fmtDateShort(new Date(task.start))} → ${fmtDateShort(new Date(task.end))}`,
-            task.progress ? `${task.progress}%` : ''
-          ].filter(Boolean).join('\n');
+          td.title = tooltipLines;
         }
         rt.appendChild(td);
       });
@@ -614,6 +630,39 @@ function renderGantt() {
     const tbody = table.tBodies[0];
     if (tbody) initGanttSort(tbody);
   }
+
+  makeGanttResizable(table);
+}
+
+function makeGanttResizable(table) {
+  const STORAGE_KEY = 'col-w:gantt';
+  const ths = Array.from(table.querySelectorAll('th.th-fixed'));
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    ths.forEach((th, i) => { if (saved[i]) { th.style.width = saved[i] + 'px'; th.style.minWidth = saved[i] + 'px'; } });
+  } catch {}
+  ths.forEach((th, i) => {
+    th.style.position = 'relative';
+    const handle = document.createElement('div');
+    handle.className = 'col-resize-handle';
+    th.appendChild(handle);
+    let startX, startW;
+    handle.addEventListener('pointerdown', e => {
+      e.stopPropagation(); e.preventDefault();
+      startX = e.clientX; startW = th.offsetWidth;
+      handle.setPointerCapture(e.pointerId);
+    });
+    handle.addEventListener('pointermove', e => {
+      if (!(e.buttons & 1)) return;
+      const newW = Math.max(30, startW + (e.clientX - startX));
+      th.style.width = newW + 'px'; th.style.minWidth = newW + 'px';
+    });
+    handle.addEventListener('pointerup', () => {
+      const widths = {};
+      ths.forEach((t, idx) => { widths[idx] = t.offsetWidth; });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(widths));
+    });
+  });
 }
 
 function toggleGanttEditMode() {
@@ -844,15 +893,62 @@ function scrollToToday() { const WEEKS = generateWeeks(); const idx = WEEKS.find
 
 // ═══ MODALS ═══
 let _editingPhaseId = null;
+
+// ── Multi-segment helpers ──
+function taskSegments(task) {
+  if (task.segments && task.segments.length > 0) return task.segments;
+  if (task.start || task.end) return [{ start: task.start || '', end: task.end || '' }];
+  return [{ start: '', end: '' }];
+}
+
+function _addSegRow(list, start = '', end = '') {
+  const div = document.createElement('div');
+  div.className = 'task-seg-row';
+  div.innerHTML = `<div class="form-2col" style="align-items:flex-end;gap:6px">
+    <div class="form-row"><label>Début</label><input type="date" class="seg-start" value="${start}"></div>
+    <div class="form-row"><label>Fin</label><input type="date" class="seg-end" value="${end}"></div>
+    <button type="button" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost seg-del" onclick="removeTaskSegment(this)" title="Supprimer cette période" style="margin-bottom:2px">🗑</button>
+  </div>`;
+  list.appendChild(div);
+}
+
+function _syncSegDelBtns() {
+  const rows = Array.from(document.querySelectorAll('#task-segments-list .task-seg-row'));
+  rows.forEach(r => { r.querySelector('.seg-del').style.visibility = rows.length > 1 ? 'visible' : 'hidden'; });
+}
+
+function _populateSegments(segs) {
+  const list = document.getElementById('task-segments-list');
+  list.innerHTML = '';
+  const src = segs.length ? segs : [{ start: '', end: '' }];
+  src.forEach(s => _addSegRow(list, s.start || '', s.end || ''));
+  _syncSegDelBtns();
+}
+
+function addTaskSegment() {
+  _addSegRow(document.getElementById('task-segments-list'));
+  _syncSegDelBtns();
+}
+
+function removeTaskSegment(btn) {
+  btn.closest('.task-seg-row').remove();
+  _syncSegDelBtns();
+}
+
 function openAddTaskModal(phaseId) {
   _editingTaskId = null;
   document.getElementById('modal-task-title').textContent = 'Nouvelle Tâche';
   document.getElementById('btn-save-task').textContent = 'Enregistrer';
   const sel = document.getElementById('task-phase'); sel.innerHTML = '';
   phases.forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = p.name; if (p.id === phaseId) o.selected = true; sel.appendChild(o); });
-  ['task-name','task-start','task-end','task-deliverable'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('task-name').value = '';
+  document.getElementById('task-deliverable').value = '';
   buildOwnerSelect(document.getElementById('task-owner'), '');
-  document.getElementById('task-progress').value = 0; document.getElementById('task-status').value = 'Non commencé'; document.getElementById('task-priority').value = '';
+  _populateSegments([]);
+  document.getElementById('task-progress').value = 0;
+  document.getElementById('task-status').value = 'Non commencé';
+  document.getElementById('task-priority').value = '';
+  document.getElementById('task-unavail').checked = false;
   document.getElementById('btn-delete-task').style.display = 'none';
   document.getElementById('modal-task').classList.add('open');
 }
@@ -876,9 +972,30 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 function saveTask() {
   const name = document.getElementById('task-name').value.trim();
   if (!name) { alert('Veuillez saisir un intitulé.'); return; }
-  const data = { phaseId: document.getElementById('task-phase').value, name, owner: document.getElementById('task-owner').value, start: document.getElementById('task-start').value, end: document.getElementById('task-end').value, status: document.getElementById('task-status').value, priority: document.getElementById('task-priority').value, progress: +document.getElementById('task-progress').value || 0, deliverable: document.getElementById('task-deliverable').value.trim() };
-  if (_editingTaskId) { Object.assign(tasks.find(t => t.id === _editingTaskId), data); }
-  else { tasks.push({ id: uid(), ...data }); }
+  const segs = Array.from(document.querySelectorAll('#task-segments-list .task-seg-row'))
+    .map(r => ({ start: r.querySelector('.seg-start').value, end: r.querySelector('.seg-end').value }))
+    .filter(s => s.start || s.end);
+  const start = segs[0]?.start || '';
+  const end = (segs[segs.length - 1]?.end) || segs[0]?.end || '';
+  const data = {
+    phaseId: document.getElementById('task-phase').value, name,
+    owner: document.getElementById('task-owner').value,
+    start, end,
+    segments: segs.length > 1 ? segs : undefined,
+    status: document.getElementById('task-status').value,
+    priority: document.getElementById('task-priority').value,
+    progress: +document.getElementById('task-progress').value || 0,
+    deliverable: document.getElementById('task-deliverable').value.trim(),
+    isUnavail: document.getElementById('task-unavail').checked || undefined
+  };
+  if (_editingTaskId) {
+    const t = tasks.find(t => t.id === _editingTaskId);
+    Object.assign(t, data);
+    if (!data.segments) delete t.segments;
+    if (!data.isUnavail) delete t.isUnavail;
+  } else {
+    tasks.push({ id: uid(), ...data });
+  }
   closeModal('modal-task'); renderGantt(); renderDashboard(); debouncedSave();
 }
 function savePhase() {
@@ -1821,7 +1938,7 @@ function renderCustomTabRows(tabId) {
         cells += `<td contenteditable="true" onblur="ctSetCell('${tabId}','${row.id}','${col.key}',this.textContent.trim());debouncedSave()">${val}</td>`;
       }
     });
-    cells += `<td><button class="btn btn-ghost btn-sm" onclick="deleteCustomTabRow('${tabId}','${row.id}')">✕</button></td>`;
+    cells += `<td><button class="btn btn-secondary btn-sm" onclick="openEditCustomTabRow('${tabId}','${row.id}')">✏</button></td>`;
     tr.innerHTML = cells;
   });
   makeSortable(tbody, tab.rows, () => { renderCustomTabRows(tabId); debouncedSave(); });
@@ -1852,6 +1969,58 @@ function deleteCustomTabRow(tabId, rowId) {
   tab.rows.splice(idx, 1);
   renderCustomTabRows(tabId); debouncedSave();
   showUndoToast('Ligne supprimée', () => { tab.rows.splice(idx, 0, deleted); renderCustomTabRows(tabId); });
+}
+
+let _editingCtTabId = null, _editingCtRowId = null;
+
+function openEditCustomTabRow(tabId, rowId) {
+  const tab = customTabs.find(t => t.id === tabId);
+  if (!tab) return;
+  const row = tab.rows.find(r => r.id === rowId);
+  if (!row) return;
+  _editingCtTabId = tabId; _editingCtRowId = rowId;
+  document.getElementById('modal-edit-ct-row-title').textContent = `Modifier — ${tab.name}`;
+  const container = document.getElementById('modal-edit-ct-row-fields');
+  container.innerHTML = '';
+  tab.columns.forEach(col => {
+    const val = row[col.key] !== undefined ? row[col.key] : '';
+    const wrap = document.createElement('div'); wrap.className = 'form-row';
+    const lbl = document.createElement('label'); lbl.textContent = col.label;
+    wrap.appendChild(lbl);
+    let input;
+    if (col.type === 'checkbox') {
+      input = document.createElement('input'); input.type = 'checkbox'; input.checked = !!val;
+      input.style.cssText = 'width:auto;margin-top:6px';
+    } else if (col.type === 'date') {
+      input = document.createElement('input'); input.type = 'date'; input.value = val;
+    } else if (col.type === 'select') {
+      input = document.createElement('select');
+      (col.options || []).forEach(o => { const opt = document.createElement('option'); opt.value = o; opt.textContent = o; if (o === val) opt.selected = true; input.appendChild(opt); });
+    } else {
+      input = document.createElement('input'); input.type = 'text'; input.value = val;
+    }
+    input.dataset.colKey = col.key;
+    input.dataset.colType = col.type;
+    wrap.appendChild(input);
+    container.appendChild(wrap);
+  });
+  document.getElementById('modal-edit-ct-row').classList.add('open');
+}
+
+function saveCustomTabRowFromModal() {
+  const tab = customTabs.find(t => t.id === _editingCtTabId); if (!tab) return;
+  const row = tab.rows.find(r => r.id === _editingCtRowId); if (!row) return;
+  document.querySelectorAll('#modal-edit-ct-row-fields [data-col-key]').forEach(inp => {
+    row[inp.dataset.colKey] = inp.dataset.colType === 'checkbox' ? inp.checked : inp.value;
+  });
+  closeModal('modal-edit-ct-row');
+  renderCustomTabRows(_editingCtTabId); debouncedSave();
+}
+
+function deleteCustomTabRowFromModal() {
+  const tabId = _editingCtTabId, rowId = _editingCtRowId;
+  closeModal('modal-edit-ct-row');
+  deleteCustomTabRow(tabId, rowId);
 }
 
 function deleteCustomTab(tabId) {
@@ -2304,6 +2473,7 @@ Object.assign(window, {
   closeModal, saveTask, savePhase,
   deleteTask, deleteTaskFromModal, removePhase, removePhaseFromModal, updateTask,
   scrollToToday, renderGantt, renderDashboard, exportPDF, exportCurrentTabPDF, toggleGanttEditMode,
+  addTaskSegment, removeTaskSegment,
   renderJira, openJiraConfig, saveJiraConfig, syncJira,
   renderTaches, renderInstall,
   addInternalTask, openEditInternalTask, saveInternalTask, deleteInternalTask, deleteInternalTaskFromModal,
@@ -2320,6 +2490,7 @@ Object.assign(window, {
   openAddCustomTabModal, openEditCustomTabModal, addCustomTabColumn, saveCustomTab,
   renderCtColumns, ctColLabel, ctColType, ctColOptions, ctColRemove,
   renderCustomTabs, renderCustomTabRows, addCustomTabRow, deleteCustomTabRow, deleteCustomTab, ctSetCell,
+  openEditCustomTabRow, saveCustomTabRowFromModal, deleteCustomTabRowFromModal,
   normalizeSpecialLabel, buildState,
 });
 

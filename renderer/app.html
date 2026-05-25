@@ -231,16 +231,18 @@
     <div class="form-row"><label>Phase</label><select id="task-phase"></select></div>
     <div class="form-row"><label>Intitulé *</label><input id="task-name" type="text"></div>
     <div class="form-row"><label>Propriétaire</label><select id="task-owner"></select></div>
-    <div class="form-2col">
-      <div class="form-row"><label>Début</label><input id="task-start" type="date"></div>
-      <div class="form-row"><label>Fin</label><input id="task-end" type="date"></div>
-    </div>
+    <div id="task-segments-list"></div>
+    <button type="button" class="btn btn-ghost btn-sm" onclick="addTaskSegment()" style="margin-bottom:6px">＋ Ajouter une période</button>
     <div class="form-2col">
       <div class="form-row"><label>Statut</label><select id="task-status"><option value="">— Aucun —</option><option>Non commencé</option><option>En cours</option><option>Terminé</option><option>En attente</option><option>En retard</option><option>Vérification requise</option><option>Mise à jour requise</option></select></div>
       <div class="form-row"><label>Priorité</label><select id="task-priority"><option value="">—</option><option>FAIBLE</option><option>MOYENNE</option><option>ÉLEVÉE</option></select></div>
     </div>
     <div class="form-row"><label>% Avancement</label><input id="task-progress" type="number" min="0" max="100" value="0"></div>
     <div class="form-row"><label>Livrable</label><input id="task-deliverable" type="text"></div>
+    <div class="form-row" style="flex-direction:row;align-items:center;gap:8px">
+      <input id="task-unavail" type="checkbox" style="width:auto;margin:0">
+      <label style="margin:0;font-weight:500;cursor:pointer" for="task-unavail">Indisponibilité / congé</label>
+    </div>
     <div class="modal-footer"><button class="btn btn-danger" id="btn-delete-task" onclick="deleteTaskFromModal()" style="display:none">Supprimer</button><button class="btn btn-secondary" onclick="closeModal('modal-task')">Annuler</button><button class="btn btn-primary" id="btn-save-task" onclick="saveTask()">Enregistrer</button></div>
   </div>
 </div>
@@ -357,6 +359,19 @@
       <button class="btn btn-danger" id="btn-delete-tache" onclick="deleteInternalTaskFromModal()">Supprimer</button>
       <button class="btn btn-secondary" onclick="closeModal('modal-edit-tache')">Annuler</button>
       <button class="btn btn-primary" onclick="saveInternalTask()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit custom-tab row modal (fields populated dynamically) -->
+<div class="modal-overlay" id="modal-edit-ct-row">
+  <div class="modal">
+    <h3 id="modal-edit-ct-row-title">Modifier la ligne</h3>
+    <div id="modal-edit-ct-row-fields"></div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="deleteCustomTabRowFromModal()">Supprimer</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-ct-row')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveCustomTabRowFromModal()">Enregistrer</button>
     </div>
   </div>
 </div>
