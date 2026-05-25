@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\J4ck\\\\Documents\\\\GitHub\\\\Project_Planner\" -Recurse -File)",
+      "Bash(Select-Object FullName, Extension)",
+      "Bash(Sort-Object FullName)",
+      "Bash(npm --version)",
+      "Bash(rustc --version)",
+      "Bash(cargo --version)",
+      "Bash(mkdir -p \"c:\\\\Users\\\\J4ck\\\\Documents\\\\GitHub\\\\Project_Planner\\\\renderer\")",
+      "Bash(pkill -f \"serve renderer\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "PowerShell(cd \"c:\\\\Users\\\\J4ck\\\\Documents\\\\GitHub\\\\Project_Planner\"; $content = Get-Content \"renderer/wms.js\" -Raw; node -e \"new Function\\($content\\)\" 2>&1 | Select-Object -First 10)",
+      "PowerShell(cd \"c:\\\\Users\\\\J4ck\\\\Documents\\\\GitHub\\\\Project_Planner\"; npm run dev 2>&1 &)",
+      "Bash(cargo check *)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\J4ck\\Documents\\GitHub\\Project_Planner"
+    ]
+  }
+}

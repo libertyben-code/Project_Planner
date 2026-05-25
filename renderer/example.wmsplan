@@ -1,0 +1,236 @@
+{
+  "meta": {
+    "id": "_example_demo",
+    "name": "Projet Exemple",
+    "client": "LogiCorp Distribution",
+    "pm": "Marie Dupont",
+    "cdptech": "Paul Martin",
+    "respLog": "Sophie Bernard",
+    "erpConsult": "Thomas Leroy",
+    "notes": "Ceci est un projet de démonstration. Vous pouvez modifier librement toutes les données — une copie personnelle a été créée dans votre dossier projets.",
+    "startDate": "2026-01-15",
+    "installDateOriginal": "2026-06-30",
+    "installDateDelayed": "2026-07-15",
+    "installDateActual": "",
+    "installDateComment": "Retard dû à la livraison tardive des serveurs client.",
+    "endDate": "",
+    "createdAt": "2026-01-15T09:00:00.000Z",
+    "updatedAt": "2026-05-20T14:30:00.000Z",
+    "jiraConfig": { "url": "", "projectKey": "", "email": "", "token": "" }
+  },
+  "phases": [
+    { "id": "INDISPO", "name": "INDISPONIBILITÉS / CONGÉS",  "code": "I", "color": "#64748b" },
+    { "id": "PLAN",    "name": "PLANIFICATION DU PROJET",    "code": "P", "color": "#2563eb" },
+    { "id": "ERP",     "name": "INTERFACE ERP",              "code": "E", "color": "#7c3aed" },
+    { "id": "DEV",     "name": "DÉVELOPPEMENTS",             "code": "D", "color": "#0891b2" },
+    { "id": "FORM",    "name": "FORMATION & UAT",            "code": "F", "color": "#059669" }
+  ],
+  "tasks": [
+    { "id": "task_indispo_dp",  "phaseId": "INDISPO", "name": "Dir. Projet - Marie Dupont",               "owner": "MECALUX",           "start": "2026-08-01", "end": "2026-08-10", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
+    { "id": "task_indispo_cdp", "phaseId": "INDISPO", "name": "Chef de Projet Technique - Paul Martin",   "owner": "MECALUX",           "start": "2026-07-25", "end": "2026-08-05", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
+    { "id": "task_indispo_rl",  "phaseId": "INDISPO", "name": "Responsable Logistique - Sophie Bernard",  "owner": "LogiCorp Distribution", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
+    { "id": "task_indispo_rd",  "phaseId": "INDISPO", "name": "Responsable de Dépôt (Client)",            "owner": "LogiCorp Distribution", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
+    { "id": "task_indispo_adv", "phaseId": "INDISPO", "name": "Responsable ADV (Client)",                 "owner": "LogiCorp Distribution", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
+    { "id": "task_plan_1", "phaseId": "PLAN", "name": "Visite d'Analyse Fonctionnelle",                    "owner": "TOUS",    "start": "2026-01-15", "end": "2026-01-22", "status": "Terminé",  "priority": "haute", "progress": 100, "deliverable": "Rapport de visite" },
+    { "id": "task_plan_2", "phaseId": "PLAN", "name": "Ateliers & Rédaction de l'Analyse Fonctionnelle",  "owner": "TOUS",    "start": "2026-01-25", "end": "2026-02-20", "status": "Terminé",  "priority": "haute", "progress": 100, "deliverable": "AF v1.0" },
+    { "id": "task_plan_3", "phaseId": "PLAN", "name": "Validation de l'Analyse Fonctionnelle",             "owner": "TOUS",    "start": "2026-02-21", "end": "2026-02-28", "status": "Terminé",  "priority": "haute", "progress": 100, "deliverable": "AF validée" },
+    { "id": "task_plan_4", "phaseId": "PLAN", "name": "Ateliers Mapping pour Analyse Fonctionnelle ERP",  "owner": "TOUS",    "start": "2026-02-10", "end": "2026-02-28", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_plan_5", "phaseId": "PLAN", "name": "Analyse technique & Rédaction tâches développement","owner": "MECALUX", "start": "2026-03-01", "end": "2026-03-14", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "Tâches JIRA" },
+    { "id": "task_erp_spec",  "phaseId": "ERP", "name": "Rédaction des spécifications interface",          "owner": "MECALUX", "start": "2026-03-01", "end": "2026-03-20", "status": "Terminé",  "priority": "haute", "progress": 100, "deliverable": "Spécifications ITF" },
+    { "id": "task_erp_itm",   "phaseId": "ERP", "name": "Base Article - ITM",                              "owner": "MECALUX", "start": "2026-03-15", "end": "2026-04-05", "status": "Terminé",  "priority": "haute", "progress": 100, "deliverable": "" },
+    { "id": "task_erp_sup",   "phaseId": "ERP", "name": "Base Fournisseurs - SUP",                         "owner": "MECALUX", "start": "2026-03-15", "end": "2026-04-05", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_erp_ror",   "phaseId": "ERP", "name": "Préavis de Réception - ROR/ASN",                  "owner": "MECALUX", "start": "2026-04-01", "end": "2026-05-10", "status": "En cours", "priority": "haute", "progress": 75, "deliverable": "" },
+    { "id": "task_erp_cust",  "phaseId": "ERP", "name": "Confirmation de Déchargement - Fichier Custom",   "owner": "MECALUX", "start": "2026-04-01", "end": "2026-05-20", "status": "En cours", "priority": "normale", "progress": 60, "deliverable": "" },
+    { "id": "task_erp_rof",   "phaseId": "ERP", "name": "Clôture Commande d'Achat - ROF/ASO/ASK",          "owner": "MECALUX", "start": "2026-04-15", "end": "2026-05-30", "status": "En cours", "priority": "normale", "progress": 40, "deliverable": "" },
+    { "id": "task_erp_ref",   "phaseId": "ERP", "name": "Confirmation de Réception - REF",                 "owner": "MECALUX", "start": "2026-05-01", "end": "2026-06-01", "status": "À faire",  "priority": "normale", "progress": 0,  "deliverable": "" },
+    { "id": "task_erp_sor",   "phaseId": "ERP", "name": "Commande Client - SOR",                           "owner": "MECALUX", "start": "2026-05-15", "end": "2026-06-15", "status": "À faire",  "priority": "haute", "progress": 0,  "deliverable": "" },
+    { "id": "task_erp_soc",   "phaseId": "ERP", "name": "Changement d'État de Commande - SOC",             "owner": "MECALUX", "start": "2026-06-01", "end": "2026-06-20", "status": "À faire",  "priority": "normale", "progress": 0,  "deliverable": "" },
+    { "id": "task_erp_sof",   "phaseId": "ERP", "name": "Clôture Commande Client - SOF",                   "owner": "MECALUX", "start": "2026-06-01", "end": "2026-06-20", "status": "À faire",  "priority": "normale", "progress": 0,  "deliverable": "" },
+    { "id": "task_erp_stc",   "phaseId": "ERP", "name": "Changement de Statut de Stock - STC",             "owner": "MECALUX", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
+    { "id": "task_erp_stv",   "phaseId": "ERP", "name": "Variation de Stock - STV",                        "owner": "MECALUX", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
+    { "id": "task_erp_scr",   "phaseId": "ERP", "name": "Demande d'État de Stock - SCR",                   "owner": "MECALUX", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
+    { "id": "task_erp_wsc",   "phaseId": "ERP", "name": "Image de Stock - WSC",                            "owner": "MECALUX", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
+    { "id": "task_erp_trsp",  "phaseId": "ERP", "name": "Appel API Transporteurs",                         "owner": "MECALUX", "start": "2026-05-01", "end": "2026-06-15", "status": "En cours", "priority": "haute", "progress": 30, "deliverable": "" },
+    { "id": "task_erp_err",   "phaseId": "ERP", "name": "Erreur d'Intégration - ERR",                      "owner": "MECALUX", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
+    { "id": "task_dev_1", "phaseId": "DEV", "name": "Modélisation / Configuration Entrepôt",               "owner": "MECALUX",           "start": "2026-02-15", "end": "2026-03-31", "status": "Terminé",  "priority": "haute", "progress": 100, "deliverable": "" },
+    { "id": "task_dev_2", "phaseId": "DEV", "name": "Développements Fonctionnels",                         "owner": "MECALUX",           "start": "2026-04-01", "end": "2026-06-20", "status": "En cours", "priority": "haute", "progress": 45,  "deliverable": "" },
+    { "id": "task_dev_3", "phaseId": "DEV", "name": "Tests et Validation des Développements Fonctionnels", "owner": "MECALUX",           "start": "2026-06-10", "end": "2026-06-30", "status": "À faire",  "priority": "haute", "progress": 0,   "deliverable": "" },
+    { "id": "task_dev_4", "phaseId": "DEV", "name": "Paramétrage Environnement Client",                    "owner": "MECALUX",           "start": "2026-06-15", "end": "2026-07-01", "status": "À faire",  "priority": "normale", "progress": 0, "deliverable": "" },
+    { "id": "task_dev_5", "phaseId": "DEV", "name": "Étiquetage Entrepôt",                                 "owner": "LogiCorp Distribution", "start": "2026-06-01", "end": "2026-07-01", "status": "À faire", "priority": "normale", "progress": 0, "deliverable": "" },
+    { "id": "task_dev_6", "phaseId": "DEV", "name": "Paramétrage des TRF / Imprimantes",                   "owner": "MECALUX",           "start": "2026-06-20", "end": "2026-07-05", "status": "À faire",  "priority": "normale", "progress": 0, "deliverable": "" },
+    { "id": "task_form_1", "phaseId": "FORM", "name": "Formation des Key Users",                            "owner": "MECALUX",           "start": "2026-06-20", "end": "2026-06-25", "status": "À faire",  "priority": "haute", "progress": 0, "deliverable": "" },
+    { "id": "task_form_2", "phaseId": "FORM", "name": "Tests et Validation des Développements",             "owner": "LogiCorp Distribution", "start": "2026-06-25", "end": "2026-07-05", "status": "À faire", "priority": "haute", "progress": 0, "deliverable": "" },
+    { "id": "task_form_3", "phaseId": "FORM", "name": "Formation des Opérateurs",                          "owner": "LogiCorp Distribution", "start": "2026-07-05", "end": "2026-07-10", "status": "À faire", "priority": "haute", "progress": 0, "deliverable": "" },
+    { "id": "task_form_4", "phaseId": "FORM", "name": "Inventaire Localisé des Stocks - Dry Run WMS",       "owner": "LogiCorp Distribution", "start": "2026-07-10", "end": "2026-07-12", "status": "À faire", "priority": "normale", "progress": 0, "deliverable": "" },
+    { "id": "task_form_5", "phaseId": "FORM", "name": "DRY RUN & GO/NO GO",                                 "owner": "TOUS",    "start": "2026-07-13", "end": "2026-07-14", "status": "À faire",  "priority": "haute", "progress": 0, "deliverable": "", "barColor": "#dc2626" },
+    { "id": "task_form_6", "phaseId": "FORM", "name": "Inventaire Complet des Stocks pour GO LIVE",         "owner": "LogiCorp Distribution", "start": "2026-07-14", "end": "2026-07-15", "status": "À faire", "priority": "haute", "progress": 0, "deliverable": "" },
+    { "id": "task_form_7", "phaseId": "FORM", "name": "INSTALLATION",                                       "owner": "TOUS",    "start": "2026-07-15", "end": "2026-07-15", "status": "À faire",  "priority": "haute", "progress": 0, "deliverable": "", "barColor": "#ea580c" },
+    { "id": "task_form_8", "phaseId": "FORM", "name": "HyperCare",                                          "owner": "MECALUX", "start": "2026-07-16", "end": "2026-08-15", "status": "À faire",  "priority": "normale", "progress": 0, "deliverable": "", "barColor": "#4f46e5" }
+  ],
+  "heuresData": [
+    { "id": "h_std",   "cat": "Heures Standard",           "vente": 220, "actuel": 138, "desc": "Implémentation, gestion projet, formation, tests", "bold": true,  "totalType": "Standard",   "sep": false, "custom": false, "history": [] },
+    { "id": "h_cust",  "cat": "Heures Custom",             "vente": 80,  "actuel": 47,  "desc": "Développements spécifiques",                        "bold": true,  "totalType": "Custom",     "sep": false, "custom": false, "history": [] },
+    { "id": "h_comp",  "cat": "Heures Comp.",              "vente": 0,   "actuel": 0,   "desc": "Offre complémentaire",                              "bold": true,  "totalType": "Offre Comp", "sep": false, "custom": false, "history": [] },
+    { "id": "h_sep1",  "sep": true },
+    { "id": "h_impl",  "cat": "Implémentation Standard",   "vente": 80,  "actuel": 48,  "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard",
+      "history": [
+        { "date": "2026-02-01", "value": 10, "note": "Configuration initiale entrepôt" },
+        { "date": "2026-03-15", "value": 30, "note": "Modélisation zones" },
+        { "date": "2026-04-30", "value": 48, "note": "Paramétrage complet" }
+      ]
+    },
+    { "id": "h_gp",    "cat": "Gestion Projet",            "vente": 40,  "actuel": 28,  "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard",
+      "history": [
+        { "date": "2026-02-28", "value": 12, "note": "Réunions lancement" },
+        { "date": "2026-04-30", "value": 28, "note": "Suivi mensuel + comité de pilotage" }
+      ]
+    },
+    { "id": "h_af",    "cat": "Analyse Fonctionnelle",     "vente": 30,  "actuel": 30,  "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard",
+      "history": [
+        { "date": "2026-01-22", "value": 15, "note": "Visite et ateliers" },
+        { "date": "2026-02-28", "value": 30, "note": "AF validée" }
+      ]
+    },
+    { "id": "h_itf",   "cat": "Interfaces ERP",            "vente": 30,  "actuel": 18,  "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard",
+      "history": [
+        { "date": "2026-03-20", "value": 8,  "note": "Spécifications" },
+        { "date": "2026-04-30", "value": 18, "note": "ITM + SUP terminés" }
+      ]
+    },
+    { "id": "h_form",  "cat": "Formation",                 "vente": 20,  "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_tests", "cat": "Tests & Dry Run",           "vente": 20,  "actuel": 5,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard",
+      "history": [
+        { "date": "2026-04-15", "value": 5, "note": "Tests unitaires interfaces ITM/SUP" }
+      ]
+    },
+    { "id": "h_site",  "cat": "Mise sur Site (2 res, 5j)", "vente": 0,   "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_hc",    "cat": "HyperCare à Distance",      "vente": 0,   "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_trsp",  "cat": "Transporteurs",             "vente": 0,   "actuel": 9,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard",
+      "history": [
+        { "date": "2026-05-10", "value": 9, "note": "Intégration API Transporteur 1" }
+      ]
+    },
+    { "id": "h_dir",   "cat": "Directives",                "vente": 0,   "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_srv",   "cat": "Configuration Serveur",     "vente": 0,   "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_env",   "cat": "Enveloppe Customs",         "vente": 80,  "actuel": 47,  "desc": "", "bold": false, "sep": false, "custom": false, "type": "Custom",
+      "history": [
+        { "date": "2026-04-01", "value": 20, "note": "Développement flux préparation spécifique" },
+        { "date": "2026-05-01", "value": 38, "note": "Flux multi-transporteurs" },
+        { "date": "2026-05-20", "value": 47, "note": "Module kitting" }
+      ]
+    }
+  ],
+  "internalTasks": [
+    { "id": "it_01", "action": "Plan de tests fonctionnel",                  "etat": "FAIT",      "temps": 8,  "deadline": "2026-03-31", "urg": 2, "comment": "Transmis au client le 28/03" },
+    { "id": "it_02", "action": "Guide utilisateur",                           "etat": "EN COURS",  "temps": 12, "deadline": "2026-06-15", "urg": 2, "comment": "Draft v0.3 en cours de rédaction" },
+    { "id": "it_03", "action": "EasyMonitor Checks",                          "etat": "FAIT",      "temps": 4,  "deadline": "2026-04-30", "urg": 3, "comment": "" },
+    { "id": "it_04", "action": "Project Validator",                            "etat": "FAIT",      "temps": 2,  "deadline": "2026-04-30", "urg": 3, "comment": "" },
+    { "id": "it_05", "action": "Configuration EasyS",                         "etat": "EN COURS",  "temps": 6,  "deadline": "2026-06-01", "urg": 2, "comment": "" },
+    { "id": "it_06", "action": "Documentation module Livraison (API)",         "etat": "À FAIRE",   "temps": 0,  "deadline": "2026-06-15", "urg": 2, "comment": "" },
+    { "id": "it_07", "action": "Suite des développements",                     "etat": "EN COURS",  "temps": 25, "deadline": "2026-06-20", "urg": 1, "comment": "45% terminé" },
+    { "id": "it_08", "action": "Tests développements + non régression",        "etat": "À FAIRE",   "temps": 0,  "deadline": "2026-06-30", "urg": 1, "comment": "" },
+    { "id": "it_09", "action": "Module Transporteur (config + tests)",         "etat": "EN COURS",  "temps": 9,  "deadline": "2026-06-15", "urg": 2, "comment": "Transporteur 1 intégré, Transporteur 2 en cours" },
+    { "id": "it_10", "action": "Dry Run ERP",                                  "etat": "À FAIRE",   "temps": 0,  "deadline": "2026-07-10", "urg": 2, "comment": "" },
+    { "id": "it_11", "action": "Développements correctifs suite Dry Run ERP",  "etat": "À FAIRE",   "temps": 0,  "deadline": "2026-07-13", "urg": 2, "comment": "" },
+    { "id": "it_12", "action": "Tests par les Key Users",                      "etat": "À FAIRE",   "temps": 0,  "deadline": "2026-07-05", "urg": 2, "comment": "" },
+    { "id": "it_13", "action": "Plan de bascule",                              "etat": "À FAIRE",   "temps": 0,  "deadline": "2026-07-01", "urg": 2, "comment": "" },
+    { "id": "it_14", "action": "Monter et configurer le WMS de production",    "etat": "À FAIRE",   "temps": 0,  "deadline": "2026-07-10", "urg": 2, "comment": "" },
+    { "id": "it_15", "action": "Retravailler chemin de picking",               "etat": "À FAIRE",   "temps": 0,  "deadline": "2026-06-20", "urg": 3, "comment": "" },
+    { "id": "it_16", "action": "Problèmes wifi + config TRF",                  "etat": "À FAIRE",   "temps": 0,  "deadline": "2026-07-01", "urg": 2, "comment": "" },
+    { "id": "it_17", "action": "Process de kit à retravailler",                "etat": "À FAIRE",   "temps": 0,  "deadline": "2026-06-30", "urg": 3, "comment": "" },
+    { "id": "it_18", "action": "Process préparation multi-commandes",          "etat": "À FAIRE",   "temps": 0,  "deadline": "2026-06-30", "urg": 3, "comment": "" }
+  ],
+  "interfaces": [
+    { "id": "itf_01", "type": "Connecteur ERP", "name": "Base Article - ITM",                          "dev": "OUI", "preprod": "OUI", "recMecalux": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_02", "type": "Connecteur ERP", "name": "Base Fournisseurs - SUP",                     "dev": "OUI", "preprod": "OUI", "recMecalux": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_03", "type": "Connecteur ERP", "name": "Préavis de Réception - ROR/ASN",              "dev": "OUI", "preprod": "OUI", "recMecalux": "OUI", "recClient": "NON", "valide": "NON", "comment": "Tests recette client prévus sem. 22" },
+    { "id": "itf_04", "type": "Fichier plat",   "name": "Confirmation Déchargement - Fichier Custom",  "dev": "OUI", "preprod": "OUI", "recMecalux": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_05", "type": "Connecteur ERP", "name": "Clôture Commande d'Achat - ROF",              "dev": "OUI", "preprod": "NON", "recMecalux": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_06", "type": "Connecteur ERP", "name": "Clôture Commande d'Achat - ASO",              "dev": "OUI", "preprod": "NON", "recMecalux": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_07", "type": "Connecteur ERP", "name": "Clôture Commande d'Achat - ASK",              "dev": "NON", "preprod": "NON", "recMecalux": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_08", "type": "Connecteur ERP", "name": "Confirmation de Réception - REF",             "dev": "NON", "preprod": "NON", "recMecalux": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_09", "type": "Connecteur ERP", "name": "Commande Client - SOR",                       "dev": "OUI", "preprod": "NON", "recMecalux": "NON", "recClient": "NON", "valide": "NON", "comment": "Dev 40% — dépend ROF" },
+    { "id": "itf_10", "type": "Connecteur ERP", "name": "Changement d'État de Commande - SOC",         "dev": "NON", "preprod": "NON", "recMecalux": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_11", "type": "Connecteur ERP", "name": "Clôture Commande Client - SOF",               "dev": "NON", "preprod": "NON", "recMecalux": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_12", "type": "Connecteur ERP", "name": "Changement Statut de Stock - STC",            "dev": "NON", "preprod": "NON", "recMecalux": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_13", "type": "Connecteur ERP", "name": "Variation de Stock - STV",                    "dev": "NON", "preprod": "NON", "recMecalux": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_14", "type": "Connecteur ERP", "name": "Demande État de Stock - SCR",                 "dev": "NON", "preprod": "NON", "recMecalux": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_15", "type": "Connecteur ERP", "name": "Image de Stock - WSC",                        "dev": "NON", "preprod": "NON", "recMecalux": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_16", "type": "API REST",        "name": "Appel API Transporteur",                      "dev": "OUI", "preprod": "NON", "recMecalux": "NON", "recClient": "NON", "valide": "NON", "comment": "Transporteur 1 OK, Transporteur 2 en cours" },
+    { "id": "itf_17", "type": "Connecteur ERP", "name": "Erreur d'Intégration - ERR",                  "dev": "NON", "preprod": "NON", "recMecalux": "NON", "recClient": "NON", "valide": "NON", "comment": "" }
+  ],
+  "functional": [
+    { "id": "fn_01", "name": "RÉCEPTION / RETOUR",        "dev": "OUI", "pct": 95, "testMec": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "NON", "formUsers": "NON", "comment": "" },
+    { "id": "fn_02", "name": "RANGEMENT",                 "dev": "OUI", "pct": 90, "testMec": "OUI", "preprod": "OUI", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "" },
+    { "id": "fn_03", "name": "RÉAPPROVISIONNEMENT",       "dev": "OUI", "pct": 80, "testMec": "OUI", "preprod": "NON", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "" },
+    { "id": "fn_04", "name": "INVENTAIRE",                "dev": "OUI", "pct": 85, "testMec": "OUI", "preprod": "OUI", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "" },
+    { "id": "fn_05", "name": "PRÉPARATION",               "dev": "OUI", "pct": 60, "testMec": "OUI", "preprod": "NON", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "Module multi-commandes custom en cours" },
+    { "id": "fn_06", "name": "PICKING",                   "dev": "OUI", "pct": 70, "testMec": "OUI", "preprod": "NON", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "" },
+    { "id": "fn_07", "name": "EMBALLAGE",                 "dev": "OUI", "pct": 75, "testMec": "NON", "preprod": "NON", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "" },
+    { "id": "fn_08", "name": "DOCUMENTATION",             "dev": "OUI", "pct": 50, "testMec": "NON", "preprod": "NON", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "" },
+    { "id": "fn_09", "name": "EXPÉDITION + TRANSPORTEUR", "dev": "OUI", "pct": 40, "testMec": "NON", "preprod": "NON", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "Dépend finalisation interfaces transporteurs" }
+  ],
+  "dryRun": [
+    { "id": "dr_01", "name": "Mise à disposition du plan de l'entrepôt",  "etat": "OK",  "comment": "Plan fourni le 15/04" },
+    { "id": "dr_02", "name": "Création de l'entrepôt dans le WMS",        "etat": "OK",  "comment": "" },
+    { "id": "dr_03", "name": "Validation Wifi",                            "etat": "OK",  "comment": "Couverture complète confirmée" },
+    { "id": "dr_04", "name": "Étiquetage de l'entrepôt",                  "etat": "NON", "comment": "Prévu semaine 27" },
+    { "id": "dr_05", "name": "Plans de tests validés",                     "etat": "NON", "comment": "" },
+    { "id": "dr_06", "name": "DRY RUN ERP validé",                         "etat": "NON", "comment": "" },
+    { "id": "dr_07", "name": "Imprimantes configurées",                    "etat": "NON", "comment": "" },
+    { "id": "dr_08", "name": "TRF configurés",                             "etat": "NON", "comment": "" },
+    { "id": "dr_09", "name": "Développements validés",                     "etat": "NON", "comment": "" },
+    { "id": "dr_10", "name": "Utilisateurs formés (par LogiCorp Distribution)", "etat": "NON", "comment": "" },
+    { "id": "dr_11", "name": "Inventaire des stocks",                      "etat": "NON", "comment": "" }
+  ],
+  "install": [
+    { "id": "in_01", "action": "Plan de l'entrepôt à jour – autorisations vérifiées",    "etat": "Oui", "qui": "LogiCorp Distribution", "deadline": "2026-06-01", "comment": "" },
+    { "id": "in_02", "action": "Entrepôt couvert par le WIFI",                           "etat": "Oui", "qui": "",                      "deadline": "2026-06-01", "comment": "" },
+    { "id": "in_03", "action": "Serveur installé et WMS accessible sans VPN",            "etat": "Oui", "qui": "MECALUX",               "deadline": "2026-07-01", "comment": "Serveur livré le 10/05" },
+    { "id": "in_04", "action": "TRF disponibles et configurés correctement",              "etat": "Non", "qui": "LogiCorp Distribution", "deadline": "2026-07-10", "comment": "" },
+    { "id": "in_05", "action": "Racks installés et étiquetés correctement",              "etat": "Non", "qui": "LogiCorp Distribution", "deadline": "2026-07-05", "comment": "" },
+    { "id": "in_06", "action": "Imprimantes disponibles, alimentées et connectées",      "etat": "Non", "qui": "LogiCorp Distribution", "deadline": "2026-07-10", "comment": "" },
+    { "id": "in_07", "action": "Ordinateurs WMS disponibles et connectés",               "etat": "Non", "qui": "LogiCorp Distribution", "deadline": "2026-07-10", "comment": "" },
+    { "id": "in_08", "action": "Communications WMS ↔ ERP fonctionnelles",               "etat": "Non", "qui": "MECALUX",               "deadline": "2026-07-12", "comment": "" },
+    { "id": "in_09", "action": "Process de l'AF en préproduction",                       "etat": "Non", "qui": "MECALUX",               "deadline": "2026-07-01", "comment": "" },
+    { "id": "in_10", "action": "Process testés et compris par Key Users",                "etat": "Non", "qui": "TOUS",                  "deadline": "2026-07-08", "comment": "" },
+    { "id": "in_11", "action": "Plan de tests fonctionnel rédigé et envoyé",             "etat": "Oui", "qui": "MECALUX",               "deadline": "2026-04-01", "comment": "Envoyé le 28/03" },
+    { "id": "in_12", "action": "Plans de tests WMS validés par le client",               "etat": "Non", "qui": "LogiCorp Distribution", "deadline": "2026-07-05", "comment": "" }
+  ],
+  "billing": {
+    "jalonsProjet": [
+      { "id": "jp_01", "jalon": "OFFRE CONTRAT SIGNÉE",          "date": "2026-01-10", "echeance": "2026-01-31", "etat": "Payé", "pct": 35, "montant": 52500 },
+      { "id": "jp_02", "jalon": "ANALYSE FONCTIONNELLE LIVRÉE",  "date": "2026-03-01", "echeance": "2026-03-15", "etat": "Payé", "pct": 25, "montant": 37500 },
+      { "id": "jp_03", "jalon": "LIVRAISON DÉVELOPPEMENTS",      "date": "",           "echeance": "2026-06-30", "etat": "—",    "pct": 30, "montant": 45000 },
+      { "id": "jp_04", "jalon": "RÉCEPTION DÉFINITIVE",          "date": "",           "echeance": "2026-08-30", "etat": "—",    "pct": 10, "montant": 15000 }
+    ],
+    "jalonsEquipement": [
+      { "id": "je_01", "jalon": "COMMANDE ÉQUIPEMENT",  "date": "2026-02-15", "echeance": "2026-02-28", "etat": "Payé", "pct": 50, "montant": 18000 },
+      { "id": "je_02", "jalon": "LIVRAISON ÉQUIPEMENT", "date": "2026-05-10", "echeance": "2026-05-15", "etat": "Payé", "pct": 50, "montant": 18000 }
+    ]
+  },
+  "customTabs": [
+    {
+      "id": "ct_demo_01",
+      "name": "Points Ouverts",
+      "icon": "📋",
+      "columns": [
+        { "key": "item",    "label": "Élément",      "type": "text",   "editable": true },
+        { "key": "statut",  "label": "Statut",        "type": "select", "options": ["Ouvert", "En cours", "Fermé"], "editable": true },
+        { "key": "comment", "label": "Commentaire",   "type": "text",   "editable": true }
+      ],
+      "rows": [
+        { "id": "r_001", "item": "Validation du chemin de picking zone B avec le chef de dépôt", "statut": "En cours", "comment": "Réunion prévue sem. 23" },
+        { "id": "r_002", "item": "Flux multi-transporteurs : règles de priorité à définir",      "statut": "Ouvert",   "comment": "Attente décision client" },
+        { "id": "r_003", "item": "Paramétrage des zones de préparation atelier kitting",         "statut": "Fermé",    "comment": "Validé le 14/05" },
+        { "id": "r_004", "item": "Accès VPN pour l'équipe MECALUX post-installation",            "statut": "Ouvert",   "comment": "" },
+        { "id": "r_005", "item": "Formation supplémentaire TRF pour 3 opérateurs nuit",         "statut": "Ouvert",   "comment": "À planifier avec RH LogiCorp" }
+      ]
+    }
+  ],
+  "jiraData": {
+    "lastSync": "",
+    "epics": [],
+    "tasks": []
+  }
+}
