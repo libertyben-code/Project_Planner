@@ -491,8 +491,8 @@ function renderGantt() {
             td.addEventListener('click', e => { e.stopPropagation(); showDropdown(td.querySelector('.badge'), STATUS_OPTS, val => { updateTask(task.id,'status',val); renderGantt(); renderDashboard(); }); });
           }
         } else if (lbl === 'PRIORITÉ') {
-          td.style.padding = '2px 6px'; td.innerHTML = prioHTML(task.priority); td.style.cursor = 'pointer';
-          td.addEventListener('click', e => { e.stopPropagation(); showDropdown(td.querySelector('span'), PRIO_OPTS, val => { updateTask(task.id,'priority',val); renderGantt(); }); });
+          if (!task.isUnavail) { td.style.padding = '2px 6px'; td.innerHTML = prioHTML(task.priority); td.style.cursor = 'pointer';
+          td.addEventListener('click', e => { e.stopPropagation(); showDropdown(td.querySelector('span'), PRIO_OPTS, val => { updateTask(task.id,'priority',val); renderGantt(); }); }); }
         } else if (lbl === 'INTITULÉ') {
           td.contentEditable = true; td.textContent = formatTemplate(task.name); td.style.padding = '2px 6px'; td.style.fontWeight = task.isUnavail ? '400' : '500';
           if (done) { td.style.textDecoration = 'line-through'; td.style.color = 'var(--text-muted)'; }
@@ -521,19 +521,23 @@ function renderGantt() {
             td.appendChild(inp);
           }
         } else if (lbl === 'J') {
-          td.style.textAlign = 'center'; td.style.fontSize = '11px';
-          const segs = taskSegments(task);
-          const total = segs.reduce((sum, s) => {
-            if (!s.start || !s.end) return sum;
-            const d = Math.round((new Date(s.end) - new Date(s.start)) / 86400000) + 1;
-            return sum + (d > 0 ? d : 0);
-          }, 0);
-          if (total > 0) td.textContent = total;
+          if (!task.isUnavail) {
+            td.style.textAlign = 'center'; td.style.fontSize = '11px';
+            const segs = taskSegments(task);
+            const total = segs.reduce((sum, s) => {
+              if (!s.start || !s.end) return sum;
+              const d = Math.round((new Date(s.end) - new Date(s.start)) / 86400000) + 1;
+              return sum + (d > 0 ? d : 0);
+            }, 0);
+            if (total > 0) td.textContent = total;
+          }
         } else if (lbl === '% AVA.') {
-          td.style.padding = '2px 6px'; td.style.cursor = 'pointer';
-          const pct = task.progress || 0; const color = getPhaseColor(task);
-          td.innerHTML = `<div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div><span class="progress-pct">${pct}%</span></div>`;
-          td.onclick = () => { const v = prompt("% d'avancement :", pct); if (v !== null && !isNaN(+v)) { updateTask(task.id,'progress',Math.min(100,Math.max(0,+v))); renderGantt(); renderDashboard(); debouncedSave(); } };
+          if (!task.isUnavail) {
+            td.style.padding = '2px 6px'; td.style.cursor = 'pointer';
+            const pct = task.progress || 0; const color = getPhaseColor(task);
+            td.innerHTML = `<div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div><span class="progress-pct">${pct}%</span></div>`;
+            td.onclick = () => { const v = prompt("% d'avancement :", pct); if (v !== null && !isNaN(+v)) { updateTask(task.id,'progress',Math.min(100,Math.max(0,+v))); renderGantt(); renderDashboard(); debouncedSave(); } };
+          }
         } else if (lbl === '') {
           td.style.padding = '1px 4px'; td.style.textAlign = 'center'; td.style.whiteSpace = 'nowrap';
           td.innerHTML = `<button title="Modifier" onclick="openEditTask('${task.id}')" style="background:var(--accent-light);border:none;color:var(--accent);border-radius:4px;padding:2px 7px;cursor:pointer;font-size:10px;font-family:inherit">✏</button>`;
