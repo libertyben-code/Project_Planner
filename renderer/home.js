@@ -454,6 +454,13 @@ window.togglePortfolio = function() {
   document.getElementById('portfolio-chevron').textContent = _portfolioOpen ? '▾' : '▸';
 };
 
+window.togglePfSection = function(id) {
+  const section = document.getElementById(id);
+  if (!section) return;
+  const open = section.classList.toggle('open');
+  section.querySelector('.pf-chevron').textContent = open ? '▾' : '▸';
+};
+
 async function loadPortfolioData() {
   if (!recent.length) {
     document.getElementById('portfolio-loading').textContent = 'Aucun projet dans la liste récente.';
@@ -590,54 +597,90 @@ function renderPortfolio(projects) {
     <div class="pf-kpi"><div class="pf-kpi-val">${totalHoursActual} h</div><div class="pf-kpi-lbl">Heures consommées</div><div class="pf-kpi-sub">/ ${totalHoursSold} h vendues — ${pct(totalHoursActual, totalHoursSold)} %</div></div>
   </div>`;
 
-  // ── Cette semaine ──
-  const weekTasks = projects.flatMap(p =>
+  // ── Cette semaine (grouped by project, sorted by project name then date) ──
+  const weekAllTasks = projects.flatMap(p =>
     [...p.tasks.overdue.map(t => ({ ...t, _proj: p, _late: true })),
      ...p.tasks.thisWeek.map(t => ({ ...t, _proj: p, _late: false }))]
-  ).slice(0, 20);
+  );
+  weekAllTasks.sort((a, b) => {
+    const pCmp = a._proj.name.localeCompare(b._proj.name, 'fr');
+    if (pCmp !== 0) return pCmp;
+    if (a._late !== b._late) return a._late ? -1 : 1;
+    const aEnd = a.segments?.length ? a.segments[a.segments.length-1].end : a.end;
+    const bEnd = b.segments?.length ? b.segments[b.segments.length-1].end : b.end;
+    return (aEnd || '').localeCompare(bEnd || '');
+  });
 
   let weekHtml = '';
-  if (weekTasks.length) {
-    const rows = weekTasks.map(t => {
+  if (weekAllTasks.length) {
+    let lastProj = null;
+    const rows = weekAllTasks.map(t => {
       const end = t.segments?.length ? t.segments[t.segments.length-1].end : t.end;
-      return `<tr class="pf-row" data-path="${esc(t._proj.path)}" onclick="window.openProjectCard(this.dataset.path)" style="cursor:pointer">
-        <td>${t._late ? '<span class="pf-late">⚠</span> ' : ''}${esc(t.name || '')}</td>
-        <td><span class="pf-proj-chip">${esc(t._proj.name)}</span></td>
+      let groupRow = '';
+      if (t._proj.name !== lastProj) {
+        lastProj = t._proj.name;
+        groupRow = `<tr class="pf-group-row" data-path="${esc(t._proj.path)}" onclick="window.openProjectCard(this.dataset.path)"><td colspan="4">${esc(t._proj.name)}</td></tr>`;
+      }
+      return groupRow + `<tr class="pf-row" data-path="${esc(t._proj.path)}" onclick="window.openProjectCard(this.dataset.path)" style="cursor:pointer">
+        <td style="padding-left:20px">${t._late ? '<span class="pf-late">⚠</span> ' : ''}${esc(t.name || '')}</td>
         <td>${esc(t.owner || '—')}</td>
         <td style="white-space:nowrap">${end ? fmtDateShort(end) : '—'}</td>
+        <td>${t._late ? '<span class="pf-late">Retard</span>' : ''}</td>
       </tr>`;
     }).join('');
-    weekHtml = `<div class="pf-section">
-      <div class="pf-section-title">📅 Cette semaine &amp; retards (${weekTasks.length})</div>
-      <table class="pf-table"><thead><tr><th>Tâche</th><th>Projet</th><th>Propriétaire</th><th>Fin prévue</th></tr></thead><tbody>${rows}</tbody></table>
+    weekHtml = `<div class="pf-section pf-collapsible" id="pf-week">
+      <div class="pf-section-title pf-toggle" onclick="window.togglePfSection('pf-week')">
+        <span>📅 Cette semaine &amp; retards</span>
+        <span class="pf-count-badge">${weekAllTasks.length}</span>
+        <span class="pf-chevron">▸</span>
+      </div>
+      <div class="pf-section-body">
+        <table class="pf-table"><thead><tr><th>Tâche</th><th>Propriétaire</th><th>Fin prévue</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      </div>
     </div>`;
   }
 
-  // ── Événements à venir (30 j) ──
+  // ── Événements à venir (30 j, grouped by project) ──
   const upcoming = projects.flatMap(p => [
     ...p.upcomingInstall.filter(e => { const d = new Date(e.date); return d >= today && d <= monthEnd; }),
     ...p.upcomingBilling,
-  ]).sort((a, b) => new Date(a.date) - new Date(b.date)).slice(0, 15);
+  ]);
+  upcoming.sort((a, b) => {
+    const pCmp = (a.project || '').localeCompare(b.project || '', 'fr');
+    if (pCmp !== 0) return pCmp;
+    return new Date(a.date) - new Date(b.date);
+  });
 
   let upcomingHtml = '';
   if (upcoming.length) {
+    let lastProjUp = null;
     const rows = upcoming.map(e => {
       const daysLeft = Math.round((new Date(e.date) - today) / 86400000);
       const urgCls = daysLeft <= 7 ? 'pf-urgent' : daysLeft <= 14 ? 'pf-warn' : '';
       const typeIcon = e.montant !== undefined ? '💶' : (e.delayed ? '⚠ ' : '🏭');
       const detail = e.montant !== undefined ? fmtEur(e.montant) : (e.delayed ? 'Date reportée' : '');
-      const proj = upcoming.filter(x => x !== e && x.project === e.project).length || true; // always show project
-      return `<tr class="pf-row ${urgCls}" data-path="${esc(e.path)}" onclick="window.openProjectCard(this.dataset.path)" style="cursor:pointer">
-        <td style="white-space:nowrap">${fmtDateShort(e.date)}</td>
+      let groupRow = '';
+      if (e.project !== lastProjUp) {
+        lastProjUp = e.project;
+        groupRow = `<tr class="pf-group-row" data-path="${esc(e.path)}" onclick="window.openProjectCard(this.dataset.path)"><td colspan="5">${esc(e.project)}</td></tr>`;
+      }
+      return groupRow + `<tr class="pf-row ${urgCls}" data-path="${esc(e.path)}" onclick="window.openProjectCard(this.dataset.path)" style="cursor:pointer">
+        <td style="white-space:nowrap;padding-left:20px">${fmtDateShort(e.date)}</td>
         <td>${typeIcon} ${esc(e.label)}</td>
-        <td><span class="pf-proj-chip">${esc(e.project)}</span></td>
         <td style="text-align:right">${detail}</td>
         <td><span class="pf-days ${urgCls}">J-${daysLeft}</span></td>
+        <td></td>
       </tr>`;
     }).join('');
-    upcomingHtml = `<div class="pf-section">
-      <div class="pf-section-title">🗓 Événements à venir — 30 jours (${upcoming.length})</div>
-      <table class="pf-table"><thead><tr><th>Date</th><th>Événement</th><th>Projet</th><th style="text-align:right">Montant</th><th>Délai</th></tr></thead><tbody>${rows}</tbody></table>
+    upcomingHtml = `<div class="pf-section pf-collapsible" id="pf-upcoming">
+      <div class="pf-section-title pf-toggle" onclick="window.togglePfSection('pf-upcoming')">
+        <span>🗓 Événements à venir — 30 jours</span>
+        <span class="pf-count-badge">${upcoming.length}</span>
+        <span class="pf-chevron">▸</span>
+      </div>
+      <div class="pf-section-body">
+        <table class="pf-table"><thead><tr><th>Date</th><th>Événement</th><th style="text-align:right">Montant</th><th>Délai</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      </div>
     </div>`;
   }
 

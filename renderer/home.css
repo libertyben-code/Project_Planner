@@ -427,16 +427,56 @@ body {
 .pf-kpi-sub { font-size: 11px; color: var(--text-muted); }
 
 /* Sections */
-.pf-section { margin-bottom: 20px; }
-.pf-section:last-child { margin-bottom: 0; }
+.pf-section {
+  margin-bottom: 0;
+  border-top: 2px solid var(--border);
+  padding: 18px 0 4px;
+}
+.pf-section:first-child { border-top: none; padding-top: 0; }
 .pf-section-title {
   font-size: 12px;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: .06em;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
+.pf-toggle {
+  cursor: pointer;
+  user-select: none;
+}
+.pf-toggle:hover { color: var(--text); }
+.pf-count-badge {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 1px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.pf-chevron { margin-left: auto; font-size: 11px; opacity: .6; }
+.pf-section-body { display: none; padding-bottom: 14px; }
+.pf-collapsible.open .pf-section-body { display: block; }
+
+/* Project group header rows */
+.pf-group-row td {
+  background: var(--surface2);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.pf-group-row:hover td { color: var(--accent); }
 
 /* Tables */
 .pf-table {
@@ -466,7 +506,7 @@ body {
 .pf-row:hover td { background: var(--surface2); }
 
 /* Health table — bigger */
-.pf-health-section { margin-bottom: 28px; }
+.pf-health-section { padding-bottom: 18px; }
 .pf-health-table { font-size: 13.5px; }
 .pf-health-table th { font-size: 11.5px; padding: 8px 10px; }
 .pf-health-table td { padding: 11px 10px; }
