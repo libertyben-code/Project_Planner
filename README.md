@@ -67,8 +67,21 @@ The Gantt chart will display a JIRA phase below your manual phases, and the dash
 
 ## Export
 
-- **PDF**: click **PDF** in the top bar to export the current tab as a PDF.
-- **HTML**: click **HTML** in the top bar, choose which tabs to include, and save a standalone read-only file you can send to the client.
+Three export formats are available from the top bar:
+
+- **PDF** — exports the current tab as a PDF file (native save dialog).
+- **HTML** — choose which tabs to include and save a standalone read-only HTML file you can send to the client or open in any browser.
+- **MD** — exports the full project as a Markdown document (all sections, tables, and checklists).
+
+## Settings
+
+Click the **⚙** icon in the top-right of the home screen to open settings:
+
+- **Default save folder** — choose where new projects are created. If unset, projects are saved to the application's AppData folder (always accessible, never lost).
+
+## Example project
+
+Click **📖 Exemple** in the home screen header (or the button on the empty state) to open a demo project. The app copies the example into your projects folder so you can freely edit it without affecting the original.
 
 ## Keyboard shortcuts
 

@@ -1780,16 +1780,16 @@ function renderCustomTabs() {
 
 function buildCustomTabHTML(tab) {
   const cols = tab.columns;
-  const headerCells = `<th style="width:26px"></th>${cols.map(c=>`<th>${c.label}</th>`).join('')}<th style="width:34px"></th>`;
+  const headerCells = `<th style="width:26px"></th>${cols.map(c=>`<th>${c.label}</th>`).join('')}<th style="width:28px"></th>`;
   const bodyId = `tbody-ct-${tab.id}`;
   return `
     <div class="panel">
       <div class="panel-header">
         <span class="panel-title">${tab.icon||''} ${tab.name}</span>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-ghost btn-sm" onclick="openEditCustomTabModal('${tab.id}')" title="Modifier l'onglet">✏ Modifier</button>
+        <div style="display:flex;gap:6px;align-items:center">
           <button class="btn btn-secondary btn-sm" onclick="addCustomTabRow('${tab.id}')">＋ Ligne</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteCustomTab('${tab.id}')">🗑 Supprimer</button>
+          <button class="btn btn-ghost btn-icon btn-sm" onclick="openEditCustomTabModal('${tab.id}')" title="Modifier l'onglet">✏</button>
+          <button class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" onclick="deleteCustomTab('${tab.id}')" title="Supprimer cet onglet">🗑</button>
         </div>
       </div>
       <div style="padding:0"><table class="data-table">
@@ -1821,7 +1821,7 @@ function renderCustomTabRows(tabId) {
         cells += `<td contenteditable="true" onblur="ctSetCell('${tabId}','${row.id}','${col.key}',this.textContent.trim());debouncedSave()">${val}</td>`;
       }
     });
-    cells += `<td><button class="btn btn-sm btn-danger" onclick="deleteCustomTabRow('${tabId}','${row.id}')">✕</button></td>`;
+    cells += `<td><button class="btn btn-ghost btn-sm" onclick="deleteCustomTabRow('${tabId}','${row.id}')">✕</button></td>`;
     tr.innerHTML = cells;
   });
   makeSortable(tbody, tab.rows, () => { renderCustomTabRows(tabId); debouncedSave(); });
@@ -1890,84 +1890,197 @@ function openExportHTMLModal() {
 function exportSelectAll(val) { document.getElementById('export-tab-list').querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = val); }
 async function doExportHTML() {
   closeModal('modal-export-html');
-  const selectedIds = new Set([...document.getElementById('export-tab-list').querySelectorAll('input:checked')].map(cb => cb.dataset.tabId));
+  const sel = new Set([...document.getElementById('export-tab-list').querySelectorAll('input:checked')].map(cb => cb.dataset.tabId));
 
-  // Fetch and inline CSS (with timeout so a hanging fetch doesn't block the export)
-  let inlineCSS = '';
-  try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 2000);
-    inlineCSS = await fetch('./wms.css', { signal: ctrl.signal }).then(r => r.text());
-    clearTimeout(t);
-  } catch {}
+  const m = projectMeta;
+  const e = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const dt = iso => { if (!iso) return '—'; try { return fmtDateShort(new Date(iso)); } catch { return e(iso); } };
+  const pct = v => `${v||0}%`;
 
-  const clone = document.documentElement.cloneNode(true);
+  // Shared badge helper — green/blue/gray/red based on common values
+  const BADGE_COLORS = {
+    'OUI':'#059669','OK':'#059669','Oui':'#059669','FAIT':'#059669','Terminé':'#059669','Payé':'#059669',
+    'En cours':'#2563eb','EN COURS':'#2563eb','In Progress':'#2563eb',
+    'NON':'#94a3b8','Non':'#94a3b8','À FAIRE':'#94a3b8','À faire':'#94a3b8','—':'#94a3b8',
+    'KO':'#dc2626','BLOQUÉ':'#dc2626','Retard':'#dc2626',
+  };
+  const bdg = v => {
+    const c = BADGE_COLORS[v] || '#64748b';
+    return `<span style="background:${c}22;color:${c};border:1px solid ${c}55;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap">${e(v||'—')}</span>`;
+  };
+  const tblHead = cols => `<thead><tr>${cols.map(c=>`<th>${e(c)}</th>`).join('')}</tr></thead>`;
+  const tblRow  = cells => `<tr>${cells.map(c=>`<td>${c}</td>`).join('')}</tr>`;
 
-  // Replace CSS link with inline style
-  clone.querySelectorAll('link[rel="stylesheet"]').forEach(el => el.remove());
-  const styleEl = document.createElement('style');
-  styleEl.textContent = inlineCSS;
-  clone.querySelector('head').prepend(styleEl);
+  // ── Sections ──────────────────────────────────────────────────────────────
+  const tabDefs = [];
+  const addSection = (id, label, content) => { if (sel.has(id)) tabDefs.push({id, label, content}); };
 
-  // Replace input/select/textarea with static text spans
-  clone.querySelectorAll('input[type="date"],input[type="text"],input[type="number"],textarea').forEach(el => {
-    const span = document.createElement('span'); span.textContent = el.value; el.replaceWith(span);
+  // Dashboard — summary cards
+  const doneT = tasks.filter(t=>t.status==='Terminé').length;
+  const totalT = tasks.filter(t=>t.phaseId!=='INDISPO').length;
+  const instDone = installData.filter(i=>i.etat==='Oui').length;
+  const drDone   = dryrunData.filter(d=>d.etat==='OK').length;
+  const hStd = heuresData.find(r=>r.totalType==='Standard'), hCust = heuresData.find(r=>r.totalType==='Custom');
+  const installStatus = m.installDateActual ? 'Terminé' : m.installDateDelayed ? 'Retardé' : 'En cours';
+  addSection('page-dashboard', 'Tableau de bord', `
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:20px">
+      ${[
+        ['Installation',installStatus,m.installDateDelayed?dt(m.installDateDelayed):dt(m.installDateOriginal)],
+        ['Tâches Gantt',`${doneT}/${totalT} terminées`,''],
+        ['Prérequis Install',`${instDone}/${installData.length}`,''],
+        ['Dry Run',`${drDone}/${dryrunData.length}`,''],
+        ['Heures Standard', hStd?`${hStd.actuel||0}/${hStd.vente||0}h`:'—', ''],
+        ['Heures Custom',   hCust?`${hCust.actuel||0}/${hCust.vente||0}h`:'—', ''],
+      ].map(([lbl,val,sub])=>`<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px"><div style="font-size:11px;color:#64748b;margin-bottom:4px">${e(lbl)}</div><div style="font-size:18px;font-weight:700;color:#1e293b">${e(val)}</div>${sub?`<div style="font-size:11px;color:#94a3b8;margin-top:2px">${e(sub)}</div>`:''}</div>`).join('')}
+    </div>
+    ${m.notes?`<blockquote style="border-left:3px solid #2563eb;margin:0;padding:10px 16px;background:#eff6ff;color:#1e40af;font-style:italic;border-radius:0 6px 6px 0">${e(m.notes)}</blockquote>`:''}
+  `);
+
+  // Planning
+  let planHtml = '';
+  phases.forEach(ph => {
+    const pt = tasks.filter(t=>t.phaseId===ph.id);
+    if (!pt.length) return;
+    planHtml += `<h3 style="font-size:13px;font-weight:600;color:${e(ph.color)};border-left:3px solid ${e(ph.color)};padding-left:8px;margin:18px 0 8px">${e(ph.name)}</h3>
+    <table>${tblHead(['Tâche','Propriétaire','Début','Fin','Statut','%'])}
+    <tbody>${pt.map(t=>tblRow([e(t.name),e(t.owner||'—'),dt(t.start),dt(t.end),bdg(t.status||'—'),pct(t.progress)])).join('')}</tbody></table>`;
   });
-  clone.querySelectorAll('input[type="checkbox"]').forEach(el => {
-    const span = document.createElement('span'); span.textContent = el.checked ? '☑' : '☐'; el.replaceWith(span);
-  });
-  clone.querySelectorAll('select').forEach(el => {
-    const span = document.createElement('span'); span.textContent = el.options[el.selectedIndex]?.text || ''; el.replaceWith(span);
-  });
+  addSection('page-planning', 'Planning', planHtml);
 
-  // Strip editing UI
-  clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
-  clone.querySelectorAll('button').forEach(el => el.remove());
-  clone.querySelectorAll('.modal-overlay,.reload-banner,.undo-toast,.save-indicator,.nav-tab-add,.history-row').forEach(el => el.remove());
-
-  // Keep only selected tabs
-  clone.querySelectorAll('.page').forEach(pg => { if (!selectedIds.has(pg.id)) pg.remove(); });
-  clone.querySelectorAll('.nav-tab[data-page],.nav-tab.nav-tab-custom').forEach(tab => {
-    const pageId = tab.dataset.page; if (!selectedIds.has(pageId)) tab.remove();
+  // Hours
+  let hHtml = `<table>${tblHead(['Catégorie','Vendu (h)','Actuel (h)','Écart'])}<tbody>`;
+  heuresData.forEach(r => {
+    if (r.sep) { hHtml += `<tr><td colspan="4" style="background:#f1f5f9;height:4px;padding:0"></td></tr>`; return; }
+    const ecart = (r.actuel||0)-(r.vente||0);
+    const ecartStr = ecart>0?`<span style="color:#dc2626">+${ecart}</span>`:ecart<0?`<span style="color:#059669">${ecart}</span>`:'0';
+    hHtml += tblRow([r.bold?`<strong>${e(r.cat)}</strong>`:e(r.cat||''), e(r.vente||0), e(r.actuel||0), ecartStr]);
   });
+  hHtml += '</tbody></table>';
+  addSection('page-heures', 'Suivi Heures', hHtml);
 
-  // Activate first selected tab
-  const firstTab = clone.querySelector('.nav-tab[data-page]');
-  if (firstTab) {
-    const pageId = firstTab.dataset.page; firstTab.classList.add('active');
-    const pg = clone.getElementById(pageId); if (pg) pg.classList.add('active');
+  // Internal tasks
+  addSection('page-taches', 'Tâches Internes', `<table>${tblHead(['Action','État','Temps (j)','Échéance','Commentaire'])}<tbody>
+    ${internalTasks.map(t=>tblRow([e(t.action),bdg(t.etat),e(t.temps||'—'),dt(t.deadline),e(t.comment||'')])).join('')}
+  </tbody></table>`);
+
+  // Interfaces
+  addSection('page-interfaces', 'Interfaces ERP', `<table>${tblHead(['Interface','Type','Dev','Préprod','Rec. Mecalux','Rec. Client','Validé','Commentaire'])}<tbody>
+    ${interfacesData.map(i=>tblRow([e(i.name),e(i.type),bdg(i.dev),bdg(i.preprod),bdg(i.recMecalux),bdg(i.recClient),bdg(i.valide),e(i.comment||'')])).join('')}
+  </tbody></table>`);
+
+  // Functional
+  addSection('page-fonctionnel', 'Suivi Fonctionnel', `<table>${tblHead(['Processus','Dev','%','Test Mec.','Préprod','Form. KU','Test Client','Form. Users','Commentaire'])}<tbody>
+    ${fonctionnelData.map(f=>tblRow([e(f.name),bdg(f.dev),pct(f.pct),bdg(f.testMec),bdg(f.preprod),bdg(f.formKU),bdg(f.testClient),bdg(f.formUsers),e(f.comment||'')])).join('')}
+  </tbody></table>`);
+
+  // Dry Run
+  addSection('page-dryrun', 'Prérequis Dry Run', `<table>${tblHead(['','Prérequis','État','Commentaire'])}<tbody>
+    ${dryrunData.map(r=>tblRow([r.etat==='OK'?'✅':'⬜',e(r.name),bdg(r.etat),e(r.comment||'')])).join('')}
+  </tbody></table>`);
+
+  // Install
+  addSection('page-install', 'Prérequis Installation', `<table>${tblHead(['','Action','État','Qui ?','Deadline','Commentaire'])}<tbody>
+    ${installData.map(r=>{const ql=r.qui===TOKEN_CLIENT?e(getClientLabel()):e(r.qui||'—');return tblRow([r.etat==='Oui'?'✅':'⬜',e(r.action),bdg(r.etat),ql,dt(r.deadline),e(r.comment||'')])}).join('')}
+  </tbody></table>`);
+
+  // Billing
+  let factHtml = '';
+  if (jalonsProjet.length) {
+    factHtml += `<h3 style="font-size:13px;font-weight:600;margin:0 0 8px">Jalons Projet</h3>
+    <table>${tblHead(['Jalon','%','Montant','Échéance','Date paiement','État'])}<tbody>
+    ${jalonsProjet.map(j=>tblRow([e(j.jalon),pct(j.pct),e(fmtMontant(j.montant)),dt(j.echeance),dt(j.date),bdg(j.etat)])).join('')}
+    </tbody></table>`;
   }
+  if (jalonsEquip.length) {
+    factHtml += `<h3 style="font-size:13px;font-weight:600;margin:16px 0 8px">Jalons Équipement</h3>
+    <table>${tblHead(['Jalon','%','Montant','Échéance','Date paiement','État'])}<tbody>
+    ${jalonsEquip.map(j=>tblRow([e(j.jalon),pct(j.pct),e(fmtMontant(j.montant)),dt(j.echeance),dt(j.date),bdg(j.etat)])).join('')}
+    </tbody></table>`;
+  }
+  addSection('page-facturation', 'Facturation', factHtml);
 
-  // Confidentiality header
-  const headerDiv = document.createElement('div');
-  headerDiv.style.cssText = 'background:#1e3a5f;color:#fff;padding:8px 20px;font-size:13px;font-family:sans-serif;position:sticky;top:0;z-index:100;display:flex;gap:16px;align-items:center';
-  headerDiv.innerHTML = `<strong>DOCUMENT CONFIDENTIEL</strong><span>—</span><span>${projectMeta.client||''}</span><span>—</span><span>${projectMeta.name||''}</span><span style="margin-left:auto">Exporté le ${new Date().toLocaleDateString('fr-FR')}</span>`;
-  clone.querySelector('body').prepend(headerDiv);
+  // Custom tabs
+  customTabs.forEach(ct => {
+    if (!sel.has('page-ct-' + ct.id) || !ct.columns?.length) return;
+    const ctHtml = ct.rows?.length
+      ? `<table>${tblHead(ct.columns.map(c=>c.label))}<tbody>
+          ${ct.rows.map(r=>tblRow(ct.columns.map(c=>e(r[c.key]??'')))).join('')}
+         </tbody></table>`
+      : '<p style="color:#94a3b8;font-style:italic">Aucune ligne.</p>';
+    tabDefs.push({id:'page-ct-'+ct.id, label:(ct.icon||'')+' '+ct.name, content: ctHtml});
+  });
 
-  // Remove all scripts; embed project state for reference
-  clone.querySelectorAll('script').forEach(s => s.remove());
-  const stateScript = document.createElement('script');
-  stateScript.textContent = `const PROJECT_DATA=${JSON.stringify(buildState())};`;
-  clone.querySelector('head').appendChild(stateScript);
+  if (!tabDefs.length) { alert('Sélectionnez au moins un onglet.'); return; }
 
-  // Minimal nav click handler (read-only tab switching)
-  const navScript = document.createElement('script');
-  navScript.textContent = `document.querySelectorAll('.nav-tab[data-page]').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));t.classList.add('active');const p=document.getElementById(t.dataset.page);if(p)p.classList.add('active');}));`;
-  clone.querySelector('body').appendChild(navScript);
+  // ── Assemble HTML ──────────────────────────────────────────────────────────
+  const installLine = m.installDateDelayed
+    ? `<td><strong>Installation</strong></td><td><s>${dt(m.installDateOriginal)}</s> → <span style="color:#d97706">${dt(m.installDateDelayed)}</span>${m.installDateComment?` <em style="color:#94a3b8">(${e(m.installDateComment)})</em>`:''}</td>`
+    : `<td><strong>Installation prévue</strong></td><td>${dt(m.installDateOriginal)}</td>`;
 
-  const html = '<!DOCTYPE html>\n' + clone.outerHTML;
-  const name = (projectMeta.client||'export').replace(/\s+/g,'_') + '_' + (projectMeta.name||'projet').replace(/\s+/g,'_');
+  const tabBtns = tabDefs.map((t,i)=>`<button class="tb${i===0?' active':''}" onclick="st(${i})">${e(t.label)}</button>`).join('');
+  const tabPages = tabDefs.map((t,i)=>`<div class="tp" id="tp${i}" style="display:${i===0?'block':'none'}">${t.content}</div>`).join('');
 
+  const html = `<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8">
+<title>${e(m.name||'Export')} — ${e(m.client||'')}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1e293b;font-size:13px;background:#fff}
+.hdr{background:#1e3a5f;color:#fff;padding:8px 20px;display:flex;gap:16px;align-items:center;font-size:12px;position:sticky;top:0;z-index:10}
+.hdr strong{font-size:13px}.hdr span:last-child{margin-left:auto}
+.body{padding:20px 24px}
+h1{font-size:20px;font-weight:700;margin-bottom:16px;color:#1e293b}
+h3{font-size:13px;font-weight:600;color:#374151}
+.meta{border-collapse:collapse;margin-bottom:16px;font-size:12px}
+.meta td{padding:3px 12px 3px 0;vertical-align:top}
+.meta td:first-child{color:#64748b;white-space:nowrap;padding-right:16px}
+.tnav{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:16px;border-bottom:2px solid #e2e8f0;padding-bottom:8px}
+.tb{background:none;border:none;padding:6px 14px;font-size:12px;font-weight:500;cursor:pointer;color:#64748b;border-radius:6px 6px 0 0;border:1px solid transparent}
+.tb:hover{background:#f1f5f9;color:#1e293b}
+.tb.active{background:#2563eb;color:#fff;border-color:#2563eb}
+table{border-collapse:collapse;width:100%;margin-bottom:12px;font-size:12px}
+thead tr{background:#f1f5f9}
+th{text-align:left;padding:6px 10px;border:1px solid #e2e8f0;font-weight:600;font-size:11px;color:#374151;white-space:nowrap}
+td{padding:5px 10px;border:1px solid #e2e8f0;vertical-align:top}
+tr:nth-child(even) td{background:#f8fafc}
+footer{margin-top:32px;padding-top:12px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;text-align:center}
+</style></head>
+<body>
+<div class="hdr"><strong>DOCUMENT CONFIDENTIEL</strong><span>${e(m.client||'')}</span><span>—</span><span>${e(m.name||'')}</span><span>Exporté le ${new Date().toLocaleDateString('fr-FR')}</span></div>
+<div class="body">
+<h1>${e(m.name||'Projet')}</h1>
+<table class="meta"><tbody>
+  <tr><td>Client</td><td><strong>${e(m.client||'—')}</strong></td><td style="padding-left:24px">Dir. Projet</td><td>${e(m.pm||'—')}</td></tr>
+  <tr><td>CDP Technique</td><td>${e(m.cdptech||'—')}</td><td style="padding-left:24px">Resp. Logistique</td><td>${e(m.respLog||'—')}</td></tr>
+  <tr><td>Consultant ERP</td><td>${e(m.erpConsult||'—')}</td><td style="padding-left:24px">Date de début</td><td>${dt(m.startDate)}</td></tr>
+  <tr>${installLine}</tr>
+  ${m.installDateActual?`<tr><td>Installation réelle</td><td style="color:#059669;font-weight:600">${dt(m.installDateActual)}</td></tr>`:''}
+</tbody></table>
+<nav class="tnav">${tabBtns}</nav>
+${tabPages}
+<footer>WMS Project Planner — ${e(m.name||'')} — ${e(m.client||'')} — ${new Date().toLocaleDateString('fr-FR')}</footer>
+</div>
+<script>function st(i){document.querySelectorAll('.tp').forEach((p,j)=>p.style.display=j===i?'block':'none');document.querySelectorAll('.tb').forEach((b,j)=>b.classList.toggle('active',j===i));}</script>
+</body></html>`;
+
+  const name = ((m.client||'export')+'_'+(m.name||'projet')).replace(/\s+/g,'_').replace(/[^\w\-]/g,'');
   try {
     const result = await invoke('export_html_dialog', { name });
     if (!result) return;
     if (result._browserDownload) {
-      await invoke('export_html_write', { content: html, filename: result.filename });
+      const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download=result.filename; a.click();
+      URL.revokeObjectURL(url);
     } else {
       await invoke('write_project', { path: result, data: html });
     }
     showSaveIndicator('saved');
-  } catch (e) { console.error('Export HTML error:', e); alert('Erreur export HTML : ' + e); }
+  } catch (err) {
+    showSaveIndicator('error');
+    console.error('Export HTML error:', err);
+    alert('Erreur export HTML : ' + err);
+  }
 }
 
 // ═══ MARKDOWN EXPORT ═══

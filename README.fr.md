@@ -67,8 +67,21 @@ Le diagramme de Gantt affichera une phase JIRA sous vos phases manuelles, et le 
 
 ## Export
 
-- **PDF** : cliquez sur **PDF** dans la barre du haut pour exporter l'onglet courant en PDF.
-- **HTML** : cliquez sur **HTML** dans la barre du haut, choisissez les onglets à inclure et enregistrez un fichier autonome en lecture seule que vous pouvez envoyer au client.
+Trois formats d'export sont disponibles depuis la barre du haut :
+
+- **PDF** — exporte l'onglet courant en PDF (boîte de dialogue d'enregistrement native).
+- **HTML** — choisissez les onglets à inclure et enregistrez un fichier HTML autonome en lecture seule que vous pouvez envoyer au client ou ouvrir dans n'importe quel navigateur.
+- **MD** — exporte le projet complet en document Markdown (toutes les sections, tableaux et checklists).
+
+## Paramètres
+
+Cliquez sur l'icône **⚙** en haut à droite de l'écran d'accueil pour ouvrir les paramètres :
+
+- **Dossier de sauvegarde par défaut** — choisissez où les nouveaux projets sont créés. Si non défini, les projets sont enregistrés dans le dossier AppData de l'application (toujours accessible, jamais perdu).
+
+## Projet exemple
+
+Cliquez sur **📖 Exemple** dans l'en-tête de l'écran d'accueil (ou sur le bouton de l'état vide) pour ouvrir un projet de démonstration. L'application copie l'exemple dans votre dossier projets afin que vous puissiez le modifier librement sans affecter l'original.
 
 ## Raccourcis clavier
 
