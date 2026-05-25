@@ -486,7 +486,7 @@ function renderGantt() {
         if (lbl === 'STATUT') {
           if (_ganttEditMode) {
             td.innerHTML = `<span class="drag-handle gantt-drag-handle" title="Déplacer la tâche" style="display:block;text-align:center">⠿</span>`;
-          } else {
+          } else if (!task.isUnavail) {
             td.className += ' status-cell'; td.innerHTML = statusBadgeHTML(task.status); td.style.cursor = 'pointer';
             td.addEventListener('click', e => { e.stopPropagation(); showDropdown(td.querySelector('.badge'), STATUS_OPTS, val => { updateTask(task.id,'status',val); renderGantt(); renderDashboard(); }); });
           }
