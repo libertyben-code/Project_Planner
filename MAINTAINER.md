@@ -33,8 +33,7 @@ Project_Planner/
 | Branch | Purpose |
 | --- | --- |
 | `main` | Stable, smoke-tested releases |
-| `feature/tauri-rebuild` | Main development branch |
-| `feature/multi-segment-gantt` | Multi-period task bars (holidays / unavailability) |
+| `feature/*` | Feature branches — merge to `main` after smoke test |
 
 All work happens on feature branches. Merge to `main` only after the smoke test below.
 
@@ -84,22 +83,24 @@ Auto-save: every mutation calls `debouncedSave()` (800 ms debounce). `saveProjec
 
 ### Portfolio dashboard
 
-Shown above the project grid on the home screen. Loaded at startup by `loadPortfolioData()`, which reads every file in `recent[]` in parallel via `Promise.allSettled` and passes the results to `renderPortfolio(projects)`.
+Shown above the project grid on the home screen. Loaded at startup by `loadPortfolioData()`, which reads every file in `recent[]` in parallel via `Promise.allSettled` and passes the results to `renderPortfolio(projects)`. After a successful load, fresh `rag` values from project files are synced back into `recent[]` so home screen card borders stay current.
 
-Sections:
+Sections rendered in this order:
 
-- **KPI strip** — active/completed count, RAG distribution, total overdue tasks, total billing collected, total hours consumed.
-- **Cette semaine & retards** — cross-project list of overdue tasks and tasks due within 7 days (capped at 20 rows).
-- **Événements à venir — 30 jours** — upcoming billing milestones and install dates, sorted by date, with a J-N countdown chip.
-- **Santé du portefeuille** — one row per project: RAG dot, task progress bar, hours consumed vs. sold, billing collected, install date, checklist counts.
+- **Santé du portefeuille** — always expanded; one row per project: RAG dot, task progress bar, hours consumed vs. sold, billing collected, install date, checklist counts. Uses `.pf-health-table` for larger row height.
+- **KPI strip** — aggregate counts: active/completed, RAG distribution, total overdue tasks, total billing, total hours.
+- **Cette semaine & retards** — collapsed by default (`pf-collapsible` + `pf-toggle`). Rows grouped by project under `.pf-group-row` headers; within each project sorted overdue-first then by date. Toggle via `togglePfSection('pf-week')`.
+- **Événements à venir — 30 jours** — collapsed by default. Billing milestones and install dates grouped by project, sorted by project name then date. Toggle via `togglePfSection('pf-upcoming')`.
 
-Clicking any row navigates directly to that project via `openProjectCard(path)`.
+Clicking any data row navigates to that project via `window.openProjectCard(this.dataset.path)` (uses `data-path` attribute, never inline path string — see Windows path safety).
 
-The section is collapsible (`togglePortfolio()`). Files that fail to read are silently skipped (graceful degradation).
+The outer section is collapsible (`togglePortfolio()`). Files that fail to read are silently skipped (graceful degradation via `Promise.allSettled`).
 
 ### RAG status
 
-`projectMeta.rag` — `'R' | 'A' | 'G' | undefined`. Set by `setRag(val)` from the dashboard toolbar buttons. `_syncRagUI()` applies the active ring and the nav-logo dot; called at the end of `renderDashboard()`. The home screen reads `rag` from the recent entry (stored by `addToRecent`) and renders a `.rag-dot-{r|a|g}` span.
+`projectMeta.rag` — `'R' | 'A' | 'G' | ''`. Set by `setRag(val)`, callable from the navbar pill dropdown. `_syncRagUI()` updates `#rag-nav-dot` (class `rag-dot-{r|a|g}`) and `#rag-nav-lbl` text; called at the end of `renderDashboard()`. The dropdown (`#rag-nav-dropdown`) is toggled by `toggleRagDropdown(e)` and closed by `closeRagDropdown()` (also wired to `document.addEventListener('click', ...)`).
+
+The home screen card border reflects RAG via `.rag-border-{g|a|r}` on `.project-card`. The `recent[]` entry is updated (1) when a project is saved via `addToRecent`, and (2) after `loadPortfolioData()` syncs fresh values from every project file.
 
 ### This week panel
 
@@ -272,4 +273,6 @@ The portable `.exe` is the primary sharing artifact. WebView2 is pre-installed o
 6. Open example project — verify it loads a pre-filled copy in the projects folder.
 7. Change save folder in settings — create a project and confirm it lands in the chosen folder.
 8. Add a multi-period task (2+ segments) with Indisponibilité checked — confirm Statut/Priorité/J/Avancement cells are blank and each period renders a separate bar.
-9. `WMSPlanner.exe` runs on a machine without Node or Rust installed.
+9. Set RAG to Rouge via the navbar pill — confirm pill turns red, home screen card left border turns red after returning home.
+10. On the home screen with 2+ projects, verify the portfolio "Santé du portefeuille" table is visible; click "Cette semaine" header — confirm it expands and rows are grouped by project.
+11. `WMSPlanner.exe` runs on a machine without Node or Rust installed.

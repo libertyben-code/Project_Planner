@@ -47,18 +47,18 @@ The app creates a blank `.wmsplan` file and opens the project. Every change is s
 
 A collapsible **📊 Vue d'ensemble du portefeuille** section sits above the project cards and gives a cross-project view:
 
+- **Santé du portefeuille** — always visible at the top: one row per project showing RAG status, task progress bar, hours consumed vs. sold, billing collected, install date, and checklist counts.
 - **KPI strip** — active projects, RAG breakdown, total overdue tasks, total billing collected, total hours consumed.
-- **Cette semaine & retards** — tasks overdue or due within 7 days across all projects, with project name, owner, and due date. Clicking a row opens that project.
-- **Événements à venir — 30 jours** — upcoming billing milestones and install dates in the next 30 days, with a J-N countdown chip.
-- **Santé du portefeuille** — one row per project showing RAG status, task progress bar, hours consumed vs. sold, billing collected, install date, and checklist counts.
+- **Cette semaine & retards** — collapsed by default; click the header to expand. Tasks overdue or due within 7 days, grouped by project. Clicking a row opens that project.
+- **Événements à venir — 30 jours** — collapsed by default; click the header to expand. Upcoming billing milestones and install dates in the next 30 days, grouped by project, with a J-N countdown chip.
 
-Click the header to collapse/expand the dashboard.
+Each project card has a **colored left border** showing its RAG status (green / orange / red). Click the portfolio header to collapse/expand the entire dashboard.
 
 ## Tableau de bord
 
-- **Statut RAG** — click the ●●● dots in the dashboard toolbar to set the project status (Green = OK, Amber = attention, Red = blocked). The dot appears in the nav bar and on the home screen project card.
+- **Statut RAG** — click the status pill next to **WMS Planning** in the nav bar to set the project status (Vert = OK, Orange = Attention, Rouge = Bloqué). The pill updates immediately and the home screen card border reflects the status after the next portfolio load.
 - **Cette semaine** — a panel below the KPIs lists overdue tasks and tasks ending within 7 days, grouped by section, with owner and due date.
-- **⇄ Onglets** — opens the tab manager: drag to reorder, rename any tab, hide tabs you don't use. Resets per project.
+- **⇄ Onglets** — opens the tab manager from the nav bar: drag to reorder, rename any tab, hide tabs you don't use. Resets per project.
 
 ## Planning (Gantt)
 
