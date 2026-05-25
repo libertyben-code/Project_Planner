@@ -71,11 +71,12 @@ function cardHTML(p) {
 
   // Path stored in data-path attribute (HTML-safe); onclick reads it back via dataset.path
   // This avoids JS escape sequence corruption of Windows backslashes in inline onclick strings.
+  const ragDot = p.rag ? `<span class="rag-dot rag-dot-${p.rag.toLowerCase()}" style="margin-left:6px" title="Statut : ${p.rag === 'G' ? 'OK' : p.rag === 'A' ? 'Attention' : 'Bloqué'}"></span>` : '';
   return `<div class="project-card" data-path="${esc(p.path)}" onclick="openProjectCard(this.dataset.path)">
     <div class="card-top">
       <div class="card-icon">📋</div>
       <div class="card-title-block">
-        <div class="card-name">${esc(p.name)}</div>
+        <div class="card-name">${esc(p.name)}${ragDot}</div>
         <div class="card-client">${esc(p.client || '—')}</div>
       </div>
       ${badge}
@@ -330,6 +331,7 @@ async function addToRecent(meta, path) {
     installDateOriginal: meta.installDateOriginal,
     installDateDelayed:  meta.installDateDelayed,
     installDateActual:   meta.installDateActual,
+    rag:                meta.rag || '',
     path,
     updatedAt:          meta.updatedAt,
     installProgress,

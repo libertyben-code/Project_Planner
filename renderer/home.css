@@ -156,7 +156,12 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
+.rag-dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.rag-dot-g{background:#16a34a;}.rag-dot-a{background:#ea580c;}.rag-dot-r{background:#dc2626;}
 .card-client {
   font-size: 12px;
   color: var(--text-muted);
