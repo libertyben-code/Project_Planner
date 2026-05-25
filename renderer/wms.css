@@ -54,7 +54,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .col-statut{width:116px;}.col-priorite{width:74px;}.col-intitule{width:260px;}.col-proprio{width:92px;}
 .col-debut{width:85px;}.col-fin{width:85px;}.col-jours{width:40px;text-align:center;}.col-avancement{width:82px;}.col-week{width:22px;text-align:center;}
 .th-month{background:#1a2332;color:#fff;font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;padding:5px 4px;text-align:center;border-right:1px solid rgba(255,255,255,.1);}
-.th-fixed{background:var(--surface2);font-size:10px;font-weight:600;color:var(--text-muted);letter-spacing:.4px;text-transform:uppercase;padding:5px 7px;text-align:left;border-bottom:1px solid var(--border);}
+.th-fixed{background:var(--surface2);font-size:11px;font-weight:600;color:var(--text-muted);letter-spacing:.4px;text-transform:uppercase;padding:8px 7px;text-align:left;border-bottom:1px solid var(--border);}
 .th-week{background:var(--surface2);font-size:8.5px;font-weight:500;color:var(--text-muted);padding:4px 1px;text-align:center;border-bottom:1px solid var(--border);}
 .tr-phase td{font-weight:700;font-size:11px;letter-spacing:.3px;text-transform:uppercase;padding:5px 10px;color:#fff;border-right:1px solid rgba(255,255,255,.08);}
 .tr-task td{padding:2px 6px;border-bottom:1px solid var(--border);font-size:11.5px;vertical-align:middle;}

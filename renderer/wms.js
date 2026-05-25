@@ -1946,6 +1946,7 @@ function renderCustomTabRows(tabId) {
     tr.innerHTML = cells;
   });
   makeSortable(tbody, tab.rows, () => { renderCustomTabRows(tabId); debouncedSave(); });
+  makeResizable('tbody-ct-' + tabId);
 }
 
 function ctSetCell(tabId, rowId, key, value) {
