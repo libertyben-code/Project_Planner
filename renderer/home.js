@@ -58,7 +58,9 @@ function cardHTML(p) {
   const installPct = p.installProgress || '—';
   const dryPct    = p.dryRunProgress  || '—';
 
-  return `<div class="project-card" onclick="openProjectCard('${esc(p.path)}')">
+  // Path stored in data-path attribute (HTML-safe); onclick reads it back via dataset.path
+  // This avoids JS escape sequence corruption of Windows backslashes in inline onclick strings.
+  return `<div class="project-card" data-path="${esc(p.path)}" onclick="openProjectCard(this.dataset.path)">
     <div class="card-top">
       <div class="card-icon">📋</div>
       <div class="card-title-block">
@@ -79,10 +81,10 @@ function cardHTML(p) {
     <div class="card-footer">
       <div class="card-date">Modifié ${updated}</div>
       <div class="card-actions" onclick="event.stopPropagation()">
-        <button class="btn btn-ghost btn-icon btn-sm" title="Partager (ouvrir dans l'explorateur)" onclick="shareProject('${esc(p.path)}')">📤</button>
-        <button class="btn btn-ghost btn-icon btn-sm" title="Dupliquer" onclick="duplicateProject('${esc(p.path)}')">⧉</button>
-        <button class="btn btn-ghost btn-icon btn-sm" title="Retirer de la liste (conserver le fichier)" onclick="removeFromRecent('${esc(p.path)}')">✕</button>
-        <button class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="Supprimer définitivement" onclick="deleteProject('${esc(p.path)}')">🗑</button>
+        <button class="btn btn-ghost btn-icon btn-sm" title="Partager (ouvrir dans l'explorateur)" onclick="shareProject(this.closest('.project-card').dataset.path)">📤</button>
+        <button class="btn btn-ghost btn-icon btn-sm" title="Dupliquer" onclick="duplicateProject(this.closest('.project-card').dataset.path)">⧉</button>
+        <button class="btn btn-ghost btn-icon btn-sm" title="Retirer de la liste (conserver le fichier)" onclick="removeFromRecent(this.closest('.project-card').dataset.path)">✕</button>
+        <button class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="Supprimer définitivement" onclick="deleteProject(this.closest('.project-card').dataset.path)">🗑</button>
       </div>
     </div>
   </div>`;
