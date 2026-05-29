@@ -213,18 +213,22 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - Portfolio auto-refresh after project delete, remove-from-recent, and duplicate
 - WORKFLOW.md, README.md, README.en.md, MAINTAINER.md updated
 
+### 2026-05-29 — Polish pass (`feature/phase-collapse-dashboard-polish`)
+
+- **Collapsible Gantt phases**: toggle ▼/▶ button on each phase row; collapsed state stored in `_collapsedPhases` Set (resets on reload)
+- **Dashboard Personnaliser**: modal now includes all items — Cartes KPI, Indicateur dérive installation, Tâches de la semaine + 8 graphiques; `isChartVisible()` applied in `renderDashboard`, `renderInstallDrift`, `renderThisWeek`
+- **Tauri identifier**: `com.mecalux.wmsplanner` → `com.wmsplanner.app` (removes "mecalux" from AppData path)
+- **PDF export**: header label changed from "Chef de Projet" → "Directeur de Projet" (field `pm`)
+- **Interfaces / Fonctionnel column headers**: "Recette Mecalux" / "Test Mecalux" now use `_companyName` from Settings dynamically, updated in `renderInterfaces()` and `renderFonctionnel()`
+- **HTML export button**: temporarily disabled pending formatting review (code preserved, button commented out in `app.html`)
+
 ---
 
 ## Pending items (summary from FEEDBACK.md as of 2026-05-29)
 
-**Gantt:**
-- Collapsible phases (reduce to phase-name row)
-
-**Dashboard:**
-- Update "Personnaliser" modal to list all charts/cards
-
 **Export:**
-- HTML export formatting doesn't match app
+
+- HTML export formatting doesn't match app (button disabled — pending review)
 
 **General:**
 - Per-project auto-save folder with regular intervals
@@ -236,3 +240,4 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - Global resource calendar (CDP Tech / DP availability, synced from Google Calendar)
 - Client test tracking process integration
 - Excel import as a new tab
+- Zoom in/out on Gantt (Ctrl+scroll or +/- buttons)
