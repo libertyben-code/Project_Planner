@@ -43,16 +43,18 @@ L'application crée un fichier `.wmsplan` vierge et ouvre le projet. Chaque modi
 - Chaque membre de l'équipe l'ouvre avec sa propre copie de l'application.
 - Si quelqu'un d'autre sauvegarde pendant que vous avez le fichier ouvert, une bannière apparaît en haut : cliquez sur **Recharger** pour récupérer ses modifications.
 
-## Écran d'accueil — Vue d'ensemble du portefeuille
+## Écran d'accueil
 
-Une section **📊 Vue d'ensemble du portefeuille** repliable s'affiche au-dessus des cartes projets et donne une vue transversale :
+L'écran d'accueil comporte deux onglets dans la barre du haut :
 
-- **Santé du portefeuille** — toujours visible en tête : une ligne par projet avec statut RAG, avancement des tâches, heures consommées/vendues, facturation, date d'installation et scores des checklists.
-- **Bandeau KPIs** — projets actifs, répartition RAG, total des tâches en retard, facturation encaissée, heures consommées.
-- **Cette semaine & retards** — replié par défaut ; cliquez sur l'en-tête pour déplier. Tâches en retard ou se terminant dans les 7 prochains jours, regroupées par projet. Cliquer sur une ligne ouvre le projet.
-- **Événements à venir — 30 jours** — replié par défaut ; cliquez sur l'en-tête pour déplier. Jalons de facturation et dates d'installation prévus dans les 30 prochains jours, regroupés par projet, avec compteur J-N.
+- **📋 Projets récents** — cartes projets, recherche, création, ouverture, duplication, partage, suppression.
+- **📊 Portfolio** — vue transversale de tous les projets :
+  - **Santé du portefeuille** — une ligne par projet avec statut RAG, avancement des tâches, heures consommées/vendues, facturation, date d'installation et scores des checklists.
+  - **Bandeau KPIs** — projets actifs, répartition RAG, total des tâches en retard, facturation encaissée, heures consommées.
+  - **Cette semaine & retards** — replié par défaut ; cliquez sur l'en-tête pour déplier. Tâches en retard ou se terminant dans les 7 prochains jours, regroupées par projet.
+  - **Événements à venir — 30 jours** — replié par défaut. Jalons de facturation et dates d'installation dans les 30 prochains jours, avec compteur J-N.
 
-Chaque carte projet a une **bordure gauche colorée** indiquant le statut RAG (vert / orange / rouge). Cliquez sur l'en-tête du portefeuille pour replier/déplier l'ensemble du tableau de bord.
+Chaque carte projet a une **bordure gauche colorée** indiquant le statut RAG (vert / orange / rouge). Le portfolio se rafraîchit automatiquement après l'ajout, la suppression ou la duplication d'un projet.
 
 ## Tableau de bord
 
@@ -112,7 +114,9 @@ Trois formats d'export sont disponibles depuis la barre du haut :
 
 Cliquez sur l'icône **⚙** en haut à droite de l'écran d'accueil pour ouvrir les paramètres :
 
+- **Nom de la société intégratrice** — remplace "COMPANY" dans le champ Propriétaire de toutes les tâches.
 - **Dossier de sauvegarde par défaut** — choisissez où les nouveaux projets sont créés. Si non défini, les projets sont enregistrés dans le dossier AppData de l'application (toujours accessible, jamais perdu).
+- **Mode clair** — bascule l'interface entre le mode sombre (défaut) et le mode clair. Le réglage est mémorisé.
 
 ## Projet exemple
 
