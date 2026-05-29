@@ -28,6 +28,81 @@ fn write_file_bytes(path: String, bytes: Vec<u8>) -> Result<(), String> {
     fs::write(&path, bytes).map_err(|e| format!("Écriture impossible: {}", e))
 }
 
+// ── Daily backup (one per day, stored in Backup/ sibling folder) ─────────────
+
+fn unix_to_date_str(secs: u64) -> String {
+    let mut days = secs / 86400;
+    let mut year = 1970u32;
+    loop {
+        let days_in_year = if is_leap_year(year) { 366 } else { 365 };
+        if days < days_in_year { break; }
+        days -= days_in_year;
+        year += 1;
+    }
+    let months = if is_leap_year(year) {
+        [31u64,29,31,30,31,30,31,31,30,31,30,31]
+    } else {
+        [31u64,28,31,30,31,30,31,31,30,31,30,31]
+    };
+    let mut month = 1u32;
+    for &m in &months {
+        if days < m { break; }
+        days -= m;
+        month += 1;
+    }
+    let day = days as u32 + 1;
+    format!("{}{:02}{:02}", year, month, day)
+}
+
+fn is_leap_year(year: u32) -> bool {
+    (year % 4 == 0 && year % 100 != 0) || year % 400 == 0
+}
+
+#[tauri::command]
+fn write_daily_backup(path: String) -> Result<(), String> {
+    let src = PathBuf::from(&path);
+    if !src.exists() { return Ok(()); }
+
+    let stem = src
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("backup")
+        .to_string();
+
+    let backup_dir = src
+        .parent()
+        .unwrap_or_else(|| std::path::Path::new("."))
+        .join("Backup");
+
+    fs::create_dir_all(&backup_dir)
+        .map_err(|e| format!("Création dossier Backup impossible: {}", e))?;
+
+    let ts = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    let date_str = unix_to_date_str(ts);
+
+    let backup_path = backup_dir.join(format!("{}_{}.wmsplan", stem, date_str));
+    fs::copy(&src, &backup_path)
+        .map_err(|e| format!("Backup journalier impossible: {}", e))?;
+
+    // Keep last 30 daily backups
+    let mut entries: Vec<_> = fs::read_dir(&backup_dir)
+        .map_err(|e| e.to_string())?
+        .filter_map(|e| e.ok())
+        .filter(|e| e.path().extension().map(|x| x == "wmsplan").unwrap_or(false))
+        .collect();
+    entries.sort_by_key(|e| e.file_name());
+    if entries.len() > 30 {
+        for old in &entries[..entries.len() - 30] {
+            fs::remove_file(old.path()).ok();
+        }
+    }
+
+    Ok(())
+}
+
 // ── Versioned backup (keeps last 10, stored in app data dir) ─────────────────
 
 #[tauri::command]
@@ -312,6 +387,7 @@ pub fn run() {
             write_project,
             write_file_bytes,
             write_project_backup,
+            write_daily_backup,
             get_new_project_path,
             read_recent,
             write_recent,

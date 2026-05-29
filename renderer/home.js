@@ -7,15 +7,15 @@ setWindowTitle('WMS Project Planner');
 let recent = [];       // [{ name, client, pm, path, updatedAt, installStatus, installProgress, dryRunProgress }]
 let filteredRecent = [];
 let pendingConfirm = null;  // fn to call when user clicks "Confirmer"
-let appSettings = { saveFolder: '' };
+let appSettings = { saveFolder: '', companyName: '', lightMode: false, templatePath: '' };
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 async function init() {
   try {
     const rawSettings = await invoke('read_settings');
-    appSettings = typeof rawSettings === 'string' ? JSON.parse(rawSettings) : (rawSettings || {});
-    if (!appSettings.saveFolder) appSettings.saveFolder = '';
-  } catch { appSettings = { saveFolder: '' }; }
+    const loaded = typeof rawSettings === 'string' ? JSON.parse(rawSettings) : (rawSettings || {});
+    appSettings = { ...appSettings, ...loaded };
+  } catch { appSettings = { saveFolder: '', companyName: '', lightMode: false, templatePath: '' }; }
 
   applyTheme();
 
@@ -208,14 +208,24 @@ window.createProject = async function() {
     return;
   }
 
-  // Load template
+  // Load template (custom or default)
   let template;
   try {
-    const res = await fetch('./template.json');
-    template = await res.json();
+    if (appSettings.templatePath) {
+      const raw = await invoke('read_project', { path: appSettings.templatePath });
+      template = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    } else {
+      const res = await fetch('./template.json');
+      template = await res.json();
+    }
   } catch {
-    showToast('Erreur: template.json introuvable.');
-    return;
+    try {
+      const res = await fetch('./template.json');
+      template = await res.json();
+    } catch {
+      showToast('Erreur: template introuvable.');
+      return;
+    }
   }
 
   // Fill meta from form
@@ -380,6 +390,10 @@ window.openSettings = function() {
   display.textContent = appSettings.saveFolder || 'Dossier par défaut (AppData)';
   document.getElementById('settings-company-name').value = appSettings.companyName || '';
   document.getElementById('settings-light-mode').checked = appSettings.lightMode || false;
+  const tplDisplay = document.getElementById('settings-template-display');
+  if (tplDisplay) tplDisplay.textContent = appSettings.templatePath
+    ? appSettings.templatePath.split(/[\\/]/).pop()
+    : 'Template par défaut';
   document.getElementById('modal-settings').classList.add('open');
 };
 
@@ -406,6 +420,24 @@ window.resetSaveFolder = async function() {
   document.getElementById('settings-folder-display').textContent = 'Dossier par défaut (AppData)';
   await persistSettings();
   showToast('Dossier réinitialisé au défaut.');
+};
+
+window.pickTemplatePath = async function() {
+  const path = await invoke('open_dialog');
+  if (!path) return;
+  appSettings.templatePath = path;
+  const display = document.getElementById('settings-template-display');
+  if (display) display.textContent = path.split(/[\\/]/).pop();
+  await persistSettings();
+  showToast('Template mis à jour.');
+};
+
+window.resetTemplatePath = async function() {
+  appSettings.templatePath = '';
+  const display = document.getElementById('settings-template-display');
+  if (display) display.textContent = 'Template par défaut';
+  await persistSettings();
+  showToast('Template réinitialisé.');
 };
 
 document.getElementById('modal-settings').addEventListener('click', function(e) {

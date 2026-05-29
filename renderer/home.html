@@ -100,6 +100,15 @@
       </div>
     </div>
     <div class="settings-section">
+      <div class="settings-section-title">Template de projet</div>
+      <p class="settings-hint">Les nouveaux projets seront basés sur ce fichier au lieu du template par défaut.</p>
+      <div class="folder-picker-row">
+        <div class="folder-display" id="settings-template-display">Template par défaut</div>
+        <button class="btn btn-secondary btn-sm" onclick="pickTemplatePath()">Choisir…</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetTemplatePath()">Réinitialiser</button>
+      </div>
+    </div>
+    <div class="settings-section">
       <div class="settings-section-title">Apparence</div>
       <div class="settings-toggle-row">
         <span class="settings-hint" style="margin:0">Mode clair</span>

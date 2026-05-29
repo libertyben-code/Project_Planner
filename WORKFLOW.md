@@ -222,6 +222,13 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - **Interfaces / Fonctionnel column headers**: "Recette Mecalux" / "Test Mecalux" now use `_companyName` from Settings dynamically, updated in `renderInterfaces()` and `renderFonctionnel()`
 - **HTML export button**: temporarily disabled pending formatting review (code preserved, button commented out in `app.html`)
 
+### 2026-05-29 — Save, backup, template, owner options (`feature/settings-autosave-backup-template-dropdowns`)
+
+- **Per-project secondary save**: `projectMeta.autoSavePath` + `autoSaveIntervalMins`; configured via new ⚙ project settings modal in app nav; file is copied to secondary path on each save when the interval has elapsed
+- **Daily backup**: new Rust command `write_daily_backup`; writes `<project_dir>/Backup/<stem>_YYYYMMDD.wmsplan` on first save of each day; keeps last 30 daily files
+- **Custom project template**: `appSettings.templatePath`; in home Settings → "Template de projet"; new projects are based on the chosen `.wmsplan` file instead of the built-in `template.json`
+- **Per-project owner options**: `projectMeta.ownerOptions[]`; managed via ⚙ project settings modal → "Options Propriétaire"; add/remove custom values; drives all owner dropdowns (inline Gantt, inline Tâches, edit modals) — re-renders Gantt and Tâches tables on change
+
 ---
 
 ## Pending items (summary from FEEDBACK.md as of 2026-05-29)
@@ -229,12 +236,6 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 **Export:**
 
 - HTML export formatting doesn't match app (button disabled — pending review)
-
-**General:**
-- Per-project auto-save folder with regular intervals
-- Backup folder inside save directory (daily, version history)
-- Settings: custom template for new projects
-- Settings: editable dropdown lists (e.g. owner values)
 
 **Evolutions (larger features):**
 - Global resource calendar (CDP Tech / DP availability, synced from Google Calendar)

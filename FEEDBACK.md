@@ -133,10 +133,10 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 <!-- Nav, save indicator, undo toast, keyboard shortcuts, responsive layout, performance -->
 - [x] Le bouton PDF dans le nav bar doit s'appliquer seulement à l'onglet sélectionné. - OK
 - [x] Permettre d'ajuster la largeur des colonnes comme dans excel. - OK
-- [ ] Permettre de choisir un dossier d'enregistrement automatique par projet en plus du dossier principale à des intervalles régulières.
-- [ ] Pour les backups, prévoir un dossier "Backup" dans le dossier de sauvegarde principale pour permettre la récupération d'une version anterieure. Prévoir la fréquence de manière journalière. Si un autre système de backup est plus adapté, me le proposer.
-- [ ] Dans le menu Settings du menu principal, prévoir la possibilité de choisir son propre template pour tous les nouveaux projets.
-- [ ] Ajouter une partie Settings qui permet de définit les listes de menu déroulant comme "propriétaire".
+- [x] Permettre de choisir un dossier d'enregistrement automatique par projet en plus du dossier principale à des intervalles régulières. — OK
+- [x] Pour les backups, prévoir un dossier "Backup" dans le dossier de sauvegarde principale pour permettre la récupération d'une version anterieure. Prévoir la fréquence de manière journalière. — OK
+- [x] Dans le menu Settings du menu principal, prévoir la possibilité de choisir son propre template pour tous les nouveaux projets. — OK
+- [x] Ajouter une partie Settings qui permet de définit les listes de menu déroulant comme "propriétaire". — OK (par projet, via ⚙ Paramètres du projet)
 - [x] Remove the mecalux in the app data default save path — OK (identifier → com.wmsplanner.app)
 
 ## Notes Techniques

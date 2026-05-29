@@ -26,6 +26,9 @@ let jiraData = { epics: [], tasks: [], lastSync: '' };
 let _ganttEditMode = false;
 let _collapsedPhases = new Set();
 let _companyName = 'COMPANY';
+let _ownerOptions = ['Intégrateur', 'Autre'];
+let _lastDailyBackupDay = '';
+let _lastSecondaryBackupTime = 0;
 
 // ═══ IPC / SAVE ═══
 function buildState() {
@@ -49,7 +52,31 @@ async function saveProject() {
     const state = buildState();
     projectMeta.updatedAt = state.meta.updatedAt;
     await invoke('write_project_backup', { path: currentPath });
-    await invoke('write_project', { path: currentPath, data: JSON.stringify(state, null, 2) });
+    const json = JSON.stringify(state, null, 2);
+    await invoke('write_project', { path: currentPath, data: json });
+
+    // Daily backup to {project folder}/Backup/
+    const today = new Date().toISOString().slice(0, 10);
+    if (today !== _lastDailyBackupDay) {
+      try { await invoke('write_daily_backup', { path: currentPath }); } catch {}
+      _lastDailyBackupDay = today;
+    }
+
+    // Secondary auto-save to per-project folder at configured interval
+    const autoSavePath = projectMeta.autoSavePath;
+    if (autoSavePath) {
+      const intervalMs = ((projectMeta.autoSaveIntervalMins || 5)) * 60 * 1000;
+      if (Date.now() - _lastSecondaryBackupTime >= intervalMs) {
+        try {
+          const fileName = currentPath.split(/[\\/]/).pop();
+          const sep = autoSavePath.includes('\\') ? '\\' : '/';
+          const secondaryPath = autoSavePath.replace(/[/\\]+$/, '') + sep + fileName;
+          await invoke('write_project', { path: secondaryPath, data: json });
+          _lastSecondaryBackupTime = Date.now();
+        } catch {}
+      }
+    }
+
     showSaveIndicator('saved');
   } catch (e) {
     showSaveIndicator('error');
@@ -108,6 +135,9 @@ function applyState(state) {
   if (!jiraData.epics)  jiraData.epics  = [];
   if (!jiraData.tasks)  jiraData.tasks  = [];
   if (!projectMeta.jiraConfig) projectMeta.jiraConfig = { url: '', projectKey: '', email: '', token: '' };
+  _ownerOptions = (Array.isArray(projectMeta.ownerOptions) && projectMeta.ownerOptions.length > 0)
+    ? projectMeta.ownerOptions
+    : ['Intégrateur', 'Autre'];
   // Backwards-compat: add totalType/type to projects saved before dynamic totals
   heuresData.forEach(r => {
     if (r.bold && !r.totalType) {
@@ -315,18 +345,19 @@ function normalizeSpecialLabel(value) {
   if (value === getRLLabel())     return TOKEN_RL;
   return value;
 }
-const OWNER_OPTIONS = [
-  { value: '',              label: '—' },
-  { value: TOKEN_CLIENT,    label: () => getClientLabel() },
-  { value: 'COMPANY',       label: () => getCompanyLabel() },
-  { value: 'Intégrateur',   label: 'Intégrateur' },
-  { value: 'Autre',         label: 'Autre' },
-];
+function getOwnerOptions() {
+  return [
+    { value: '',           label: '—' },
+    { value: TOKEN_CLIENT, label: () => getClientLabel() },
+    { value: 'COMPANY',    label: () => getCompanyLabel() },
+    ..._ownerOptions.map(v => ({ value: v, label: v })),
+  ];
+}
 function buildOwnerSelect(sel, currentValue) {
-  sel.innerHTML = OWNER_OPTIONS.map(o => {
+  sel.innerHTML = getOwnerOptions().map(o => {
     const lbl = typeof o.label === 'function' ? o.label() : o.label;
-    const sel_ = o.value === (currentValue || '') ? ' selected' : '';
-    return `<option value="${o.value}"${sel_}>${lbl}</option>`;
+    const selected = o.value === (currentValue || '') ? ' selected' : '';
+    return `<option value="${o.value}"${selected}>${lbl}</option>`;
   }).join('');
 }
 
@@ -2760,6 +2791,78 @@ function initResizableTables() {
   RESIZABLE_TBODIES.forEach(makeResizable);
 }
 
+// ═══ PROJECT SETTINGS MODAL ═══
+function openProjectSettings() {
+  const folderDisplay = document.getElementById('ps-folder-display');
+  if (folderDisplay) folderDisplay.textContent = projectMeta.autoSavePath || 'Aucun';
+  const intervalInput = document.getElementById('ps-interval');
+  if (intervalInput) intervalInput.value = projectMeta.autoSaveIntervalMins || 5;
+  renderProjectOwnerList();
+  const modal = document.getElementById('modal-project-settings');
+  if (modal) modal.classList.add('open');
+}
+function renderProjectOwnerList() {
+  const list = document.getElementById('ps-owner-list');
+  if (!list) return;
+  const opts = Array.isArray(projectMeta.ownerOptions) ? projectMeta.ownerOptions : [];
+  list.innerHTML = opts.length === 0
+    ? `<p class="settings-hint" style="margin:0;font-style:italic">Aucune valeur (défaut : Intégrateur, Autre)</p>`
+    : opts.map((v, i) => `
+        <div class="settings-tag-row">
+          <span>${v.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</span>
+          <button class="btn btn-ghost btn-sm btn-danger-ghost" onclick="removeProjectOwnerOption(${i})">✕</button>
+        </div>`).join('');
+}
+async function addProjectOwnerOption() {
+  const input = document.getElementById('ps-owner-new');
+  if (!input) return;
+  const val = input.value.trim();
+  if (!val) return;
+  if (!Array.isArray(projectMeta.ownerOptions)) projectMeta.ownerOptions = [];
+  if (projectMeta.ownerOptions.includes(val)) return;
+  projectMeta.ownerOptions.push(val);
+  _ownerOptions = projectMeta.ownerOptions;
+  input.value = '';
+  renderProjectOwnerList();
+  renderGantt();
+  renderTaches();
+  debouncedSave();
+}
+function removeProjectOwnerOption(idx) {
+  if (!Array.isArray(projectMeta.ownerOptions)) return;
+  projectMeta.ownerOptions.splice(idx, 1);
+  _ownerOptions = projectMeta.ownerOptions.length > 0 ? projectMeta.ownerOptions : ['Intégrateur', 'Autre'];
+  renderProjectOwnerList();
+  renderGantt();
+  renderTaches();
+  debouncedSave();
+}
+function closeProjectSettings() {
+  const modal = document.getElementById('modal-project-settings');
+  if (modal) modal.classList.remove('open');
+}
+async function pickAutoSavePath() {
+  const folder = await invoke('pick_folder');
+  if (!folder) return;
+  projectMeta.autoSavePath = folder;
+  _lastSecondaryBackupTime = 0;
+  const display = document.getElementById('ps-folder-display');
+  if (display) display.textContent = folder;
+  debouncedSave();
+}
+function resetAutoSavePath() {
+  projectMeta.autoSavePath = '';
+  _lastSecondaryBackupTime = 0;
+  const display = document.getElementById('ps-folder-display');
+  if (display) display.textContent = 'Aucun';
+  debouncedSave();
+}
+function saveAutoSaveInterval() {
+  const val = parseInt(document.getElementById('ps-interval')?.value || '5', 10);
+  projectMeta.autoSaveIntervalMins = isNaN(val) || val < 1 ? 5 : val;
+  debouncedSave();
+}
+
 // ═══ WINDOW EXPORTS (for onclick handlers in HTML) ═══
 Object.assign(window, {
   goHome, reloadProject, undoDelete, toggleRagDropdown, closeRagDropdown,
@@ -2782,6 +2885,8 @@ Object.assign(window, {
   del_fact_projet, del_fact_equip, renderFacturation,
   addCustomHeuresRow, deleteHeuresRow, deleteHeuresFromModal, openEditHeure, saveHeures, toggleHeuresHistory,
   updateHeures, updateHeuresDesc, updateHeureCat, updateHeureHistNote,
+  openProjectSettings, closeProjectSettings, pickAutoSavePath, resetAutoSavePath, saveAutoSaveInterval,
+  addProjectOwnerOption, removeProjectOwnerOption,
   openExportHTMLModal, doExportHTML, exportSelectAll, exportMarkdown,
   openDashCustomize, saveDashCustomize,
   openAddCustomTabModal, openEditCustomTabModal, addCustomTabColumn, saveCustomTab,

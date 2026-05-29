@@ -71,13 +71,19 @@ jiraData, projectMeta, customTabs[]
 `buildState()` serialises them to a plain object for saving.
 `applyState(state)` deserialises and runs a backwards-compat migration loop (adds missing fields to old project files).
 
-Auto-save: every mutation calls `debouncedSave()` (800 ms debounce). `saveProject()` writes a versioned backup via `write_project_backup` first, then overwrites the `.wmsplan` file via `write_project`.
+Auto-save: every mutation calls `debouncedSave()` (800 ms debounce). `saveProject()`:
+
+1. Calls `write_project_backup` (versioned, AppData).
+2. Writes primary `.wmsplan` via `write_project`.
+3. On first save of a new calendar day, calls `write_daily_backup` → creates `<project_dir>/Backup/<stem>_YYYYMMDD.wmsplan`.
+4. If `projectMeta.autoSavePath` is set and `autoSaveIntervalMins` have elapsed since last secondary save, also writes a copy to `<autoSavePath>/<filename>`.
 
 ### Home screen / settings
 
 `home.js` manages the project list, settings, example project loading, and the portfolio dashboard:
 
-- **Settings** (`appSettings`) are loaded from `settings.json` (AppData) on startup and cached in memory. Fields: `saveFolder`, `companyName`, `lightMode`. Persisted via `write_settings` / `read_settings`.
+- **Settings** (`appSettings`) are loaded from `settings.json` (AppData) on startup and cached in memory. Fields: `saveFolder`, `companyName`, `lightMode`, `templatePath`. Persisted via `write_settings` / `read_settings`.
+- **Custom template**: if `appSettings.templatePath` is set, `createProject()` loads that file via `read_project` and uses it as the base state instead of the bundled `template.json`. Falls back to `template.json` on read error.
 - **Theme**: `applyTheme()` sets `data-theme="light"` or `"dark"` on `<html>`. `window.toggleTheme()` is called by the Settings modal toggle, saves `appSettings.lightMode`, and calls `applyTheme()`. Called once during `init()` so the theme is restored on page load.
 - **Tab switching**: `window.switchTab(id)` shows/hides `#tab-panel-projects` and `#tab-panel-portfolio` and flips the `.active` class on the corresponding `#tab-btn-*` buttons. The tab bar lives inside the `<header>` element, centered via CSS grid (`grid-template-columns: auto 1fr auto`).
 - **Save folder**: passed as the optional `folder` param to `get_new_project_path`. If empty/null, Rust falls back to `AppData/projects/`.
@@ -230,6 +236,7 @@ Files are saved as `.wmsplan` (plain JSON). The schema is defined by `buildState
 | `write_project(path, data)` | Writes string to file (used for projects, HTML export) |
 | `write_file_bytes(path, bytes)` | Writes binary bytes to file (used for PDF export) |
 | `write_project_backup(app, path)` | Versioned backup: `AppData/backups/<stem>/<stem>_<ts>.wmsplan`, keeps last 10 |
+| `write_daily_backup(path)` | Daily backup: `<project_dir>/Backup/<stem>_YYYYMMDD.wmsplan`, overwrites same-day file, keeps last 30 |
 | `get_new_project_path(app, name, folder?)` | Generates a unique `.wmsplan` path in `folder` (or `AppData/projects/` if null) |
 | `read_recent(app)` | Reads `AppData/recent.json` |
 | `write_recent(app, data)` | Writes `AppData/recent.json` |

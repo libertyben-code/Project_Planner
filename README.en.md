@@ -110,13 +110,24 @@ Three export formats are available from the top bar:
 - **HTML** — choose which tabs to include and save a standalone read-only HTML file you can send to the client or open in any browser.
 - **MD** — exports the full project as a Markdown document (all sections, tables, and checklists).
 
-## Settings
+## Global settings
 
-Click the **⚙** icon in the top-right of the home screen to open settings:
+Click the **⚙** icon in the top-right of the home screen:
 
 - **Integrator company name** — replaces "COMPANY" in the Owner field across all tasks.
-- **Default save folder** — choose where new projects are created. If unset, projects are saved to the application's AppData folder (always accessible, never lost).
-- **Light mode** — toggles the interface between dark (default) and light theme. The setting is remembered.
+- **Default save folder** — choose where new projects are created.
+- **Project template** — choose an existing `.wmsplan` file to use as the base for all new projects (pre-filled phases, config, etc.).
+- **Light mode** — toggles between dark (default) and light theme.
+
+## Per-project settings
+
+Click the **⚙** icon in the navigation bar of an open project:
+
+- **Secondary save folder** — an additional folder (network share, OneDrive…) where the project is also saved at a configurable interval.
+- **Interval (min.)** — frequency of the secondary save (default: 5 min).
+- **Owner options** — custom values for the Owner dropdown in this project (subcontractors, specific teams…).
+
+A daily backup is created automatically in a `Backup/` subfolder next to the project file (30 days kept).
 
 ## Example project
 

@@ -416,7 +416,6 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 /* ── CONFIRM DIALOG ──────────────────────────────────── */
 .confirm-overlay {
   position: fixed; inset: 0;
