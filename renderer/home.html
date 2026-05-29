@@ -22,32 +22,37 @@
   </div>
 </header>
 
-<!-- ── PORTFOLIO DASHBOARD ── -->
-<section class="portfolio-section" id="portfolio-section">
-  <div class="portfolio-header" onclick="togglePortfolio()">
-    <span class="portfolio-header-title">📊 Vue d'ensemble du portefeuille</span>
-    <span class="portfolio-chevron" id="portfolio-chevron">▾</span>
-  </div>
+<!-- ── TAB BAR ── -->
+<div class="home-tab-bar">
+  <button class="home-tab active" id="tab-btn-projects" onclick="switchTab('projects')">📋 Projets récents</button>
+  <button class="home-tab" id="tab-btn-portfolio" onclick="switchTab('portfolio')">📊 Portfolio</button>
+</div>
+
+<!-- ── PROJECTS TAB ── -->
+<div id="tab-panel-projects">
+  <main class="home-main">
+    <div class="home-section-title">Projets récents</div>
+    <div class="project-grid" id="project-grid">
+      <!-- Cards injected by home.js -->
+    </div>
+    <div class="empty-state" id="empty-state" style="display:none">
+      <div class="empty-icon">📋</div>
+      <h3>Aucun projet pour le moment</h3>
+      <p>Créez votre premier projet ou ouvrez un fichier <code>.wmsplan</code> existant.</p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="openNewProjectModal()">＋ Nouveau projet</button>
+        <button class="btn btn-secondary" onclick="openExampleProject()">📖 Ouvrir le projet exemple</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ── PORTFOLIO TAB ── -->
+<div id="tab-panel-portfolio" style="display:none">
   <div class="portfolio-body" id="portfolio-body">
     <div class="portfolio-loading" id="portfolio-loading">Chargement des données…</div>
   </div>
-</section>
-
-<main class="home-main">
-  <div class="home-section-title">Projets récents</div>
-  <div class="project-grid" id="project-grid">
-    <!-- Cards injected by home.js -->
-  </div>
-  <div class="empty-state" id="empty-state" style="display:none">
-    <div class="empty-icon">📋</div>
-    <h3>Aucun projet pour le moment</h3>
-    <p>Créez votre premier projet ou ouvrez un fichier <code>.wmsplan</code> existant.</p>
-    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-      <button class="btn btn-primary" onclick="openNewProjectModal()">＋ Nouveau projet</button>
-      <button class="btn btn-secondary" onclick="openExampleProject()">📖 Ouvrir le projet exemple</button>
-    </div>
-  </div>
-</main>
+</div>
 
 <!-- ── NEW PROJECT MODAL ── -->
 <div class="modal-overlay" id="modal-new-project">
@@ -92,6 +97,16 @@
         <div class="folder-display" id="settings-folder-display">Dossier par défaut (AppData)</div>
         <button class="btn btn-secondary btn-sm" onclick="pickSaveFolder()">Parcourir…</button>
         <button class="btn btn-ghost btn-sm" onclick="resetSaveFolder()">Réinitialiser</button>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Apparence</div>
+      <div class="settings-toggle-row">
+        <span class="settings-hint" style="margin:0">Mode clair</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="settings-light-mode" onchange="toggleTheme()">
+          <span class="toggle-knob"></span>
+        </label>
       </div>
     </div>
     <div class="modal-footer">

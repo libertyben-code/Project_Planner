@@ -16,9 +16,10 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Enlever (Originiale) du champ date d'installation. - OK
 - [x] En plus de supprimer et dupliquer un projet, ajouter la possibilité de partager un projet. - OK
 - [x] Remplir le nom du client en même temps que le nom de projet car c'est souvent le meme mais garder le champ editable. - OK
-- [ ] Actulisation du portfolio lors de la suppression ou l'ajout d; un projet
-- [ ] Mettre le portfolio sur une tab à part entière.
-- [ ] Mettre le porfolio et la page principale en mode clair 
+- [x] Actulisation du portfolio lors de la suppression ou l'ajout d; un projet — OK
+- [x] Mettre le portfolio sur une tab à part entière. — OK
+- [x] Mettre le porfolio et la page principale en mode clair — OK
+- [x] Dans settings, ajouter l'option mode dark ou light — OK
 
 ## Planning (Gantt)
 
@@ -120,12 +121,12 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 
 <!-- Tab selection modal, exported file quality -->
 - [x] Le bouton export HTML doit proposer un endroit de sauvegarde du fichier html - OK
-- [ ] La formating de l'export HTML n'est pas le meme que celui de l'appli.
+- [ ] La formating de l'export HTML n'est pas le meme que celui de l'appli. Il doit ressembler à l'appli
 
-  
 ## Export PDF
 
 <!-- Gantt PDF export -->
+- [ ] Changer le Chef de Projet en haut à gauche et mettre Directeur de Projet.
 
 ## General / Cross-cutting
 
@@ -133,7 +134,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Le bouton PDF dans le nav bar doit s'appliquer seulement à l'onglet sélectionné. - OK
 - [x] Permettre d'ajuster la largeur des colonnes comme dans excel. - OK
 - [ ] Permettre de choisir un dossier d'enregistrement automatique par projet en plus du dossier principale à des intervalles régulières.
-- [ ] Pour les backup, prévoir un dossier "Backup" dans le dossier de sauvegarde principale pour permettre la récupération d'une version anterieure. Prévoir la fréquence de manière journalière. Si un autre système de backup est plus adapté, me le proposer.
+- [ ] Pour les backups, prévoir un dossier "Backup" dans le dossier de sauvegarde principale pour permettre la récupération d'une version anterieure. Prévoir la fréquence de manière journalière. Si un autre système de backup est plus adapté, me le proposer.
 - [ ] Dans le menu Settings du menu principal, prévoir la possibilité de choisir son propre template pour tous les nouveaux projets.
 - [ ] Ajouter une partie Settings qui permet de définit les listes de menu déroulant comme "propriétaire".
 

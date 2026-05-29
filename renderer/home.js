@@ -17,6 +17,8 @@ async function init() {
     if (!appSettings.saveFolder) appSettings.saveFolder = '';
   } catch { appSettings = { saveFolder: '' }; }
 
+  applyTheme();
+
   try {
     const raw = await invoke('read_recent');
     // Tauri returns a JSON string; browser stub may return a parsed array — handle both
@@ -123,6 +125,25 @@ function fmtDate(iso) {
 function esc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
+
+// ── Theme ─────────────────────────────────────────────────────────────────────
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', appSettings.lightMode ? 'light' : 'dark');
+}
+
+window.toggleTheme = async function() {
+  appSettings.lightMode = document.getElementById('settings-light-mode').checked;
+  await persistSettings();
+  applyTheme();
+};
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+window.switchTab = function(id) {
+  ['projects', 'portfolio'].forEach(t => {
+    document.getElementById(`tab-panel-${t}`).style.display = t === id ? '' : 'none';
+    document.getElementById(`tab-btn-${t}`).classList.toggle('active', t === id);
+  });
+};
 
 // ── Filter ───────────────────────────────────────────────────────────────────
 window.filterCards = render;
@@ -263,6 +284,7 @@ window.duplicateProject = async function(path) {
     await addToRecent(newData.meta, fullPath);
     showToast(`Projet dupliqué : ${newName}`);
     render();
+    loadPortfolioData();
   } catch (e) {
     showToast('Erreur : ' + e.message);
   }
@@ -287,6 +309,7 @@ window.removeFromRecent = function(path) {
       recent = recent.filter(p => p.path !== path);
       await persistRecent();
       render();
+      loadPortfolioData();
     }
   );
 };
@@ -307,6 +330,7 @@ window.deleteProject = function(path) {
       recent = recent.filter(p => p.path !== path);
       await persistRecent();
       render();
+      loadPortfolioData();
     }
   );
 };
@@ -355,6 +379,7 @@ window.openSettings = function() {
   const display = document.getElementById('settings-folder-display');
   display.textContent = appSettings.saveFolder || 'Dossier par défaut (AppData)';
   document.getElementById('settings-company-name').value = appSettings.companyName || '';
+  document.getElementById('settings-light-mode').checked = appSettings.lightMode || false;
   document.getElementById('modal-settings').classList.add('open');
 };
 
@@ -451,14 +476,6 @@ document.addEventListener('keydown', e => {
 // ══════════════════════════════════════════════════════
 //  PORTFOLIO DASHBOARD
 // ══════════════════════════════════════════════════════
-
-let _portfolioOpen = true;
-
-window.togglePortfolio = function() {
-  _portfolioOpen = !_portfolioOpen;
-  document.getElementById('portfolio-body').style.display = _portfolioOpen ? '' : 'none';
-  document.getElementById('portfolio-chevron').textContent = _portfolioOpen ? '▾' : '▸';
-};
 
 window.togglePfSection = function(id) {
   const section = document.getElementById(id);
