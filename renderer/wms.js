@@ -24,6 +24,7 @@ let jalonsEquip = [];
 let customTabs = [];
 let jiraData = { epics: [], tasks: [], lastSync: '' };
 let _ganttEditMode = false;
+let _collapsedPhases = new Set();
 let _companyName = 'COMPANY';
 
 // ═══ IPC / SAVE ═══
@@ -225,6 +226,7 @@ function clearInstallDelay() {
 function renderInstallDrift() {
   const block = document.getElementById('install-drift-block');
   if (!block) return;
+  if (!isChartVisible('drift')) { block.style.display = 'none'; return; }
   const m = projectMeta;
   const orig = m.installDateOriginal, delayed = m.installDateDelayed, actual = m.installDateActual;
   if (!orig) { block.style.display = 'none'; return; }
@@ -462,21 +464,25 @@ function renderGantt() {
 
   phases.forEach(phase => {
     const phaseTasks = tasks.filter(t => t.phaseId === phase.id);
+    const isCollapsed = _collapsedPhases.has(phase.id);
     const rp = table.insertRow(); rp.className = 'tr-phase'; rp.dataset.phaseId = phase.id;
     const tdPh = document.createElement('td'); tdPh.colSpan = fixedCount; tdPh.style.background = phase.color;
     const phStarts = phaseTasks.map(t => t.start).filter(Boolean).map(d => new Date(d).getTime());
     const phEnds   = phaseTasks.map(t => t.end).filter(Boolean).map(d => new Date(d).getTime());
     const phDurStr = phStarts.length && phEnds.length ? ` <span style="opacity:.75;font-size:10px;font-weight:400">(${Math.round((Math.max(...phEnds) - Math.min(...phStarts)) / 86400000) + 1}j)</span>` : '';
+    const collapseBtn = `<button data-phase-id="${phase.id}" onclick="togglePhaseCollapse('${phase.id}')" title="${isCollapsed ? 'Développer la phase' : 'Réduire la phase'}" style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:4px;padding:1px 7px;cursor:pointer;font-size:11px;font-family:inherit;line-height:1.4">${isCollapsed ? '▶' : '▼'}</button>`;
     if (_ganttEditMode) {
       tdPh.innerHTML = `<span class="drag-handle gantt-drag-handle" style="color:rgba(255,255,255,.85);margin-right:8px;font-size:15px;vertical-align:middle">⠿</span>${phase.name}${phDurStr}`;
     } else {
-      tdPh.innerHTML = `<span style="cursor:pointer" title="Modifier la phase" onclick="openEditPhase('${phase.id}')">${phase.name}${phDurStr}</span>
+      tdPh.innerHTML = `${collapseBtn}<span style="cursor:pointer;margin-left:6px" title="Modifier la phase" onclick="openEditPhase('${phase.id}')">${phase.name}${phDurStr}</span>
         <span style="float:right;display:flex;gap:6px;align-items:center">
           <button onclick="openAddTaskModal('${phase.id}')" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;font-family:inherit">+ Tâche</button>
         </span>`;
     }
     rp.appendChild(tdPh);
     WEEKS.forEach(w => { const td = document.createElement('td'); td.className = 'gantt-cell'; td.style.background = phase.color; td.style.opacity = '.2'; if (isToday(w)) td.style.borderLeft = '2px solid #f97316'; rp.appendChild(td); });
+
+    if (isCollapsed) return;
 
     if (phaseTasks.length === 0) {
       const re = table.insertRow(); re.className = 'tr-task';
@@ -694,6 +700,12 @@ function toggleGanttEditMode() {
   btn.style.cssText = _ganttEditMode
     ? 'background:var(--accent);color:#fff;border-color:var(--accent)'
     : '';
+  renderGantt();
+}
+
+function togglePhaseCollapse(phaseId) {
+  if (_collapsedPhases.has(phaseId)) _collapsedPhases.delete(phaseId);
+  else _collapsedPhases.add(phaseId);
   renderGantt();
 }
 
@@ -1049,7 +1061,7 @@ async function exportPDF() {
     const proj = projectMeta.name || '', cli = projectMeta.client || '', pm = projectMeta.pm || '', today = new Date().toLocaleDateString('fr-FR');
     pdf.setFillColor(26,35,50); pdf.rect(m,m,pageW-m*2,10,'F');
     pdf.setFont('helvetica','bold'); pdf.setFontSize(11); pdf.setTextColor(255,255,255); pdf.text(`PLANNING — ${proj.toUpperCase()}`, m+4, m+6.5);
-    pdf.setFont('helvetica','normal'); pdf.setFontSize(9); pdf.text(`Client: ${cli}  |  Chef de Projet: ${pm}  |  ${today}`, pageW-m-4, m+6.5, {align:'right'});
+    pdf.setFont('helvetica','normal'); pdf.setFontSize(9); pdf.text(`Client: ${cli}  |  Directeur de Projet: ${pm}  |  ${today}`, pageW-m-4, m+6.5, {align:'right'});
     pdf.addImage(imgData,'PNG',m,m+12,dw,dh);
     pdf.setFontSize(8); pdf.setTextColor(150,150,150); pdf.text(`Document confidentiel — ${proj}`, m, pageH-4); pdf.text('Page 1', pageW-m, pageH-4, {align:'right'});
     const fileName = `Planning_${proj.replace(/\s+/g,'_')}_${today.replace(/\//g,'-')}.pdf`;
@@ -1367,6 +1379,8 @@ function deleteInterfaceFromModal() {
 function itfBadge(v) { return `<span class="${ITF_B[v]||'cell-none'}" style="cursor:pointer">${v}</span>`; }
 function renderInterfaces() {
   const tbody = document.getElementById('tbody-interfaces'); tbody.innerHTML = '';
+  const cn = _companyName || 'Intégrateur';
+  ['th-rec-company','lbl-rec-company'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = 'Recette ' + cn; });
   interfacesData.forEach(row => {
     const tr = tbody.insertRow(); tr.dataset.rowId = row.id;
     tr.innerHTML = `<td>${dh()}</td>
@@ -1434,6 +1448,7 @@ function deleteFonctionnelFromModal() {
 
 function renderFonctionnel() {
   const tbody = document.getElementById('tbody-fonctionnel'); tbody.innerHTML = '';
+  document.querySelectorAll('#th-test-company').forEach(el => el.textContent = 'Test ' + (_companyName || 'Intégrateur'));
   fonctionnelData.forEach(row => {
     const tr = tbody.insertRow(); tr.dataset.rowId = row.id;
     tr.innerHTML = `<td>${dh()}</td>
@@ -1670,14 +1685,17 @@ function renderFacturation() {
 const charts = {};
 function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
 const DASH_CHARTS = [
-  { key: 'phases',  label: 'Avancement par Phase' },
-  { key: 'statuts', label: 'Répartition des Statuts' },
-  { key: 'heures',  label: 'Suivi Heures' },
-  { key: 'fact',    label: 'Facturation' },
-  { key: 'itf',     label: 'Interfaces ERP' },
-  { key: 'install', label: 'Prérequis Installation' },
-  { key: 'dryrun',  label: 'Prérequis Dry Run' },
-  { key: 'jira',    label: 'JIRA — Épics & Tâches' },
+  { key: 'kpi',      label: 'Cartes KPI (résumé)' },
+  { key: 'drift',    label: 'Indicateur dérive installation' },
+  { key: 'thisweek', label: 'Tâches de la semaine' },
+  { key: 'phases',   label: 'Graphique — Avancement par Phase' },
+  { key: 'statuts',  label: 'Graphique — Répartition des Statuts' },
+  { key: 'heures',   label: 'Graphique — Suivi Heures' },
+  { key: 'fact',     label: 'Graphique — Facturation' },
+  { key: 'itf',      label: 'Graphique — Interfaces ERP' },
+  { key: 'install',  label: 'Graphique — Prérequis Installation' },
+  { key: 'dryrun',   label: 'Graphique — Prérequis Dry Run' },
+  { key: 'jira',     label: 'Graphique — JIRA Épics & Tâches' },
 ];
 function isChartVisible(key) {
   const v = projectMeta.dashboardCharts;
@@ -1690,7 +1708,9 @@ function renderDashboard() {
   const totalJalons = [...jalonsProjet,...jalonsEquip];
   const totalMontant = totalJalons.reduce((s,r) => s+r.montant, 0), payeMontant = totalJalons.filter(r => r.etat === 'Payé').reduce((s,r) => s+r.montant, 0);
   const vente = heuresVenteTotale(), actuel = heuresActuelTotal();
-  document.getElementById('dash-kpi').innerHTML = `
+  const kpiEl = document.getElementById('dash-kpi');
+  kpiEl.style.display = isChartVisible('kpi') ? '' : 'none';
+  kpiEl.innerHTML = `
     <div class="kpi-card"><div class="kpi-label">Tâches Totales</div><div class="kpi-value">${totalTasks}</div><div class="kpi-sub">${doneTasks} terminées · ${inProgressTasks} en cours</div></div>
     <div class="kpi-card"><div class="kpi-label">Tâches en Retard</div><div class="kpi-value" style="color:${lateTasks?'#dc2626':'#059669'}">${lateTasks}</div><div class="kpi-sub">${lateTasks?'⚠ Attention requise':'✓ Tout est à jour'}</div></div>
     <div class="kpi-card"><div class="kpi-label">Avancement Global</div><div class="kpi-value">${totalTasks>0?Math.round(tasks.reduce((s,t)=>s+(t.progress||0),0)/totalTasks):0}%</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:${totalTasks>0?Math.round(tasks.reduce((s,t)=>s+(t.progress||0),0)/totalTasks):0}%"></div></div></div>
@@ -1845,6 +1865,7 @@ document.addEventListener('click', closeRagDropdown);
 function renderThisWeek() {
   const panel = document.getElementById('dash-this-week');
   if (!panel) return;
+  if (!isChartVisible('thisweek')) { panel.style.display = 'none'; return; }
   const today = new Date(); today.setHours(0,0,0,0);
   const weekEnd = new Date(today); weekEnd.setDate(today.getDate() + 7);
 
@@ -2330,29 +2351,45 @@ async function doExportHTML() {
   const drDone   = dryrunData.filter(d=>d.etat==='OK').length;
   const hStd = heuresData.find(r=>r.totalType==='Standard'), hCust = heuresData.find(r=>r.totalType==='Custom');
   const installStatus = m.installDateActual ? 'Terminé' : m.installDateDelayed ? 'Retardé' : 'En cours';
+  const hVente = heuresVenteTotale(), hActuel = heuresActuelTotal();
+  const progGlobal = totalT > 0 ? Math.round(tasks.filter(t=>t.phaseId!=='INDISPO').reduce((s,t)=>s+(t.progress||0),0)/totalT) : 0;
+  const allJ = [...jalonsProjet,...jalonsEquip];
+  const totM = allJ.reduce((s,j)=>s+(j.montant||0),0), payeM = allJ.filter(j=>j.etat==='Payé').reduce((s,j)=>s+(j.montant||0),0);
+  const kpi = v => `<div class="kc">${v}</div>`;
   addSection('page-dashboard', 'Tableau de bord', `
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:20px">
+    <div class="kpi-grid">
       ${[
-        ['Installation',installStatus,m.installDateDelayed?dt(m.installDateDelayed):dt(m.installDateOriginal)],
-        ['Tâches Gantt',`${doneT}/${totalT} terminées`,''],
-        ['Prérequis Install',`${instDone}/${installData.length}`,''],
-        ['Dry Run',`${drDone}/${dryrunData.length}`,''],
-        ['Heures Standard', hStd?`${hStd.actuel||0}/${hStd.vente||0}h`:'—', ''],
-        ['Heures Custom',   hCust?`${hCust.actuel||0}/${hCust.vente||0}h`:'—', ''],
-      ].map(([lbl,val,sub])=>`<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px"><div style="font-size:11px;color:#64748b;margin-bottom:4px">${e(lbl)}</div><div style="font-size:18px;font-weight:700;color:#1e293b">${e(val)}</div>${sub?`<div style="font-size:11px;color:#94a3b8;margin-top:2px">${e(sub)}</div>`:''}</div>`).join('')}
+        {lbl:'Installation',     val:bdg(installStatus), sub: m.installDateDelayed ? `<s>${dt(m.installDateOriginal)}</s> → ${dt(m.installDateDelayed)}` : dt(m.installDateOriginal)},
+        {lbl:'Tâches Terminées', val:`${doneT}<span class="kv-of">/${totalT}</span>`, bar: totalT ? Math.round(doneT/totalT*100) : 0},
+        {lbl:'Avancement Global',val:`${progGlobal}%`, bar: progGlobal},
+        {lbl:'Heures Actuel / Vente', val:`${hActuel}<span class="kv-of">/${hVente} h</span>`, bar: hVente > 0 ? Math.min(100, Math.round(hActuel/hVente*100)) : 0, barColor: hActuel > hVente ? '#dc2626' : '#2563eb'},
+        {lbl:'Prérequis Install', val:`${instDone}<span class="kv-of">/${installData.length}</span>`, bar: installData.length ? Math.round(instDone/installData.length*100) : 0},
+        {lbl:'Dry Run',           val:`${drDone}<span class="kv-of">/${dryrunData.length}</span>`, bar: dryrunData.length ? Math.round(drDone/dryrunData.length*100) : 0},
+        {lbl:'Facturation',       val:`${payeM.toLocaleString('fr-FR')} €`, sub:`/ ${totM.toLocaleString('fr-FR')} € total`, bar: totM ? Math.round(payeM/totM*100) : 0, barColor:'#059669'},
+        {lbl:'Phases',            val:`${phases.length}`, sub:`${tasks.filter(t=>t.phaseId!=='INDISPO').length} tâches`},
+      ].map(c=>`<div class="kpi-card"><div class="kpi-lbl">${c.lbl}</div><div class="kpi-val">${c.val}</div>${c.sub?`<div class="kpi-sub">${c.sub}</div>`:''}${c.bar!==undefined?`<div class="kpi-bar"><div class="kpi-bar-fill" style="width:${c.bar}%;background:${c.barColor||'#2563eb'}"></div></div>`:''}</div>`).join('')}
     </div>
-    ${m.notes?`<blockquote style="border-left:3px solid #2563eb;margin:0;padding:10px 16px;background:#eff6ff;color:#1e40af;font-style:italic;border-radius:0 6px 6px 0">${e(m.notes)}</blockquote>`:''}
+    ${m.notes?`<div class="note-block">${e(m.notes)}</div>`:''}
   `);
 
   // Planning
-  let planHtml = '';
+  let planHtml = `<table><thead><tr><th>Statut</th><th>Tâche</th><th>Propriétaire</th><th>Début</th><th>Fin</th><th>J</th><th style="min-width:90px">%</th></tr></thead><tbody>`;
   phases.forEach(ph => {
-    const pt = tasks.filter(t=>t.phaseId===ph.id);
+    const pt = tasks.filter(t=>t.phaseId===ph.id && !t.isUnavail);
     if (!pt.length) return;
-    planHtml += `<h3 style="font-size:13px;font-weight:600;color:${e(ph.color)};border-left:3px solid ${e(ph.color)};padding-left:8px;margin:18px 0 8px">${e(ph.name)}</h3>
-    <table>${tblHead(['Tâche','Propriétaire','Début','Fin','Statut','%'])}
-    <tbody>${pt.map(t=>tblRow([e(t.name),e(t.owner||'—'),dt(t.start),dt(t.end),bdg(t.status||'—'),pct(t.progress)])).join('')}</tbody></table>`;
+    const phStarts = pt.map(t=>t.start).filter(Boolean).map(d=>new Date(d).getTime());
+    const phEnds   = pt.map(t=>t.end).filter(Boolean).map(d=>new Date(d).getTime());
+    const phDur = phStarts.length && phEnds.length ? `${Math.round((Math.max(...phEnds)-Math.min(...phStarts))/86400000)+1}j` : '';
+    planHtml += `<tr><td colspan="7" style="background:${e(ph.color)};color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.3px;padding:6px 10px;border:none">${e(ph.name)}${phDur?` <span style="opacity:.75;font-weight:400">(${phDur})</span>`:''}</td></tr>`;
+    pt.forEach(t => {
+      const segs = taskSegments(t);
+      const days = segs.reduce((s,seg)=>{ if(!seg.start||!seg.end) return s; const d=Math.round((new Date(seg.end)-new Date(seg.start))/86400000)+1; return s+(d>0?d:0); },0);
+      const p = t.progress||0;
+      const bar = `<div style="display:flex;align-items:center;gap:6px"><div style="background:#e2e8f0;border-radius:3px;height:6px;width:60px;flex-shrink:0"><div style="background:${e(ph.color)};width:${p}%;height:6px;border-radius:3px"></div></div><span style="font-size:11px;color:#475569">${p}%</span></div>`;
+      planHtml += tblRow([bdg(t.status||'Non commencé'),`<span style="font-weight:500">${e(formatTemplate(t.name))}</span>`,e(formatTemplate(t.owner||'—')),dt(t.start),dt(t.end),days||'—',bar]);
+    });
   });
+  planHtml += '</tbody></table>';
   addSection('page-planning', 'Planning', planHtml);
 
   // Hours
@@ -2372,7 +2409,7 @@ async function doExportHTML() {
   </tbody></table>`);
 
   // Interfaces
-  addSection('page-interfaces', 'Interfaces ERP', `<table>${tblHead(['Interface','Type','Dev','Préprod','Rec. Mecalux','Rec. Client','Validé','Commentaire'])}<tbody>
+  addSection('page-interfaces', 'Interfaces ERP', `<table>${tblHead(['Interface','Type','Dev','Préprod','Rec. '+(_companyName||'Intégrateur'),'Rec. Client','Validé','Commentaire'])}<tbody>
     ${interfacesData.map(i=>tblRow([e(i.name),e(i.type),bdg(i.dev),bdg(i.preprod),bdg(i.recMecalux),bdg(i.recClient),bdg(i.valide),e(i.comment||'')])).join('')}
   </tbody></table>`);
 
@@ -2429,43 +2466,62 @@ async function doExportHTML() {
   const tabPages = tabDefs.map((t,i)=>`<div class="tp" id="tp${i}" style="display:${i===0?'block':'none'}">${t.content}</div>`).join('');
 
   const html = `<!DOCTYPE html>
-<html lang="fr"><head><meta charset="UTF-8">
+<html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${e(m.name||'Export')} — ${e(m.client||'')}</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1e293b;font-size:13px;background:#fff}
-.hdr{background:#1e3a5f;color:#fff;padding:8px 20px;display:flex;gap:16px;align-items:center;font-size:12px;position:sticky;top:0;z-index:10}
-.hdr strong{font-size:13px}.hdr span:last-child{margin-left:auto}
-.body{padding:20px 24px}
-h1{font-size:20px;font-weight:700;margin-bottom:16px;color:#1e293b}
-h3{font-size:13px;font-weight:600;color:#374151}
-.meta{border-collapse:collapse;margin-bottom:16px;font-size:12px}
-.meta td{padding:3px 12px 3px 0;vertical-align:top}
-.meta td:first-child{color:#64748b;white-space:nowrap;padding-right:16px}
-.tnav{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:16px;border-bottom:2px solid #e2e8f0;padding-bottom:8px}
-.tb{background:none;border:none;padding:6px 14px;font-size:12px;font-weight:500;cursor:pointer;color:#64748b;border-radius:6px 6px 0 0;border:1px solid transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1e293b;font-size:13px;background:#f1f5f9}
+.hdr{background:#1a2332;color:#fff;padding:8px 24px;display:flex;gap:16px;align-items:center;font-size:12px;position:sticky;top:0;z-index:10;border-bottom:1px solid rgba(255,255,255,.08)}
+.hdr strong{font-size:13px;font-weight:700;letter-spacing:.2px}
+.hdr .hdr-sep{opacity:.35}
+.hdr span:last-child{margin-left:auto;opacity:.75}
+.wrap{padding:20px 24px;max-width:1200px;margin:0 auto}
+.proj-title{font-size:22px;font-weight:700;color:#1e293b;margin-bottom:14px}
+.panel{background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:16px}
+.panel-hdr{background:#f8fafc;padding:10px 16px;font-weight:600;font-size:12px;color:#374151;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid #e2e8f0}
+.meta{border-collapse:collapse;width:100%;font-size:12px}
+.meta td{padding:5px 14px;border-bottom:1px solid #f1f5f9;vertical-align:top}
+.meta tr:last-child td{border-bottom:none}
+.meta .meta-lbl{color:#64748b;white-space:nowrap;width:140px;font-size:11px;text-transform:uppercase;letter-spacing:.3px}
+.tnav{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:16px;border-bottom:2px solid #e2e8f0;padding-bottom:8px;background:#fff;padding:12px 16px 0;border-radius:10px 10px 0 0;border:1px solid #e2e8f0;border-bottom:none}
+.tnav+.tp-wrap{border:1px solid #e2e8f0;border-top:none;border-radius:0 0 10px 10px;background:#fff;padding:16px}
+.tb{background:none;border:none;padding:8px 16px;font-size:12px;font-weight:500;cursor:pointer;color:#64748b;border-radius:6px 6px 0 0;border:1px solid transparent;margin-bottom:-1px}
 .tb:hover{background:#f1f5f9;color:#1e293b}
-.tb.active{background:#2563eb;color:#fff;border-color:#2563eb}
-table{border-collapse:collapse;width:100%;margin-bottom:12px;font-size:12px}
-thead tr{background:#f1f5f9}
-th{text-align:left;padding:6px 10px;border:1px solid #e2e8f0;font-weight:600;font-size:11px;color:#374151;white-space:nowrap}
-td{padding:5px 10px;border:1px solid #e2e8f0;vertical-align:top}
-tr:nth-child(even) td{background:#f8fafc}
-footer{margin-top:32px;padding-top:12px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;text-align:center}
+.tb.active{background:#fff;color:#2563eb;border-color:#e2e8f0 #e2e8f0 #fff;font-weight:600}
+table{border-collapse:collapse;width:100%;margin-bottom:0;font-size:12px}
+thead tr{background:#f8fafc}
+th{text-align:left;padding:7px 10px;border:1px solid #e2e8f0;font-weight:600;font-size:11px;color:#374151;white-space:nowrap;text-transform:uppercase;letter-spacing:.3px}
+td{padding:6px 10px;border:1px solid #e2e8f0;vertical-align:middle}
+tr:hover td{background:#f8fafc}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:16px}
+.kpi-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px}
+.kpi-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#64748b;margin-bottom:6px}
+.kpi-val{font-size:22px;font-weight:700;color:#1e293b;line-height:1.1}
+.kv-of{font-size:14px;font-weight:400;color:#94a3b8}
+.kpi-sub{font-size:11px;color:#94a3b8;margin-top:3px}
+.kpi-bar{height:5px;background:#e2e8f0;border-radius:3px;margin-top:8px;overflow:hidden}
+.kpi-bar-fill{height:5px;border-radius:3px}
+.note-block{border-left:3px solid #2563eb;padding:10px 16px;background:#eff6ff;color:#1e40af;font-style:italic;border-radius:0 6px 6px 0;margin-top:12px;font-size:12px}
+h3{font-size:13px;font-weight:600;color:#374151;margin:16px 0 8px}
+footer{margin-top:24px;padding-top:12px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;text-align:center}
 </style></head>
 <body>
-<div class="hdr"><strong>DOCUMENT CONFIDENTIEL</strong><span>${e(m.client||'')}</span><span>—</span><span>${e(m.name||'')}</span><span>Exporté le ${new Date().toLocaleDateString('fr-FR')}</span></div>
-<div class="body">
-<h1>${e(m.name||'Projet')}</h1>
-<table class="meta"><tbody>
-  <tr><td>Client</td><td><strong>${e(m.client||'—')}</strong></td><td style="padding-left:24px">Dir. Projet</td><td>${e(m.pm||'—')}</td></tr>
-  <tr><td>CDP Technique</td><td>${e(m.cdptech||'—')}</td><td style="padding-left:24px">Resp. Logistique</td><td>${e(m.respLog||'—')}</td></tr>
-  <tr><td>Consultant ERP</td><td>${e(m.erpConsult||'—')}</td><td style="padding-left:24px">Date de début</td><td>${dt(m.startDate)}</td></tr>
-  <tr>${installLine}</tr>
-  ${m.installDateActual?`<tr><td>Installation réelle</td><td style="color:#059669;font-weight:600">${dt(m.installDateActual)}</td></tr>`:''}
-</tbody></table>
-<nav class="tnav">${tabBtns}</nav>
+<div class="hdr"><strong>📋 WMS Project Planner</strong><span class="hdr-sep">|</span><span>${e(m.client||'')}</span><span class="hdr-sep">—</span><span>${e(m.name||'')}</span><span>Exporté le ${new Date().toLocaleDateString('fr-FR')}</span></div>
+<div class="wrap">
+<div class="proj-title">${e(m.name||'Projet')}</div>
+<div class="panel" style="margin-bottom:20px">
+  <div class="panel-hdr">Informations du projet</div>
+  <table class="meta"><tbody>
+    <tr><td class="meta-lbl">Client</td><td><strong>${e(m.client||'—')}</strong></td><td class="meta-lbl" style="padding-left:24px">Directeur de Projet</td><td>${e(m.pm||'—')}</td></tr>
+    <tr><td class="meta-lbl">CDP Technique</td><td>${e(m.cdptech||'—')}</td><td class="meta-lbl" style="padding-left:24px">Resp. Logistique</td><td>${e(m.respLog||'—')}</td></tr>
+    <tr><td class="meta-lbl">Consultant ERP</td><td>${e(m.erpConsult||'—')}</td><td class="meta-lbl" style="padding-left:24px">Date de début</td><td>${dt(m.startDate)}</td></tr>
+    <tr>${installLine}</tr>
+    ${m.installDateActual?`<tr><td class="meta-lbl">Installation réelle</td><td style="color:#059669;font-weight:600">${dt(m.installDateActual)}</td></tr>`:''}
+  </tbody></table>
+</div>
+<div class="tnav">${tabBtns}</div><div class="tp-wrap">
 ${tabPages}
+</div>
 <footer>WMS Project Planner — ${e(m.name||'')} — ${e(m.client||'')} — ${new Date().toLocaleDateString('fr-FR')}</footer>
 </div>
 <script>function st(i){document.querySelectorAll('.tp').forEach((p,j)=>p.style.display=j===i?'block':'none');document.querySelectorAll('.tb').forEach((b,j)=>b.classList.toggle('active',j===i));}</script>
@@ -2555,7 +2611,7 @@ async function exportMarkdown() {
   if (interfacesData.length) {
     lines.push('## Interfaces ERP');
     lines.push('');
-    lines.push(row(['Interface', 'Type', 'Dev', 'Préprod', 'Rec. Mecalux', 'Rec. Client', 'Validé', 'Commentaire']));
+    lines.push(row(['Interface', 'Type', 'Dev', 'Préprod', 'Rec. '+(_companyName||'Intégrateur'), 'Rec. Client', 'Validé', 'Commentaire']));
     lines.push(sep(8));
     interfacesData.forEach(i => lines.push(row([i.name, i.type, i.dev, i.preprod, i.recMecalux, i.recClient, i.valide, i.comment || ''])));
     lines.push('');
@@ -2711,7 +2767,7 @@ Object.assign(window, {
   openAddPhaseModal, openAddTaskModal, openEditTask, openEditPhase,
   closeModal, saveTask, savePhase,
   deleteTask, deleteTaskFromModal, removePhase, removePhaseFromModal, updateTask,
-  scrollToToday, renderGantt, renderDashboard, exportPDF, exportCurrentTabPDF, toggleGanttEditMode,
+  scrollToToday, renderGantt, renderDashboard, exportPDF, exportCurrentTabPDF, toggleGanttEditMode, togglePhaseCollapse,
   addTaskSegment, removeTaskSegment,
   setRag,
   openManageTabsModal, saveManageTabs, resetTabOrder,
