@@ -42,9 +42,11 @@
   <div class="nav-right">
     <button class="btn btn-ghost btn-sm" onclick="openManageTabsModal()" title="Gérer les onglets">⇄ Onglets</button>
     <span class="save-indicator" id="save-indicator"></span>
+    <!-- HTML export temporarily disabled — pending formatting review
     <button class="btn btn-ghost btn-sm" id="btn-export-html" onclick="openExportHTMLModal()">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><path stroke-linecap="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>HTML
     </button>
+    -->
     <button class="btn btn-ghost btn-sm" id="btn-export-md" onclick="exportMarkdown()">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>MD
     </button>
@@ -196,7 +198,7 @@
 <div class="page" id="page-interfaces">
   <div class="panel">
     <div class="panel-header"><span class="panel-title">Suivi Interfaces ERP</span><button class="btn btn-secondary btn-sm" onclick="addInterface()">+ Interface</button></div>
-    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th style="width:115px">Type</th><th>Nom du fichier</th><th style="width:78px">Développé</th><th style="width:82px">Livré Preprod</th><th style="width:98px">Recette Mecalux</th><th style="width:92px">Recette Client</th><th style="width:68px">Validé</th><th>Commentaires</th><th style="width:34px"></th></tr></thead><tbody id="tbody-interfaces"></tbody></table></div>
+    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th style="width:115px">Type</th><th>Nom du fichier</th><th style="width:78px">Développé</th><th style="width:82px">Livré Preprod</th><th style="width:98px" id="th-rec-company">Recette</th><th style="width:92px">Recette Client</th><th style="width:68px">Validé</th><th>Commentaires</th><th style="width:34px"></th></tr></thead><tbody id="tbody-interfaces"></tbody></table></div>
   </div>
 </div>
 
@@ -204,7 +206,7 @@
 <div class="page" id="page-fonctionnel">
   <div class="panel">
     <div class="panel-header"><span class="panel-title">Suivi Fonctionnel</span><button class="btn btn-secondary btn-sm" onclick="addFonctionnel()">+ Flux</button></div>
-    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th>Flux</th><th style="width:78px">Développé</th><th style="width:68px">% Tâches</th><th style="width:98px">Test Mecalux</th><th style="width:103px">Livraison Preprod</th><th style="width:113px">Formation Key Users</th><th style="width:88px">Test Client</th><th style="width:108px">Formation Users</th><th>Commentaires</th><th style="width:34px"></th></tr></thead><tbody id="tbody-fonctionnel"></tbody></table></div>
+    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th>Flux</th><th style="width:78px">Développé</th><th style="width:68px">% Tâches</th><th style="width:98px" id="th-test-company">Test</th><th style="width:103px">Livraison Preprod</th><th style="width:113px">Formation Key Users</th><th style="width:88px">Test Client</th><th style="width:108px">Formation Users</th><th>Commentaires</th><th style="width:34px"></th></tr></thead><tbody id="tbody-fonctionnel"></tbody></table></div>
   </div>
 </div>
 
@@ -303,7 +305,7 @@
       <div class="form-row"><label>Livré Preprod</label><select id="ei-preprod"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
     </div>
     <div class="form-2col">
-      <div class="form-row"><label>Recette Mecalux</label><select id="ei-recMecalux"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+      <div class="form-row"><label id="lbl-rec-company">Recette</label><select id="ei-recMecalux"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
       <div class="form-row"><label>Recette Client</label><select id="ei-recClient"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
     </div>
     <div class="form-row"><label>Validé</label><select id="ei-valide"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>

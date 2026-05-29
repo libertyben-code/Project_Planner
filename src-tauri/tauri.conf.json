@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "WMS Project Planner",
   "version": "1.0.0",
-  "identifier": "com.mecalux.wmsplanner",
+  "identifier": "com.wmsplanner.app",
   "build": {
     "frontendDist": "../renderer",
     "devUrl": "http://localhost:8080/home.html",
