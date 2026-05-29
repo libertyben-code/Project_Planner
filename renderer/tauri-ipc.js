@@ -77,6 +77,7 @@ function _stub(cmd, args) {
     }
 
     case 'write_project_backup':
+    case 'write_daily_backup':
       // No-op in browser mode
       return;
 

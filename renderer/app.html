@@ -41,6 +41,7 @@
   </div>
   <div class="nav-right">
     <button class="btn btn-ghost btn-sm" onclick="openManageTabsModal()" title="Gérer les onglets">⇄ Onglets</button>
+    <button class="btn btn-ghost btn-sm btn-icon" onclick="openProjectSettings()" title="Paramètres du projet">⚙</button>
     <span class="save-indicator" id="save-indicator"></span>
     <!-- HTML export temporarily disabled — pending formatting review
     <button class="btn btn-ghost btn-sm" id="btn-export-html" onclick="openExportHTMLModal()">
@@ -55,6 +56,38 @@
     </button>
   </div>
 </nav>
+
+<!-- PROJECT SETTINGS MODAL -->
+<div class="modal-overlay" id="modal-project-settings" onclick="if(event.target===this)closeProjectSettings()">
+  <div class="modal">
+    <h3>⚙ Paramètres du projet</h3>
+    <div class="settings-section">
+      <div class="settings-section-title">Dossier de sauvegarde secondaire</div>
+      <p class="settings-hint">Ce projet sera aussi sauvegardé dans ce dossier à l'intervalle défini ci-dessous.</p>
+      <div class="folder-picker-row">
+        <div class="folder-display" id="ps-folder-display">Aucun</div>
+        <button class="btn btn-secondary btn-sm" onclick="pickAutoSavePath()">Parcourir…</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetAutoSavePath()">Réinitialiser</button>
+      </div>
+      <div class="form-row" style="margin-top:8px;align-items:center;gap:10px;display:flex">
+        <label style="margin:0;white-space:nowrap">Intervalle (min.)</label>
+        <input type="number" id="ps-interval" min="1" max="1440" value="5" style="width:70px" onchange="saveAutoSaveInterval()">
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Options Propriétaire</div>
+      <p class="settings-hint">Valeurs personnalisées pour le menu "Propriétaire" de ce projet. Vide = Intégrateur, Autre.</p>
+      <div id="ps-owner-list"></div>
+      <div class="folder-picker-row" style="margin-top:8px">
+        <input type="text" id="ps-owner-new" class="settings-text-input" placeholder="Nouvelle valeur…" style="flex:1">
+        <button class="btn btn-secondary btn-sm" onclick="addProjectOwnerOption()">Ajouter</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeProjectSettings()">Fermer</button>
+    </div>
+  </div>
+</div>
 
 <!-- RELOAD BANNER (shown when file changed on disk by another user) -->
 <div class="reload-banner" id="reload-banner" style="display:none">

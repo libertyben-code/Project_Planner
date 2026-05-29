@@ -110,13 +110,24 @@ Trois formats d'export sont disponibles depuis la barre du haut :
 - **HTML** — choisissez les onglets à inclure et enregistrez un fichier HTML autonome en lecture seule que vous pouvez envoyer au client ou ouvrir dans n'importe quel navigateur.
 - **MD** — exporte le projet complet en document Markdown (toutes les sections, tableaux et checklists).
 
-## Paramètres
+## Paramètres globaux
 
-Cliquez sur l'icône **⚙** en haut à droite de l'écran d'accueil pour ouvrir les paramètres :
+Cliquez sur l'icône **⚙** en haut à droite de l'écran d'accueil :
 
 - **Nom de la société intégratrice** — remplace "COMPANY" dans le champ Propriétaire de toutes les tâches.
-- **Dossier de sauvegarde par défaut** — choisissez où les nouveaux projets sont créés. Si non défini, les projets sont enregistrés dans le dossier AppData de l'application (toujours accessible, jamais perdu).
-- **Mode clair** — bascule l'interface entre le mode sombre (défaut) et le mode clair. Le réglage est mémorisé.
+- **Dossier de sauvegarde par défaut** — choisissez où les nouveaux projets sont créés.
+- **Template de projet** — choisissez un fichier `.wmsplan` existant comme base pour tous les nouveaux projets (phases, configurations pré-remplies).
+- **Mode clair** — bascule entre le mode sombre (défaut) et le mode clair.
+
+## Paramètres par projet
+
+Cliquez sur l'icône **⚙** dans la barre de navigation d'un projet ouvert :
+
+- **Dossier de sauvegarde secondaire** — dossier supplémentaire (réseau, OneDrive…) où le projet est aussi sauvegardé à intervalle régulier.
+- **Intervalle (min.)** — fréquence de la sauvegarde secondaire (défaut : 5 min).
+- **Options Propriétaire** — valeurs personnalisées pour le menu déroulant "Propriétaire" de ce projet (sous-traitants, équipes spécifiques…).
+
+Une sauvegarde journalière est créée automatiquement dans un sous-dossier `Backup/` au même niveau que le fichier projet (30 jours conservés).
 
 ## Projet exemple
 
