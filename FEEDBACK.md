@@ -153,3 +153,4 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
   - [ ] Les utilisateurs devront être crées à l'avance et dans la création de projet, un menu déroulant sera utilisé pour choisir les DP et CDP Tech.
 - [ ] Integrer le process de suivi des tests clients.
 - [ ] Integrer l'import de fichier excel en tant que nouvelle tab (tableau avec colone and type)
+- [ ] Permettre le zoom in et out en faisont control + scroll ou bouton + / - si possible.

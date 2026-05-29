@@ -10,23 +10,23 @@
 
 <header class="home-header">
   <div class="home-logo">● WMS <span>Planner</span></div>
-  <div class="home-search">
-    <span class="home-search-icon">🔍</span>
-    <input type="text" id="search-input" placeholder="Rechercher un projet ou client…" oninput="filterCards()">
-  </div>
-  <div class="header-actions">
-    <button class="btn btn-ghost" onclick="openExampleProject()" title="Ouvrir le projet de démonstration">📖 Exemple</button>
-    <button class="btn btn-secondary" onclick="openProject()">📂 Ouvrir…</button>
-    <button class="btn btn-primary" onclick="openNewProjectModal()">＋ Nouveau projet</button>
-    <button class="btn btn-ghost btn-icon" onclick="openSettings()" title="Paramètres">⚙</button>
+  <nav class="home-tabs-center">
+    <button class="home-tab active" id="tab-btn-projects" onclick="switchTab('projects')">📋 Projets récents</button>
+    <button class="home-tab" id="tab-btn-portfolio" onclick="switchTab('portfolio')">📊 Portfolio</button>
+  </nav>
+  <div class="header-right">
+    <div class="home-search">
+      <span class="home-search-icon">🔍</span>
+      <input type="text" id="search-input" placeholder="Rechercher un projet ou client…" oninput="filterCards()">
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-ghost" onclick="openExampleProject()" title="Ouvrir le projet de démonstration">📖 Exemple</button>
+      <button class="btn btn-secondary" onclick="openProject()">📂 Ouvrir…</button>
+      <button class="btn btn-primary" onclick="openNewProjectModal()">＋ Nouveau projet</button>
+      <button class="btn btn-ghost btn-icon" onclick="openSettings()" title="Paramètres">⚙</button>
+    </div>
   </div>
 </header>
-
-<!-- ── TAB BAR ── -->
-<div class="home-tab-bar">
-  <button class="home-tab active" id="tab-btn-projects" onclick="switchTab('projects')">📋 Projets récents</button>
-  <button class="home-tab" id="tab-btn-portfolio" onclick="switchTab('portfolio')">📊 Portfolio</button>
-</div>
 
 <!-- ── PROJECTS TAB ── -->
 <div id="tab-panel-projects">
