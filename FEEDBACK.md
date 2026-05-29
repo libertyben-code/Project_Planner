@@ -16,6 +16,9 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Enlever (Originiale) du champ date d'installation. - OK
 - [x] En plus de supprimer et dupliquer un projet, ajouter la possibilité de partager un projet. - OK
 - [x] Remplir le nom du client en même temps que le nom de projet car c'est souvent le meme mais garder le champ editable. - OK
+- [ ] Actulisation du portfolio lors de la suppression ou l'ajout d; un projet
+- [ ] Mettre le portfolio sur une tab à part entière.
+- [ ] Mettre le porfolio et la page principale en mode clair 
 
 ## Planning (Gantt)
 
@@ -37,6 +40,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Un bouton edit planning doit permettre de drag and drop les taches dans toutes les phases. - OK
 - [x] Ce meme bouton doit permettre de drag and drop une phase avec toute ses taches. - OK
 - [x] Une phase JIRA dans le planning (épics + tâches, barres de Gantt, progression). Backbone complet : onglet JIRA dédié, modal de configuration (URL Atlassian, clé projet, email, token API), fonction syncJira() prête pour la vraie clé. Données de démonstration pré-chargées dans le template. - OK
+- [ ] Ajouter la possibilité de "réduire" une phase pour n'afficher que la ligne du nom de phase.
 
 ## Suivi Heures
 
@@ -106,6 +110,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] pour la facturation, utiliser un graphique d'une barreavec les différentes parties payé ou non et le montant global.
 - [x] Ajouter la possibilité de customiser ce dashboard en selectionnant les graphique à afficher. - OK
 - [x] Ajouter un graphique JIRA dans le dashboard : barres horizontales empilées par épic (Terminé / En cours / À faire), activable/désactivable comme les autres graphiques. - OK
+- [ ] actualiser la modale personalliser avec toutes les différentres cartes et graphs.
   
 ## Onglets Personnalisés (Custom Tabs)
 
@@ -115,6 +120,8 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 
 <!-- Tab selection modal, exported file quality -->
 - [x] Le bouton export HTML doit proposer un endroit de sauvegarde du fichier html - OK
+- [ ] La formating de l'export HTML n'est pas le meme que celui de l'appli.
+
   
 ## Export PDF
 
@@ -125,6 +132,10 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 <!-- Nav, save indicator, undo toast, keyboard shortcuts, responsive layout, performance -->
 - [x] Le bouton PDF dans le nav bar doit s'appliquer seulement à l'onglet sélectionné. - OK
 - [x] Permettre d'ajuster la largeur des colonnes comme dans excel. - OK
+- [ ] Permettre de choisir un dossier d'enregistrement automatique par projet en plus du dossier principale à des intervalles régulières.
+- [ ] Pour les backup, prévoir un dossier "Backup" dans le dossier de sauvegarde principale pour permettre la récupération d'une version anterieure. Prévoir la fréquence de manière journalière. Si un autre système de backup est plus adapté, me le proposer.
+- [ ] Dans le menu Settings du menu principal, prévoir la possibilité de choisir son propre template pour tous les nouveaux projets.
+- [ ] Ajouter une partie Settings qui permet de définit les listes de menu déroulant comme "propriétaire".
 
 ## Notes Techniques
 
@@ -134,3 +145,10 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
   - Remplacer `makeReorderable(tr, arr, renderFn)` par `Sortable.create(tbody, { handle: '.drag-handle', animation: 150, onEnd: ({ oldIndex, newIndex }) => { const [item] = arr.splice(oldIndex, 1); arr.splice(newIndex, 0, item); renderFn(); debouncedSave(); } })`
   - SortableJS utilise les pointer events en interne — contourne le bug Chromium/WebView2 avec l'API HTML5 drag dans les tableaux.
 - [x] **Heures dynamiques** : les lignes bold ont un champ `totalType` ("Standard", "Custom", "Offre Comp"). `renderHeures()` recalcule vente/actuel via `heuresVenteByType(type)` / `heuresActuelByType(type)`. Les lignes éditables ont un champ `type` qui détermine à quel total elles contribuent. Changer le type ou une valeur déclenche `renderHeures(); renderDashboard();` immédiatement.
+
+## Evolutions 
+
+- [ ] Ajouter un calendrier globale des ressources pour permettre de connaitre les disponibilité de chaques CDP Tech et DP. Leurs planning de congés pourront être remplis automatiquement d'après ce planning global. C'est aujourd'hui un google calendar.
+  - [ ] Les utilisateurs devront être crées à l'avance et dans la création de projet, un menu déroulant sera utilisé pour choisir les DP et CDP Tech.
+- [ ] Integrer le process de suivi des tests clients.
+- [ ] Integrer l'import de fichier excel en tant que nouvelle tab (tableau avec colone and type)
