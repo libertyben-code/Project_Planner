@@ -2,7 +2,7 @@
 name = "wms-planner"
 version = "1.0.0"
 description = "WMS Project Planner — multi-project desktop app"
-authors = ["MECALUX"]
+authors = ["COMPANY"]
 license = "MIT"
 edition = "2021"
 rust-version = "1.77.2"

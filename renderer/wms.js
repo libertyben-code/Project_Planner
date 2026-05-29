@@ -24,6 +24,7 @@ let jalonsEquip = [];
 let customTabs = [];
 let jiraData = { epics: [], tasks: [], lastSync: '' };
 let _ganttEditMode = false;
+let _companyName = 'COMPANY';
 
 // ═══ IPC / SAVE ═══
 function buildState() {
@@ -75,6 +76,11 @@ function showSaveIndicator(state) {
 
 async function loadProject(path) {
   try {
+    try {
+      const rawSettings = await invoke('read_settings');
+      const s = typeof rawSettings === 'string' ? JSON.parse(rawSettings) : (rawSettings || {});
+      if (s.companyName) _companyName = s.companyName;
+    } catch {}
     const raw = await invoke('read_project', { path });
     const state = JSON.parse(raw);
     currentPath = path;
@@ -277,6 +283,7 @@ function uid() { return '_' + Math.random().toString(36).slice(2, 9); }
 
 const TOKEN_CLIENT = 'clientName', TOKEN_PM = 'DPName', TOKEN_CDP = 'CDPName',
       TOKEN_RL = 'RespoLogClient', TOKEN_ERP = 'ERP Consultant';
+function getCompanyLabel()  { return _companyName; }
 function getClientLabel()   { return document.getElementById('pi-client')?.value    || TOKEN_CLIENT; }
 function getPMLabel()       { return document.getElementById('pi-pm')?.value        || TOKEN_PM; }
 function getCDPLabel()      { return document.getElementById('pi-cdptech')?.value   || TOKEN_CDP; }
@@ -292,6 +299,7 @@ function formatTemplate(text) {
     .replaceAll(TOKEN_ERP,    getERPLabel());
 }
 function formatOwner(owner) {
+  if (owner === 'COMPANY')    return getCompanyLabel();
   if (owner === TOKEN_CLIENT) return getClientLabel();
   if (owner === TOKEN_PM)     return getPMLabel();
   if (owner === TOKEN_CDP)    return getCDPLabel();
@@ -308,7 +316,7 @@ function normalizeSpecialLabel(value) {
 const OWNER_OPTIONS = [
   { value: '',              label: '—' },
   { value: TOKEN_CLIENT,    label: () => getClientLabel() },
-  { value: 'MECALUX',       label: 'MECALUX' },
+  { value: 'COMPANY',       label: () => getCompanyLabel() },
   { value: 'Intégrateur',   label: 'Intégrateur' },
   { value: 'Autre',         label: 'Autre' },
 ];
@@ -1502,7 +1510,7 @@ function deleteDryrun(id) {
 const INST_STATES = ['Non','En cours','Oui','KO'];
 const INST_D = {'Oui':'#059669','Non':'#94a3b8','En cours':'#2563eb','KO':'#dc2626'};
 const INST_B = {'Oui':'cell-ok','Non':'cell-none','En cours':'cell-wip','KO':'cell-ko'};
-const INST_QUI = ['MECALUX', TOKEN_CLIENT,'TOUS','Prestataire externe','—'];
+const INST_QUI = ['COMPANY', TOKEN_CLIENT,'TOUS','Prestataire externe','—'];
 
 let _editingInstallId = null;
 function openEditInstall(id) {
@@ -1510,7 +1518,7 @@ function openEditInstall(id) {
   const r = installData.find(r => r.id === id); if (!r) return;
   document.getElementById('einst-action').value   = r.action || '';
   document.getElementById('einst-etat').value     = r.etat || 'Non';
-  buildOwnerSelect(document.getElementById('einst-qui'), r.qui || 'MECALUX');
+  buildOwnerSelect(document.getElementById('einst-qui'), r.qui || 'COMPANY');
   document.getElementById('einst-deadline').value = r.deadline || '';
   document.getElementById('einst-comment').value  = r.comment || '';
   document.getElementById('modal-edit-install').classList.add('open');
@@ -1551,7 +1559,7 @@ function renderInstall() {
   });
   makeSortable(tbody, installData, renderInstall);
 }
-function addInstall() { installData.push({id:uid(),action:'Nouveau prérequis',etat:'Non',qui:'MECALUX',deadline:'',comment:''}); renderInstall(); debouncedSave(); }
+function addInstall() { installData.push({id:uid(),action:'Nouveau prérequis',etat:'Non',qui:'COMPANY',deadline:'',comment:''}); renderInstall(); debouncedSave(); }
 function deleteInstall(id) {
   const idx = installData.findIndex(r => r.id === id); if (idx < 0) return;
   const deleted = { ...installData[idx] };

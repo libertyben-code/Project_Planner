@@ -54,7 +54,7 @@
   <div class="modal">
     <h3>Nouveau projet</h3>
     <div class="form-2col">
-      <div class="form-row"><label>Nom du projet *</label><input id="np-name" type="text" placeholder="Projet EasyWMS" oninput="autoFillClient()"></div>
+      <div class="form-row"><label>Nom du projet *</label><input id="np-name" type="text" placeholder="Projet WMS" oninput="autoFillClient()"></div>
       <div class="form-row"><label>Client *</label><input id="np-client" type="text" placeholder="Nom du client"></div>
     </div>
     <div class="form-2col">
@@ -80,6 +80,11 @@
 <div class="modal-overlay" id="modal-settings">
   <div class="modal">
     <h3>⚙ Paramètres</h3>
+    <div class="settings-section">
+      <div class="settings-section-title">Nom de la société intégratrice</div>
+      <p class="settings-hint">Ce nom remplace "COMPANY" dans le champ Propriétaire de toutes les tâches.</p>
+      <input type="text" id="settings-company-name" class="settings-text-input" placeholder="COMPANY" oninput="saveCompanyName()">
+    </div>
     <div class="settings-section">
       <div class="settings-section-title">Dossier de sauvegarde par défaut</div>
       <p class="settings-hint">Les nouveaux projets seront créés dans ce dossier. Si non défini, ils sont sauvegardés dans le dossier AppData de l'application.</p>

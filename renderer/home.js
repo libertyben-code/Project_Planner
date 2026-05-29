@@ -354,7 +354,13 @@ function checklistProgress(items, doneValues) {
 window.openSettings = function() {
   const display = document.getElementById('settings-folder-display');
   display.textContent = appSettings.saveFolder || 'Dossier par défaut (AppData)';
+  document.getElementById('settings-company-name').value = appSettings.companyName || '';
   document.getElementById('modal-settings').classList.add('open');
+};
+
+window.saveCompanyName = async function() {
+  appSettings.companyName = document.getElementById('settings-company-name').value.trim();
+  await persistSettings();
 };
 
 window.closeSettings = function() {

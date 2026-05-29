@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "",
-    "name": "Nouveau Projet EasyWMS",
+    "name": "Nouveau Projet WMS",
     "client": "clientName",
     "pm": "DPName",
     "cdptech": "CDPName",
@@ -26,8 +26,8 @@
     { "id": "FORM",    "name": "FORMATION & UAT",            "code": "F", "color": "#059669" }
   ],
   "tasks": [
-    { "id": "task_indispo_dp",   "phaseId": "INDISPO", "name": "Dir. Projet - DPName",                               "owner": "MECALUX",    "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
-    { "id": "task_indispo_cdp",  "phaseId": "INDISPO", "name": "Chef de Projet Technique - CDPName",                 "owner": "MECALUX",    "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
+    { "id": "task_indispo_dp",   "phaseId": "INDISPO", "name": "Dir. Projet - DPName",                               "owner": "COMPANY",    "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
+    { "id": "task_indispo_cdp",  "phaseId": "INDISPO", "name": "Chef de Projet Technique - CDPName",                 "owner": "COMPANY",    "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
     { "id": "task_indispo_rl",   "phaseId": "INDISPO", "name": "Responsable Logistique - RespoLogClient",            "owner": "clientName", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
     { "id": "task_indispo_rd",   "phaseId": "INDISPO", "name": "Responsable de Dépôt (Client)",                     "owner": "clientName", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
     { "id": "task_indispo_adv",  "phaseId": "INDISPO", "name": "Responsable ADV (Client)",                          "owner": "clientName", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
@@ -35,7 +35,7 @@
     { "id": "task_plan_2",       "phaseId": "PLAN",    "name": "Ateliers & Rédaction de l'Analyse Fonctionnelle",   "owner": "TOUS",       "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
     { "id": "task_plan_3",       "phaseId": "PLAN",    "name": "Validation de l'Analyse Fonctionnelle",             "owner": "TOUS",       "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
     { "id": "task_plan_4",       "phaseId": "PLAN",    "name": "Ateliers Mapping pour Analyse Fonctionnelle ERP",   "owner": "TOUS",       "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
-    { "id": "task_plan_5",       "phaseId": "PLAN",    "name": "Analyse technique & Rédaction tâches développement", "owner": "MECALUX",   "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
+    { "id": "task_plan_5",       "phaseId": "PLAN",    "name": "Analyse technique & Rédaction tâches développement", "owner": "COMPANY",   "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
     { "id": "task_erp_spec",     "phaseId": "ERP",     "name": "Rédaction des spécifications interface",            "owner": "",           "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
     { "id": "task_erp_itm",      "phaseId": "ERP",     "name": "Base Article - ITM",                                "owner": "",           "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
     { "id": "task_erp_sup",      "phaseId": "ERP",     "name": "Base Fournisseurs - SUP",                           "owner": "",           "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
@@ -52,20 +52,20 @@
     { "id": "task_erp_wsc",      "phaseId": "ERP",     "name": "Image de Stock - WSC",                              "owner": "",           "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
     { "id": "task_erp_trsp",     "phaseId": "ERP",     "name": "Appel API Transporteurs",                           "owner": "",           "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
     { "id": "task_erp_err",      "phaseId": "ERP",     "name": "Erreur d'Intégration - ERR",                       "owner": "",           "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
-    { "id": "task_dev_1",        "phaseId": "DEV",     "name": "Modélisation / Configuration Entrepôt",             "owner": "MECALUX",    "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
-    { "id": "task_dev_2",        "phaseId": "DEV",     "name": "Développements Fonctionnels",                       "owner": "MECALUX",    "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
-    { "id": "task_dev_3",        "phaseId": "DEV",     "name": "Tests et Validation des Développements Fonctionnels","owner": "MECALUX",   "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
-    { "id": "task_dev_4",        "phaseId": "DEV",     "name": "Paramétrage Environnement Client",                  "owner": "MECALUX",    "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
+    { "id": "task_dev_1",        "phaseId": "DEV",     "name": "Modélisation / Configuration Entrepôt",             "owner": "COMPANY",    "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
+    { "id": "task_dev_2",        "phaseId": "DEV",     "name": "Développements Fonctionnels",                       "owner": "COMPANY",    "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
+    { "id": "task_dev_3",        "phaseId": "DEV",     "name": "Tests et Validation des Développements Fonctionnels","owner": "COMPANY",   "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
+    { "id": "task_dev_4",        "phaseId": "DEV",     "name": "Paramétrage Environnement Client",                  "owner": "COMPANY",    "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
     { "id": "task_dev_5",        "phaseId": "DEV",     "name": "Étiquetage Entrepôt",                              "owner": "clientName", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
-    { "id": "task_dev_6",        "phaseId": "DEV",     "name": "Paramétrage des TRF / Imprimantes",                 "owner": "MECALUX",    "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
-    { "id": "task_form_1",       "phaseId": "FORM",    "name": "Formation des Key Users",                           "owner": "MECALUX",    "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
+    { "id": "task_dev_6",        "phaseId": "DEV",     "name": "Paramétrage des TRF / Imprimantes",                 "owner": "COMPANY",    "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
+    { "id": "task_form_1",       "phaseId": "FORM",    "name": "Formation des Key Users",                           "owner": "COMPANY",    "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
     { "id": "task_form_2",       "phaseId": "FORM",    "name": "Tests et Validation des Développements",            "owner": "clientName", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
     { "id": "task_form_3",       "phaseId": "FORM",    "name": "Formation des Opérateurs",                         "owner": "clientName", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
     { "id": "task_form_4",       "phaseId": "FORM",    "name": "Inventaire Localisé des Stocks - Dry Run WMS",      "owner": "clientName", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
     { "id": "task_form_5",       "phaseId": "FORM",    "name": "DRY RUN & GO/NO GO",                               "owner": "TOUS",       "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "barColor": "#dc2626" },
     { "id": "task_form_6",       "phaseId": "FORM",    "name": "Inventaire Complet des Stocks pour GO LIVE",        "owner": "clientName", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
     { "id": "task_form_7",       "phaseId": "FORM",    "name": "INSTALLATION",                                      "owner": "TOUS",       "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "barColor": "#ea580c" },
-    { "id": "task_form_8",       "phaseId": "FORM",    "name": "HyperCare",                                         "owner": "MECALUX",    "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "barColor": "#4f46e5" }
+    { "id": "task_form_8",       "phaseId": "FORM",    "name": "HyperCare",                                         "owner": "COMPANY",    "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "barColor": "#4f46e5" }
   ],
   "heuresData": [
     { "id": "h_std",    "cat": "Heures Standard",           "vente": 0, "actuel": 0, "desc": "Implémentation, gestion projet, formation, tests", "bold": true,  "totalType": "Standard",   "sep": false, "custom": false, "history": [] },
@@ -151,15 +151,15 @@
   "install": [
     { "id": "in_01", "action": "Plan de l'entrepôt à jour – autorisations vérifiées",    "etat": "Non", "qui": "clientName", "deadline": "", "comment": "" },
     { "id": "in_02", "action": "Entrepôt couvert par le WIFI",                           "etat": "Non", "qui": "clientName", "deadline": "", "comment": "" },
-    { "id": "in_03", "action": "Serveur installé et WMS accessible sans VPN",            "etat": "Non", "qui": "MECALUX",    "deadline": "", "comment": "" },
+    { "id": "in_03", "action": "Serveur installé et WMS accessible sans VPN",            "etat": "Non", "qui": "COMPANY",    "deadline": "", "comment": "" },
     { "id": "in_04", "action": "TRF disponibles et configurés correctement",              "etat": "Non", "qui": "clientName", "deadline": "", "comment": "" },
     { "id": "in_05", "action": "Racks installés et étiquetés correctement",              "etat": "Non", "qui": "clientName", "deadline": "", "comment": "" },
     { "id": "in_06", "action": "Imprimantes disponibles, alimentées et connectées",      "etat": "Non", "qui": "clientName", "deadline": "", "comment": "" },
-    { "id": "in_07", "action": "Ordinateurs EasyWMS disponibles et connectés",           "etat": "Non", "qui": "clientName", "deadline": "", "comment": "" },
-    { "id": "in_08", "action": "Communications WMS ↔ ERP fonctionnelles",               "etat": "Non", "qui": "MECALUX",    "deadline": "", "comment": "" },
-    { "id": "in_09", "action": "Process de l'AF en préproduction",                       "etat": "Non", "qui": "MECALUX",    "deadline": "", "comment": "" },
+    { "id": "in_07", "action": "Ordinateurs WMS disponibles et connectés",           "etat": "Non", "qui": "clientName", "deadline": "", "comment": "" },
+    { "id": "in_08", "action": "Communications WMS ↔ ERP fonctionnelles",               "etat": "Non", "qui": "COMPANY",    "deadline": "", "comment": "" },
+    { "id": "in_09", "action": "Process de l'AF en préproduction",                       "etat": "Non", "qui": "COMPANY",    "deadline": "", "comment": "" },
     { "id": "in_10", "action": "Process testés et compris par Key Users",                "etat": "Non", "qui": "TOUS",       "deadline": "", "comment": "" },
-    { "id": "in_11", "action": "Plan de tests fonctionnel rédigé et envoyé",             "etat": "Non", "qui": "MECALUX",    "deadline": "", "comment": "" },
+    { "id": "in_11", "action": "Plan de tests fonctionnel rédigé et envoyé",             "etat": "Non", "qui": "COMPANY",    "deadline": "", "comment": "" },
     { "id": "in_12", "action": "Plans de tests WMS validés par le client",               "etat": "Non", "qui": "clientName", "deadline": "", "comment": "" }
   ],
   "billing": {
