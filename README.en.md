@@ -43,16 +43,18 @@ The app creates a blank `.wmsplan` file and opens the project. Every change is s
 - Each team member opens it with their own copy of the app.
 - If someone else saves while you have the file open, a banner appears at the top: click **Recharger** to get their changes.
 
-## Home screen — Portfolio dashboard
+## Home screen
 
-A collapsible **📊 Vue d'ensemble du portefeuille** section sits above the project cards and gives a cross-project view:
+The home screen has two tabs in the top bar:
 
-- **Santé du portefeuille** — always visible at the top: one row per project showing RAG status, task progress bar, hours consumed vs. sold, billing collected, install date, and checklist counts.
-- **KPI strip** — active projects, RAG breakdown, total overdue tasks, total billing collected, total hours consumed.
-- **Cette semaine & retards** — collapsed by default; click the header to expand. Tasks overdue or due within 7 days, grouped by project. Clicking a row opens that project.
-- **Événements à venir — 30 jours** — collapsed by default; click the header to expand. Upcoming billing milestones and install dates in the next 30 days, grouped by project, with a J-N countdown chip.
+- **📋 Projets récents** — project cards, search, create, open, duplicate, share, delete.
+- **📊 Portfolio** — cross-project view of all projects:
+  - **Santé du portefeuille** — one row per project: RAG status, task progress bar, hours consumed vs. sold, billing collected, install date, checklist counts.
+  - **KPI strip** — active projects, RAG breakdown, total overdue tasks, total billing collected, total hours consumed.
+  - **Cette semaine & retards** — collapsed by default; click the header to expand. Tasks overdue or due within 7 days, grouped by project.
+  - **Événements à venir — 30 jours** — collapsed by default. Upcoming billing milestones and install dates in the next 30 days, with a J-N countdown chip.
 
-Each project card has a **colored left border** showing its RAG status (green / orange / red). Click the portfolio header to collapse/expand the entire dashboard.
+Each project card has a **colored left border** showing its RAG status (green / orange / red). The portfolio refreshes automatically after adding, removing, or duplicating a project.
 
 ## Tableau de bord
 
@@ -112,7 +114,9 @@ Three export formats are available from the top bar:
 
 Click the **⚙** icon in the top-right of the home screen to open settings:
 
+- **Integrator company name** — replaces "COMPANY" in the Owner field across all tasks.
 - **Default save folder** — choose where new projects are created. If unset, projects are saved to the application's AppData folder (always accessible, never lost).
+- **Light mode** — toggles the interface between dark (default) and light theme. The setting is remembered.
 
 ## Example project
 

@@ -77,24 +77,26 @@ Auto-save: every mutation calls `debouncedSave()` (800 ms debounce). `saveProjec
 
 `home.js` manages the project list, settings, example project loading, and the portfolio dashboard:
 
-- **Settings** (`appSettings`) are loaded from `settings.json` (AppData) on startup and cached in memory. Currently stores `saveFolder` (default save directory). Persisted via `write_settings` / `read_settings`.
+- **Settings** (`appSettings`) are loaded from `settings.json` (AppData) on startup and cached in memory. Fields: `saveFolder`, `companyName`, `lightMode`. Persisted via `write_settings` / `read_settings`.
+- **Theme**: `applyTheme()` sets `data-theme="light"` or `"dark"` on `<html>`. `window.toggleTheme()` is called by the Settings modal toggle, saves `appSettings.lightMode`, and calls `applyTheme()`. Called once during `init()` so the theme is restored on page load.
+- **Tab switching**: `window.switchTab(id)` shows/hides `#tab-panel-projects` and `#tab-panel-portfolio` and flips the `.active` class on the corresponding `#tab-btn-*` buttons. The tab bar lives inside the `<header>` element, centered via CSS grid (`grid-template-columns: auto 1fr auto`).
 - **Save folder**: passed as the optional `folder` param to `get_new_project_path`. If empty/null, Rust falls back to `AppData/projects/`.
 - **Example project**: `example.wmsplan` is fetched from the renderer directory, a copy is written to the projects folder with a fresh ID, and the user is navigated to it.
 
 ### Portfolio dashboard
 
-Shown above the project grid on the home screen. Loaded at startup by `loadPortfolioData()`, which reads every file in `recent[]` in parallel via `Promise.allSettled` and passes the results to `renderPortfolio(projects)`. After a successful load, fresh `rag` values from project files are synced back into `recent[]` so home screen card borders stay current.
+Lives in `#tab-panel-portfolio` (the Portfolio tab). Loaded at startup by `loadPortfolioData()`, which reads every file in `recent[]` in parallel via `Promise.allSettled` and passes the results to `renderPortfolio(projects)`. Also called after project delete, remove-from-recent, and duplicate so the portfolio stays current without a page reload.
 
-Sections rendered in this order:
+After a successful load, fresh `rag` values from project files are synced back into `recent[]` so home screen card borders stay current.
+
+Sections rendered in this order into `#portfolio-body`:
 
 - **Santé du portefeuille** — always expanded; one row per project: RAG dot, task progress bar, hours consumed vs. sold, billing collected, install date, checklist counts. Uses `.pf-health-table` for larger row height.
 - **KPI strip** — aggregate counts: active/completed, RAG distribution, total overdue tasks, total billing, total hours.
 - **Cette semaine & retards** — collapsed by default (`pf-collapsible` + `pf-toggle`). Rows grouped by project under `.pf-group-row` headers; within each project sorted overdue-first then by date. Toggle via `togglePfSection('pf-week')`.
 - **Événements à venir — 30 jours** — collapsed by default. Billing milestones and install dates grouped by project, sorted by project name then date. Toggle via `togglePfSection('pf-upcoming')`.
 
-Clicking any data row navigates to that project via `window.openProjectCard(this.dataset.path)` (uses `data-path` attribute, never inline path string — see Windows path safety).
-
-The outer section is collapsible (`togglePortfolio()`). Files that fail to read are silently skipped (graceful degradation via `Promise.allSettled`).
+Clicking any data row navigates to that project via `window.openProjectCard(this.dataset.path)` (uses `data-path` attribute, never inline path string — see Windows path safety). Files that fail to read are silently skipped (graceful degradation via `Promise.allSettled`).
 
 ### RAG status
 
@@ -274,5 +276,6 @@ The portable `.exe` is the primary sharing artifact. WebView2 is pre-installed o
 7. Change save folder in settings — create a project and confirm it lands in the chosen folder.
 8. Add a multi-period task (2+ segments) with Indisponibilité checked — confirm Statut/Priorité/J/Avancement cells are blank and each period renders a separate bar.
 9. Set RAG to Rouge via the navbar pill — confirm pill turns red, home screen card left border turns red after returning home.
-10. On the home screen with 2+ projects, verify the portfolio "Santé du portefeuille" table is visible; click "Cette semaine" header — confirm it expands and rows are grouped by project.
-11. `WMSPlanner.exe` runs on a machine without Node or Rust installed.
+10. Click the **📊 Portfolio** tab — confirm "Santé du portefeuille" table is visible; click "Cette semaine" header — confirm it expands and rows are grouped by project. Delete a project and confirm the portfolio refreshes.
+11. Open Settings, toggle **Mode clair** — confirm the entire home screen switches to a light theme. Toggle back to dark and confirm it restores.
+12. `WMSPlanner.exe` runs on a machine without Node or Rust installed.

@@ -46,15 +46,17 @@ git push
 
 ## Before committing — approval flow
 
-**Claude should:**
-1. State which files will change and why
-2. Show key diffs inline where meaningful
-3. Ask for approval before running `git add / git commit`
+**The mandatory flow for any code change:**
 
-**Exceptions (can commit directly after stating intent):**
-- Typo / formatting fixes
-- Doc-only commits after agreed changes
-- Bump of `updatedAt` in a test file (auto-save artifact)
+1. Claude implements the change and states which files changed and why
+2. **User tests the build** — either `npx tauri dev` (full Tauri window) or `npx serve renderer -l 8080` (browser, no Rust) — and approves or requests changes
+3. Claude commits only after explicit user approval ("ok", "good", "commit it", etc.)
+
+**Exceptions (Claude may commit directly after stating intent, no build test needed):**
+
+- Typo / formatting fixes in docs
+- Doc-only commits (README, MAINTAINER, FEEDBACK)
+- `WORKFLOW.md` updates
 
 **If a tool call is rejected:**
 - Do NOT retry the exact same call
@@ -63,16 +65,19 @@ git push
 
 ---
 
-## Documentation — always before merging
+## Documentation — end of session AND before merging
 
-Before every `git merge feature/* → main`, update all four files:
+Update docs **at the end of every working session**, not only at merge time:
 
-| File | Language | Covers |
+| File | Language | When to update |
 |---|---|---|
-| `README.md` | English | User-facing feature docs |
-| `README.fr.md` | French | Same, translated |
-| `MAINTAINER.md` | English | Architecture, IPC, gotchas, smoke test |
-| `FEEDBACK.md` | French/mixed | Mark completed items `[x]` |
+| `README.md` | French | Any user-visible change |
+| `README.en.md` | English | Same, translated |
+| `MAINTAINER.md` | English | Any architecture / IPC / gotcha change |
+| `FEEDBACK.md` | French/mixed | Mark completed items `[x]` immediately |
+| `WORKFLOW.md` | English | When the collaboration process itself changes |
+
+Before every `git merge feature/* → main`, verify all five files are current.
 
 ---
 
@@ -200,14 +205,17 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - Replaced remaining "MECALUX" occurrences in views and settings with configurable company name
 - FEEDBACK.md updated with new pending items
 
+### 2026-05-29 — Home screen tabs + light mode (`feature/home-tabs-light-mode`)
+
+- Portfolio moved from collapsible accordion to dedicated **📊 Portfolio** tab in the header bar
+- Tab bar integrated into the header (CSS grid 3-col, tabs centered, 15px bold)
+- Light mode: `:root[data-theme="light"]` CSS overrides; toggled from Settings "Mode clair" toggle; persisted in `appSettings.lightMode`
+- Portfolio auto-refresh after project delete, remove-from-recent, and duplicate
+- WORKFLOW.md, README.md, README.en.md, MAINTAINER.md updated
+
 ---
 
 ## Pending items (summary from FEEDBACK.md as of 2026-05-29)
-
-**Home screen:**
-- Portfolio refresh on project add/remove
-- Portfolio as a dedicated tab
-- Light mode for home screen + portfolio
 
 **Gantt:**
 - Collapsible phases (reduce to phase-name row)
