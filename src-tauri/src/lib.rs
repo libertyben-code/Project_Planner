@@ -2,6 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_dialog::DialogExt;
+use base64::Engine;
 
 // ── File I/O commands ────────────────────────────────────────────────────────
 
@@ -365,6 +366,38 @@ fn set_window_title(app: AppHandle, title: String) -> Result<(), String> {
     }
 }
 
+// ── JIRA proxy (avoids CORS — called from renderer) ──────────────────────────
+
+#[tauri::command]
+async fn jira_fetch(url: String, email: String, token: String, body: Option<String>) -> Result<String, String> {
+    let creds = base64::engine::general_purpose::STANDARD.encode(format!("{}:{}", email, token));
+    let client = reqwest::Client::new();
+    let resp = match body {
+        Some(json_body) => client
+            .post(&url)
+            .header("Authorization", format!("Basic {}", creds))
+            .header("Accept", "application/json")
+            .header("Content-Type", "application/json")
+            .body(json_body)
+            .send()
+            .await,
+        None => client
+            .get(&url)
+            .header("Authorization", format!("Basic {}", creds))
+            .header("Accept", "application/json")
+            .send()
+            .await,
+    }
+    .map_err(|e| format!("Réseau: {}", e))?;
+
+    let status = resp.status();
+    if !status.is_success() {
+        return Err(format!("JIRA {}", status.as_u16()));
+    }
+
+    resp.text().await.map_err(|e| format!("Lecture réponse: {}", e))
+}
+
 // ── App entry point ──────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -403,6 +436,7 @@ pub fn run() {
             delete_project,
             save_md_dialog,
             pick_folder,
+            jira_fetch,
         ])
         .run(tauri::generate_context!())
         .expect("Erreur au démarrage de l'application");

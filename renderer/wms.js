@@ -829,21 +829,19 @@ async function syncJira() {
   const syncBtn = document.getElementById('jira-sync-btn');
   if (syncBtn) { syncBtn.disabled = true; syncBtn.textContent = '⟳ Synchro…'; }
   try {
-    const auth = btoa(`${cfg.email}:${cfg.token}`);
-    const h = { 'Authorization': `Basic ${auth}`, 'Accept': 'application/json' };
-    const [er, tr] = await Promise.all([
-      fetch(`${cfg.url}/rest/api/3/search?jql=project%3D${cfg.projectKey}%20AND%20issuetype%3DEpic&fields=summary,status&maxResults=50`, { headers: h }),
-      fetch(`${cfg.url}/rest/api/3/search?jql=project%3D${cfg.projectKey}%20AND%20issuetype%20in%20(Story%2CTask%2CBug)&fields=summary,status,assignee,customfield_10016,duedate,parent,progress&maxResults=100`, { headers: h })
+    const jiraUrl = `${cfg.url}/rest/api/3/search/jql`;
+    const [erText, trText] = await Promise.all([
+      invoke('jira_fetch', { url: jiraUrl, email: cfg.email, token: cfg.token, body: JSON.stringify({ jql: `project=${cfg.projectKey} AND issuetype=Epic`, fields: ['summary', 'status'], maxResults: 50 }) }),
+      invoke('jira_fetch', { url: jiraUrl, email: cfg.email, token: cfg.token, body: JSON.stringify({ jql: `project=${cfg.projectKey} AND issuetype in (Story,Task,Bug)`, fields: ['summary', 'status', 'assignee', 'customfield_10016', 'duedate', 'parent', 'progress'], maxResults: 100 }) })
     ]);
-    if (!er.ok) throw new Error(`JIRA ${er.status}`);
-    jiraData = transformJiraIssues(await er.json(), await tr.json());
+    jiraData = transformJiraIssues(JSON.parse(erText), JSON.parse(trText));
     jiraData.lastSync = new Date().toLocaleString('fr-FR');
     renderJira(); renderGantt(); debouncedSave();
     document.getElementById('jira-sync-info').textContent = `Dernière synchro : ${jiraData.lastSync} — ${jiraData.tasks.length} tâches importées`;
   } catch (e) {
     console.error('JIRA sync:', e);
     const info = document.getElementById('jira-sync-info');
-    if (info) info.textContent = 'Erreur : ' + e.message;
+    if (info) info.textContent = 'Erreur : ' + (e.message ?? e);
   } finally {
     if (syncBtn) { syncBtn.disabled = false; syncBtn.textContent = '⟳ Synchroniser'; }
   }
