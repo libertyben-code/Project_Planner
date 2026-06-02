@@ -250,6 +250,7 @@ function clearInstallDelay() {
   document.getElementById('pi-install-comment').value = '';
   _syncInstallDelayUI();
   onMetaInput();
+  renderDashboard();
 }
 
 // ═══ INSTALL DRIFT ═══
@@ -325,8 +326,8 @@ function getERPLabel()      { return document.getElementById('pi-erpconsult')?.v
 function formatTemplate(text) {
   return String(text)
     .replaceAll(TOKEN_CLIENT, getClientLabel())
-    .replaceAll(TOKEN_PM,     getPMLabel())
     .replaceAll(TOKEN_CDP,    getCDPLabel())
+    .replaceAll(TOKEN_PM,     getPMLabel())
     .replaceAll(TOKEN_RL,     getRLLabel())
     .replaceAll(TOKEN_ERP,    getERPLabel());
 }
@@ -1011,7 +1012,8 @@ function openAddTaskModal(phaseId) {
   document.getElementById('task-progress').value = 0;
   document.getElementById('task-status').value = 'Non commencé';
   document.getElementById('task-priority').value = '';
-  document.getElementById('task-unavail').checked = false;
+  const _isIndispo = phaseId === 'INDISPO' || (phases.find(p => p.id === phaseId)?.name || '').toLowerCase().includes('indisponib');
+  document.getElementById('task-unavail').checked = _isIndispo;
   _buildDepsSelect(null, []);
   document.getElementById('btn-delete-task').style.display = 'none';
   document.getElementById('modal-task').classList.add('open');
@@ -1590,16 +1592,25 @@ function renderInstall() {
   const tbody = document.getElementById('tbody-install'); tbody.innerHTML = '';
   installData.forEach(row => {
     const tr = tbody.insertRow(); tr.dataset.rowId = row.id;
-    const quiLabel = row.qui === TOKEN_CLIENT ? getClientLabel() : (row.qui || '—');
+    const quiLabel = row.qui === TOKEN_CLIENT ? getClientLabel() : row.qui === 'COMPANY' ? getCompanyLabel() : (row.qui || '—');
     tr.innerHTML = `<td>${dh()}</td>
       <td style="font-weight:500">${row.action}</td>
       <td style="min-width:88px">${instBadge(row.etat)}</td>
-      <td style="font-size:12px">${quiLabel}</td>
+      <td style="font-size:12px;cursor:pointer"><span class="qui-label">${quiLabel}</span></td>
       <td style="font-size:12px">${row.deadline||'—'}</td>
       <td style="color:var(--text-muted);font-size:12px">${row.comment}</td>
       <td><button class="btn btn-secondary btn-sm" onclick="openEditInstall('${row.id}')">✏</button></td>`;
     const sp = tr.cells[2].querySelector('span');
     sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, INST_STATES.map(v => ({label:v,value:v,dot:INST_D[v]})), val => { row.etat = val; sp.className = INST_B[val]||'cell-none'; sp.textContent = val; renderDashboard(); debouncedSave(); }); });
+    const quiSpan = tr.cells[3].querySelector('.qui-label');
+    quiSpan.addEventListener('click', e => {
+      e.stopPropagation();
+      showDropdown(quiSpan, getOwnerOptions().map(o => ({ label: typeof o.label === 'function' ? o.label() : o.label, value: o.value })), val => {
+        row.qui = val;
+        quiSpan.textContent = val === TOKEN_CLIENT ? getClientLabel() : val === 'COMPANY' ? getCompanyLabel() : val || '—';
+        debouncedSave();
+      });
+    });
   });
   makeSortable(tbody, installData, renderInstall);
 }
