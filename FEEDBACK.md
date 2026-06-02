@@ -153,9 +153,45 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 
 ## Evolutions
 
-- [ ] Ajouter un calendrier globale des ressources pour permettre de connaitre les disponibilité de chaques CDP Tech et DP. Leurs planning de congés pourront être remplis automatiquement d'après ce planning global. C'est aujourd'hui un google calendar.
-  - [ ] Les utilisateurs devront être crées à l'avance et dans la création de projet, un menu déroulant sera utilisé pour choisir les DP et CDP Tech.
-- [ ] Integrer le process de suivi des tests clients.
-- [ ] Integrer l'import de fichier excel en tant que nouvelle tab (tableau avec colone and type)
-- [ ] Permettre le zoom in et out en faisont control + scroll ou bouton + / - si possible.
-- [ ] Etudier la possibilité d'utiliser l'appli en ligne et voir comment gerer le back end. Est il possible de charger automatiquement les fichiers sur le DD à partir du site ? quelles idées pour partager le planning avec le client en direct pour les tests UAT et gestion de bug/ticketing ?
+### Fonctionnalités standalone (pas de backend requis)
+
+- [ ] Permettre le zoom in et out sur le Gantt en faisant Ctrl+scroll ou boutons +/- dans le nav.
+- [ ] Intégrer l'import de fichier Excel en tant que nouvelle tab (tableau avec colonnes et types configurables).
+- [ ] Calendrier global des ressources : connaitre les disponibilités de chaque CDP Tech et DP. Leurs congés pourront être remplis automatiquement depuis ce calendrier (source actuelle : Google Calendar).
+  - [ ] Les utilisateurs devront être créés à l'avance. Dans la création de projet, un menu déroulant permettra de choisir le DP et le CDP Tech.
+
+### Phase 1 — Vue client read-only (export HTML autonome)
+
+<!-- Objectif : partager le planning avec le client sans backend, sans login, sans installation. -->
+<!-- Décision 2026-06-02 : commencer par cette phase, tester sur des projets réels avant d'aller plus loin. -->
+
+- [ ] Bouton "Générer vue client" dans le nav de l'app (remplace / complète l'export HTML existant désactivé).
+  - Produit un fichier `.html` autonome (CSS + données JSON inlinés) — le client l'ouvre dans n'importe quel navigateur.
+  - Flag `CLIENT_MODE = true` injecté : tous les contrôles d'édition (dropdowns inline, boutons Edit/Delete, drag-handle) sont masqués dans les fonctions `renderXxx()`.
+  - Onglets visibles côté client : Gantt, Interfaces, Fonctionnel, Dry Run, Installation, onglets personnalisés.
+  - Onglets masqués : Heures, Facturation, JIRA, Dashboard, Paramètres projet.
+- [ ] Onglet "Retours / UAT" dans la vue client exportée.
+  - Liste des retours déjà enregistrés par le DP (titre, type, priorité, statut) — lecture seule.
+  - Formulaire "Signaler un problème" : type (Bug / Question / Amélioration), description, priorité.
+  - À la soumission : génère un lien `mailto:` pré-rempli → email envoyé au DP.
+- [ ] Onglet "Retours / UAT" dans l'app (côté DP).
+  - Tableau des retours clients : titre, type, priorité, statut (Nouveau / En cours / Résolu), commentaire DP.
+  - CRUD complet (ajout manuel + réception des retours email), drag-drop pour réordonner.
+  - Les retours sont stockés dans le `.wmsplan` et visibles en read-only dans l'export client.
+
+### Phase 2 — Accès en ligne multi-utilisateurs (backend requis)
+
+<!-- À engager uniquement après validation de la Phase 1 sur des projets réels. -->
+<!-- Décision 2026-06-02 : l'hébergement des données sensibles clients est un point bloquant à trancher avant de démarrer. -->
+
+- [ ] Définir la stratégie d'hébergement des données (données sensibles : noms clients, planning, contacts).
+  - Option A : Supabase région EU (Frankfurt) — GDPR-compatible, tiers de confiance, ~25$/mois.
+  - Option B : VPS auto-hébergé (Hetzner/OVH France ou Allemagne) — contrôle total, ~5–15€/mois, maintenance à prévoir.
+  - Option C : Serveur on-premises entreprise — contrôle maximal, dépend de l'IT interne.
+- [ ] Trois rôles utilisateurs à implémenter :
+  - **Manager** : voit tous les projets, accès lecture seule, vue Portfolio complète.
+  - **DP / CDP Tech** : accès aux projets qui leur sont assignés, édition complète.
+  - **Client** : lien UUID public (pas de compte), lecture seule Gantt + onglets métier + onglet Retours/UAT.
+- [ ] Stack cible envisagée : frontend HTML/JS/CSS existant (déjà browser-ready via tauri-ipc.js), backend Supabase (auth, PostgreSQL, real-time subscriptions), hébergement frontend Vercel ou Netlify.
+- [ ] Intégrer le process de suivi des tests clients (UAT structuré avec scenarios de test, validation par le client, suivi d'avancement).
+- [ ] Synchronisation live entre DP et CDP Tech sur un même projet (real-time via Supabase Realtime ou équivalent).
