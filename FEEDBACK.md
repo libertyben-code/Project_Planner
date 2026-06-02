@@ -42,6 +42,10 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Ce meme bouton doit permettre de drag and drop une phase avec toute ses taches. - OK
 - [x] Une phase JIRA dans le planning (épics + tâches, barres de Gantt, progression). Backbone complet : onglet JIRA dédié, modal de configuration (URL Atlassian, clé projet, email, token API), fonction syncJira() prête pour la vraie clé. Données de démonstration pré-chargées dans le template. - OK
 - [x] Ajouter la possibilité de "réduire" une phase pour n'afficher que la ligne du nom de phase. — OK
+- [ ] Ajouter la possibilité de supprimer la date revue d'installation et donc le message retardé.
+- [ ] Dans la phase Indisponibilité/Congés, les nouvelles tâches créées ne doivent pas afficher le statut, priorité, J et %AVA comme le reste des tâche dans cette phase. 
+- [ ] Dans la tâche Chef de Projet Technique, remplis le nom du CDP Tech et non du DP.
+
 
 ## Suivi Heures
 
@@ -94,7 +98,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] toutes les lignes doivent avoir un bouton edit avec un bouton delete dans la modale.
 - [x] Les colonnes doivent être assez large pour afficher tout le texte.
 - [x] le drag and drop ne fonctionne pas.
-- [x] La colonne Qui? doit être un menu d;eroulant avec les meme infos que celle du planning. - OK
+- [ ] La colonne Qui? doit être un menu déroulant avec les mêmes infos que celle du planning. NOT OK
 
 ## Facturation
 
