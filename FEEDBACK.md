@@ -1,4 +1,4 @@
-# WMS Planner — Feedback & Change Requests
+﻿# WMS Planner — Feedback & Change Requests
 
 Add items below as you test the app. I'll work through them section by section.
 
@@ -42,10 +42,9 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Ce meme bouton doit permettre de drag and drop une phase avec toute ses taches. - OK
 - [x] Une phase JIRA dans le planning (épics + tâches, barres de Gantt, progression). Backbone complet : onglet JIRA dédié, modal de configuration (URL Atlassian, clé projet, email, token API), fonction syncJira() prête pour la vraie clé. Données de démonstration pré-chargées dans le template. - OK
 - [x] Ajouter la possibilité de "réduire" une phase pour n'afficher que la ligne du nom de phase. — OK
-- [ ] Ajouter la possibilité de supprimer la date revue d'installation et donc le message retardé.
-- [ ] Dans la phase Indisponibilité/Congés, les nouvelles tâches créées ne doivent pas afficher le statut, priorité, J et %AVA comme le reste des tâche dans cette phase. 
-- [ ] Dans la tâche Chef de Projet Technique, remplis le nom du CDP Tech et non du DP.
-
+- [x] Ajouter la possibilité de supprimer la date revue d'installation et donc le message retardé. — OK
+- [x] Dans la phase Indisponibilité/Congés, les nouvelles tâches créées ne doivent pas afficher le statut, priorité, J et %AVA comme le reste des tâche dans cette phase. — OK
+- [x] Dans la tâche Chef de Projet Technique, remplis le nom du CDP Tech et non du DP. — OK
 
 ## Suivi Heures
 
@@ -98,7 +97,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] toutes les lignes doivent avoir un bouton edit avec un bouton delete dans la modale.
 - [x] Les colonnes doivent être assez large pour afficher tout le texte.
 - [x] le drag and drop ne fonctionne pas.
-- [ ] La colonne Qui? doit être un menu déroulant avec les mêmes infos que celle du planning. NOT OK
+- [x] La colonne Qui? doit être un menu déroulant avec les mêmes infos que celle du planning. — OK
 
 ## Facturation
 
@@ -159,3 +158,4 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [ ] Integrer le process de suivi des tests clients.
 - [ ] Integrer l'import de fichier excel en tant que nouvelle tab (tableau avec colone and type)
 - [ ] Permettre le zoom in et out en faisont control + scroll ou bouton + / - si possible.
+- [ ] Etudier la possibilité d'utiliser l'appli en ligne et voir comment gerer le back end. Est il possible de charger automatiquement les fichiers sur le DD à partir du site ? quelles idées pour partager le planning avec le client en direct pour les tests UAT et gestion de bug/ticketing ?
