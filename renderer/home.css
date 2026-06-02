@@ -65,6 +65,22 @@ body {
   white-space: nowrap;
 }
 .home-logo span { color: var(--accent); }
+.app-version-badge {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted, #94a3b8);
+  margin-left: 6px;
+  letter-spacing: 0;
+}
+.settings-version-section {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-top: 4px;
+}
+.settings-version-text {
+  font-size: 12px;
+  color: var(--text-muted, #94a3b8);
+}
 
 .home-tabs-center {
   display: flex;

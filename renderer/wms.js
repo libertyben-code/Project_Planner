@@ -2,7 +2,7 @@
 //  WMS Project Planning — Application Script (v2)
 //  ES module — loaded via <script type="module">
 // =====================================================
-import { invoke, listenFileChanged, setWindowTitle } from './tauri-ipc.js';
+import { invoke, listenFileChanged, setWindowTitle, getAppVersion } from './tauri-ipc.js';
 
 // ═══ STATE ═══
 let currentPath = null;
@@ -2897,6 +2897,11 @@ Object.assign(window, {
 initResizableTables();
 
 // ═══ INIT ═══
+getAppVersion().then(v => {
+  const el = document.getElementById('nav-app-version');
+  if (el) el.textContent = `v${v}`;
+});
+
 const params = new URLSearchParams(window.location.search);
 const projectPath = params.get('project');
 if (projectPath) {

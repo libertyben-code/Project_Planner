@@ -366,6 +366,13 @@ fn set_window_title(app: AppHandle, title: String) -> Result<(), String> {
     }
 }
 
+// ── App version ──────────────────────────────────────────────────────────────
+
+#[tauri::command]
+fn get_version() -> String {
+    env!("CARGO_PKG_VERSION").to_string()
+}
+
 // ── JIRA proxy (avoids CORS — called from renderer) ──────────────────────────
 
 #[tauri::command]
@@ -436,6 +443,7 @@ pub fn run() {
             delete_project,
             save_md_dialog,
             pick_folder,
+            get_version,
             jira_fetch,
         ])
         .run(tauri::generate_context!())

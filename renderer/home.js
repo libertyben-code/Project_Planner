@@ -1,5 +1,5 @@
 // home.js — WMS Project Planner home screen logic
-import { invoke, setWindowTitle } from './tauri-ipc.js';
+import { invoke, setWindowTitle, getAppVersion } from './tauri-ipc.js';
 
 setWindowTitle('WMS Project Planner');
 
@@ -18,6 +18,13 @@ async function init() {
   } catch { appSettings = { saveFolder: '', companyName: '', lightMode: false, templatePath: '' }; }
 
   applyTheme();
+
+  getAppVersion().then(v => {
+    const badge = document.getElementById('app-version');
+    if (badge) badge.textContent = `v${v}`;
+    const settingsVer = document.getElementById('settings-version-text');
+    if (settingsVer) settingsVer.textContent = `WMS Project Planner v${v}`;
+  });
 
   try {
     const raw = await invoke('read_recent');

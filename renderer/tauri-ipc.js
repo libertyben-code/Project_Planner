@@ -21,6 +21,13 @@ export function listenFileChanged(callback) {
   // browser: no file watching, but we expose the API so callers don't break
 }
 
+export async function getAppVersion() {
+  if (TAURI) {
+    return invoke('get_version');
+  }
+  return 'dev';
+}
+
 export function setWindowTitle(title) {
   if (TAURI) {
     window.__TAURI__.window.getCurrentWindow().setTitle(title);
