@@ -229,13 +229,28 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - **Custom project template**: `appSettings.templatePath`; in home Settings → "Template de projet"; new projects are based on the chosen `.wmsplan` file instead of the built-in `template.json`
 - **Per-project owner options**: `projectMeta.ownerOptions[]`; managed via ⚙ project settings modal → "Options Propriétaire"; add/remove custom values; drives all owner dropdowns (inline Gantt, inline Tâches, edit modals) — re-renders Gantt and Tâches tables on change
 
+### 2026-06-02 — JIRA CORS fix + app versioning
+
+- **JIRA CORS fix**: direct `fetch()` to Jira Cloud was blocked by WebView2. Added `jira_fetch` Rust command that proxies the HTTP request via `reqwest` (POST with JSON body to `/rest/api/3/search/jql`, Basic Auth via `base64`). Added `reqwest = "0.12"` (rustls-tls) and `base64 = "0.22"` to `Cargo.toml`. `syncJira()` in `wms.js` now calls `invoke('jira_fetch', ...)` and parses the returned JSON string. See [[feedback-webview2-cors]].
+- **App versioning v1.0.0**: version is sourced from `Cargo.toml` at compile time via `env!("CARGO_PKG_VERSION")`. New `get_version` Rust IPC command returns it to the renderer. `getAppVersion()` exported from `tauri-ipc.js` (returns `'dev'` in browser-only mode). Displayed as `v1.0.0` badge in the home screen header (next to the logo), in the Settings modal footer, and in the project view nav bar. To bump: change `version` in `Cargo.toml` and `tauri.conf.json`.
+
 ---
 
-## Pending items (summary from FEEDBACK.md as of 2026-05-29)
+## Pending items (summary from FEEDBACK.md as of 2026-06-02)
 
 **Export:**
 
 - HTML export formatting doesn't match app (button disabled — pending review)
+
+**Planning:**
+
+- Delete revised install date (remove the "delayed" message)
+- Indisponibilité/Congés phase: new tasks should not show Statut, Priorité, J, %AVA columns
+- "Chef de Projet Technique" task should fill CDP Tech name, not DP name
+
+**Custom tabs:**
+
+- "Qui?" column must be a dropdown matching the Planning owner list (regression — was marked done, found broken again)
 
 **Evolutions (larger features):**
 - Global resource calendar (CDP Tech / DP availability, synced from Google Calendar)

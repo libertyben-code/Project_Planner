@@ -100,6 +100,8 @@ Une tâche peut couvrir plusieurs plages de dates disjointes sur une même ligne
 2. Saisissez votre URL Atlassian (ex. `https://votre-entreprise.atlassian.net`), la clé du projet, votre email et un token API.
 3. Cliquez sur **↺ Synchroniser** pour importer les épics et les tâches.
 
+La synchronisation s'effectue via l'application native (pas le navigateur) — aucun problème de CORS ni de proxy à configurer.
+
 Le diagramme de Gantt affichera une phase JIRA sous vos phases manuelles, et le tableau de bord présentera un graphique d'avancement par épic.
 
 ## Export
@@ -118,6 +120,8 @@ Cliquez sur l'icône **⚙** en haut à droite de l'écran d'accueil :
 - **Dossier de sauvegarde par défaut** — choisissez où les nouveaux projets sont créés.
 - **Template de projet** — choisissez un fichier `.wmsplan` existant comme base pour tous les nouveaux projets (phases, configurations pré-remplies).
 - **Mode clair** — bascule entre le mode sombre (défaut) et le mode clair.
+
+La version de l'application est affichée en bas de ce panneau et dans la barre d'en-tête de l'écran d'accueil (`v1.0.0`).
 
 ## Paramètres par projet
 

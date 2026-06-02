@@ -186,7 +186,11 @@ Each chart is stored in `charts[key]`. Always call `destroyChart(key)` before cr
 
 `transformJiraIssues(epicsRaw, tasksRaw)` maps the Jira REST API v3 response to the internal schema. Tasks carry `epicId` (the parent epic's key), not `epicKey`.
 
-`syncJira()` is the entry point. It opens the config modal if credentials are missing.
+`syncJira()` is the entry point. It opens the config modal if credentials are missing. It calls `invoke('jira_fetch', ...)` — **not** `fetch()` directly — because WebView2 blocks cross-origin requests to external APIs (CORS). The Rust `jira_fetch` command makes the HTTP call via `reqwest` and returns the response text; `syncJira()` then `JSON.parse`s it.
+
+### WebView2 CORS — external API calls must go through Rust
+
+WebView2 blocks `fetch()` calls to external domains. Any new integration that needs to call an external REST API (Jira, Google Calendar, etc.) **must** route through a Rust `#[tauri::command]` that uses `reqwest`. See `jira_fetch` in `lib.rs` for the pattern.
 
 ### HTML export
 
@@ -252,8 +256,10 @@ Files are saved as `.wmsplan` (plain JSON). The schema is defined by `buildState
 | `reveal_file(path)` | Opens Explorer with the file selected |
 | `delete_project(path)` | Deletes `.wmsplan` file and its `.bak` if present |
 | `pick_folder(app)` | Native folder chooser dialog, returns path or null |
+| `get_version()` | Returns `env!("CARGO_PKG_VERSION")` — always in sync with `Cargo.toml` |
+| `jira_fetch(url, email, token, body?)` | Proxies an HTTP request to Jira (bypasses WebView2 CORS). POST with JSON body if `body` is provided, GET otherwise. Returns the response body as a string. |
 
-All called via `invoke(cmd, args)` in `tauri-ipc.js`, which falls back to `localStorage` stubs in browser-only mode.
+All called via `invoke(cmd, args)` in `tauri-ipc.js`, which falls back to `localStorage` stubs in browser-only mode. `getAppVersion()` (exported from `tauri-ipc.js`) calls `get_version` in Tauri and returns `'dev'` in browser mode.
 
 ### FilePath / path safety in Rust
 

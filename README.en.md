@@ -100,6 +100,8 @@ A task can span several disconnected date ranges on a single row — useful for 
 2. Enter your Atlassian URL (e.g. `https://yourcompany.atlassian.net`), project key, email, and an API token.
 3. Click **↺ Synchroniser** to import epics and tasks.
 
+The sync is made through the native app (not the browser) — no CORS issues or proxy configuration needed.
+
 The Gantt chart will display a JIRA phase below your manual phases, and the dashboard will show an epic-progress chart.
 
 ## Export
@@ -118,6 +120,8 @@ Click the **⚙** icon in the top-right of the home screen:
 - **Default save folder** — choose where new projects are created.
 - **Project template** — choose an existing `.wmsplan` file to use as the base for all new projects (pre-filled phases, config, etc.).
 - **Light mode** — toggles between dark (default) and light theme.
+
+The app version is displayed at the bottom of this panel and in the home screen header (`v1.0.0`).
 
 ## Per-project settings
 
