@@ -49,7 +49,9 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [ ] Dans les taches JIRA, integrer les dates de début et fin avec le nombre de jours prévus.
 - [x] Si une l'avancement d'une tâche est passé à 100%. Changer le statut de cette tâche à Terminé. De la même manière si l'avancement est changé >= 0, alors passer la tâche à "En Cours" — OK
 - [x] Ajouter le nombre de jours ouvrés restant à coté de la date d'installation. — OK
+  - [x] Ajouter ces jours dans le planning en dessous de la date d'installation — OK
 - [ ] Ajouter une indication des semaines avec des jours fériés. (colonne grisée, cellule semaine d'une certaine couleur ?)
+
 
 ## Suivi Heures
 
@@ -113,6 +115,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] ajuster le formating des montants.
 - [x] Les pourcentages doivent être calculés automatiquement en fonction du cout total et des manton de chaques jalons. - OK
 - [x] Ajouter une partie Déplacement dans la facturation avec une ligne Avion/Train, Voiture, Hôtel et Restauration. — OK
+  - [x] Pour ces lignes, ajouter une colonne Vendu (comme les heures) et permettre de rentrer les dépenses lorsqu'elles arrivent (comme le récap des heures lors des éditions) — OK
 
 ## Tableau de Bord (Dashboard)
 

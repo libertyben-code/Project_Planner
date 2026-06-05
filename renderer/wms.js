@@ -23,10 +23,10 @@ let jalonsProjet = [];
 let jalonsEquip = [];
 let jalonsDeplacements = [];
 const DEFAULT_DEPLACEMENTS = [
-  { id: 'avion-train',  label: 'Avion / Train',  montant: 0, etat: '—' },
-  { id: 'voiture',      label: 'Voiture',         montant: 0, etat: '—' },
-  { id: 'hotel',        label: 'Hôtel',           montant: 0, etat: '—' },
-  { id: 'restauration', label: 'Restauration',    montant: 0, etat: '—' },
+  { id: 'avion-train',  label: 'Avion / Train',  vendu: 0, depenses: [], etat: '—' },
+  { id: 'voiture',      label: 'Voiture',         vendu: 0, depenses: [], etat: '—' },
+  { id: 'hotel',        label: 'Hôtel',           vendu: 0, depenses: [], etat: '—' },
+  { id: 'restauration', label: 'Restauration',    vendu: 0, depenses: [], etat: '—' },
 ];
 let customTabs = [];
 let jiraData = { epics: [], tasks: [], lastSync: '' };
@@ -164,11 +164,12 @@ function applyState(state) {
   installData   = state.install       || [];
   jalonsProjet  = state.billing?.jalonsProjet    || [];
   jalonsEquip   = state.billing?.jalonsEquipement || [];
-  // Merge saved deplacements with defaults so all 4 rows always exist
+  // Merge saved deplacements with defaults — migrate old montant → vendu
   const savedDepl = state.billing?.jalonsDeplacements || [];
   jalonsDeplacements = DEFAULT_DEPLACEMENTS.map(def => {
     const saved = savedDepl.find(r => r.id === def.id);
-    return saved ? { ...def, ...saved } : { ...def };
+    if (!saved) return { ...def };
+    return { ...def, vendu: saved.vendu ?? saved.montant ?? 0, depenses: saved.depenses || [], etat: saved.etat || '—' };
   });
   customTabs    = state.customTabs    || [];
 
@@ -187,6 +188,7 @@ function applyState(state) {
   setVal('pi-install-actual', m.installDateActual || '');
   setVal('pi-install-comment', m.installDateComment || '');
   _syncInstallDelayUI();
+  _updateInstallWdBadge();
 
   const title = 'WMS Planning — ' + (m.name || 'Sans titre');
   setWindowTitle(title); document.title = title;
@@ -232,6 +234,7 @@ function onMetaInput() {
   setWindowTitle(title); document.title = title;
   debouncedSave();
   renderInstallDrift();
+  _updateInstallWdBadge();
 }
 function syncNav() { onMetaInput(); }
 
@@ -269,6 +272,22 @@ function clearInstallDelay() {
 }
 
 // ═══ INSTALL DRIFT ═══
+function _updateInstallWdBadge() {
+  const badge = document.getElementById('install-wd-badge');
+  if (!badge) return;
+  const m = projectMeta;
+  const activeDate = m.installDateActual || m.installDateDelayed || m.installDateOriginal;
+  const wd = workingDaysLeft(activeDate);
+  if (wd !== null) {
+    badge.textContent = `🗓 ${wd} jour${wd > 1 ? 's' : ''} ouvré${wd > 1 ? 's' : ''} restant${wd > 1 ? 's' : ''}`;
+    badge.style.color = wd <= 30 ? '#dc2626' : wd <= 60 ? '#d97706' : '#059669';
+  } else if (activeDate) {
+    badge.textContent = 'Date d\'installation dépassée';
+    badge.style.color = '#dc2626';
+  } else {
+    badge.textContent = '';
+  }
+}
 function workingDaysLeft(dateStr) {
   if (!dateStr) return null;
   const target = new Date(dateStr); target.setHours(0,0,0,0);
@@ -1736,17 +1755,68 @@ function del_fact_equip(id) {
   showUndoToast(`Jalon "${deleted.jalon}" supprimé`, () => { jalonsEquip.splice(idx, 0, deleted); renderFacturation(); renderDashboard(); });
 }
 function addJalon(type) { const list = type === 'projet' ? jalonsProjet : jalonsEquip; list.push({id:uid(),jalon:'Nouveau jalon',date:'',echeance:'',etat:'—',pct:0,montant:0}); renderFacturation(); debouncedSave(); }
+let _addingDeplId = null;
+function openAddDeplExpense(id) {
+  _addingDeplId = id;
+  document.getElementById('depl-exp-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('depl-exp-montant').value = '';
+  document.getElementById('depl-exp-note').value = '';
+  document.getElementById('modal-depl-expense').classList.add('open');
+}
+function saveDeplExpense() {
+  const row = jalonsDeplacements.find(r => r.id === _addingDeplId); if (!row) return;
+  const montant = +document.getElementById('depl-exp-montant').value || 0;
+  const date    = document.getElementById('depl-exp-date').value || new Date().toISOString().slice(0,10);
+  const note    = document.getElementById('depl-exp-note').value.trim();
+  if (!row.depenses) row.depenses = [];
+  row.depenses.push({ date, montant, note });
+  closeModal('modal-depl-expense');
+  renderFacturation(); renderDashboard(); debouncedSave();
+}
+function deleteDeplExpense(id, idx) {
+  const row = jalonsDeplacements.find(r => r.id === id); if (!row) return;
+  row.depenses.splice(idx, 1);
+  renderFacturation(); renderDashboard(); debouncedSave();
+}
+function toggleDeplHistory(id, btn) {
+  const existingRow = btn.closest('tr').nextElementSibling;
+  if (existingRow && existingRow.classList.contains('depl-history-row')) { existingRow.remove(); return; }
+  const row = jalonsDeplacements.find(r => r.id === id);
+  if (!row || !row.depenses?.length) return;
+  const tr = document.createElement('tr'); tr.className = 'depl-history-row';
+  const td = document.createElement('td'); td.colSpan = 5; td.style.padding = '0 16px 8px 24px';
+  const rows = row.depenses.map((d,i) => `<tr>
+    <td style="font-size:11px;padding:2px 8px">${d.date||'—'}</td>
+    <td style="text-align:right;font-size:11px;padding:2px 8px;font-weight:600">${fmtMontant(d.montant)}</td>
+    <td style="font-size:11px;color:var(--text-muted);padding:2px 8px">${d.note||''}</td>
+    <td><button style="font-size:10px;border:none;background:none;cursor:pointer;color:#dc2626;padding:0 4px" onclick="deleteDeplExpense('${id}',${i})">✕</button></td>
+  </tr>`).join('');
+  td.innerHTML = `<table style="font-size:11px;border-collapse:collapse;margin:4px 0">
+    <thead><tr><th style="padding:2px 8px;text-align:left;color:var(--text-muted)">Date</th><th style="padding:2px 8px;color:var(--text-muted)">Montant</th><th style="padding:2px 8px;color:var(--text-muted)">Note</th><th></th></tr></thead>
+    <tbody>${rows}</tbody></table>`;
+  tr.appendChild(td);
+  btn.closest('tr').insertAdjacentElement('afterend', tr);
+}
 function renderDeplRow(tbody) {
   tbody.innerHTML = '';
   jalonsDeplacements.forEach(row => {
+    const totalDepl = (row.depenses||[]).reduce((s,d) => s+(d.montant||0), 0);
     const tr = tbody.insertRow();
     tr.innerHTML = `
       <td style="font-weight:600">${row.label}</td>
+      <td style="text-align:right;cursor:pointer;text-decoration:underline dotted;font-family:'DM Mono',monospace" title="Cliquer pour modifier le budget vendu">${fmtMontant(row.vendu||0)}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;font-weight:600">${fmtMontant(totalDepl)}</td>
       <td style="min-width:78px">${factBadge(row.etat)}</td>
-      <td style="text-align:right;font-weight:600;font-family:'DM Mono',monospace;cursor:pointer;text-decoration:underline dotted" title="Cliquer pour modifier">${fmtMontant(row.montant)}</td>`;
-    const sp = tr.cells[1].querySelector('span');
+      <td style="text-align:center;white-space:nowrap">
+        ${(row.depenses||[]).length ? `<span title="Historique des dépenses" style="cursor:pointer;font-size:14px" onclick="toggleDeplHistory('${row.id}',this)">🕐</span> ` : ''}
+        <span title="Ajouter une dépense" style="cursor:pointer;font-size:16px;color:var(--accent);font-weight:700" onclick="openAddDeplExpense('${row.id}')">+</span>
+      </td>`;
+    tr.cells[1].addEventListener('click', () => {
+      const v = prompt(`Budget vendu — ${row.label} :`, row.vendu || 0);
+      if (v !== null && !isNaN(+v)) { row.vendu = +v; renderFacturation(); renderDashboard(); debouncedSave(); }
+    });
+    const sp = tr.cells[3].querySelector('span');
     sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, FACT_STATES.map(v => ({label:v,value:v,dot:FACT_D[v]})), val => { row.etat = val; sp.className = FACT_B[val]||'cell-none'; sp.textContent = val; renderFacturation(); renderDashboard(); debouncedSave(); }); });
-    tr.cells[2].addEventListener('click', () => { const v = prompt(`Montant — ${row.label} :`, row.montant || 0); if (v !== null && !isNaN(+v)) { row.montant = +v; renderFacturation(); renderDashboard(); debouncedSave(); } });
   });
 }
 function renderFacturation() {
@@ -1754,7 +1824,10 @@ function renderFacturation() {
   renderFactRow(document.getElementById('tbody-jalons-equip'), jalonsEquip, 'equip');
   renderDeplRow(document.getElementById('tbody-deplacements'));
   const tP = jalonsProjet.reduce((s,r) => s+r.montant, 0), tE = jalonsEquip.reduce((s,r) => s+r.montant, 0), total = tP + tE;
-  const tD = jalonsDeplacements.reduce((s,r) => s+r.montant, 0);
+  const tDVendu = jalonsDeplacements.reduce((s,r) => s+(r.vendu||0), 0);
+  const tDDepl  = jalonsDeplacements.reduce((s,r) => s+(r.depenses||[]).reduce((a,d) => a+(d.montant||0), 0), 0);
+  const ecartDepl = tDDepl - tDVendu;
+  const ecartDeplColor = ecartDepl > 0 ? '#dc2626' : ecartDepl < 0 ? '#059669' : 'var(--text-muted)';
   const paye = [...jalonsProjet,...jalonsEquip].filter(r => r.etat === 'Payé').reduce((s,r) => s+r.montant, 0);
   const reste = total - paye, sp = v => total > 0 ? Math.round(v/total*100) : 0;
   document.getElementById('kpi-fact').innerHTML = `
@@ -1763,7 +1836,7 @@ function renderFacturation() {
     <div class="kpi-card"><div class="kpi-label">Total Contrat</div><div class="kpi-value">${total.toLocaleString('fr-FR')} €</div></div>
     <div class="kpi-card"><div class="kpi-label">Encaissé</div><div class="kpi-value" style="color:#059669">${paye.toLocaleString('fr-FR')} €</div><div class="kpi-sub">${sp(paye)}%</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:${sp(paye)}%;background:#059669"></div></div></div>
     <div class="kpi-card"><div class="kpi-label">Reste à facturer</div><div class="kpi-value" style="color:#dc2626">${reste.toLocaleString('fr-FR')} €</div><div class="kpi-sub">${sp(reste)}%</div></div>
-    <div class="kpi-card"><div class="kpi-label">Déplacements</div><div class="kpi-value">${tD.toLocaleString('fr-FR')} €</div></div>`;
+    <div class="kpi-card"><div class="kpi-label">Déplacements — Budget</div><div class="kpi-value">${tDVendu.toLocaleString('fr-FR')} €</div><div class="kpi-sub">Dépensé : ${tDDepl.toLocaleString('fr-FR')} €</div><div class="kpi-sub" style="color:${ecartDeplColor}">Écart : ${ecartDepl > 0 ? '+' : ''}${ecartDepl.toLocaleString('fr-FR')} €</div></div>`;
 }
 
 // ═══ DASHBOARD ═══
@@ -2937,6 +3010,7 @@ Object.assign(window, {
   addInstall, openEditInstall, saveInstall, deleteInstallFromModal, deleteInstall,
   addJalon, openEditJalon, saveJalon, deleteJalonFromModal, autoCalcJalonPct,
   del_fact_projet, del_fact_equip, renderFacturation,
+  openAddDeplExpense, saveDeplExpense, deleteDeplExpense, toggleDeplHistory,
   addCustomHeuresRow, deleteHeuresRow, deleteHeuresFromModal, openEditHeure, saveHeures, toggleHeuresHistory,
   updateHeures, updateHeuresDesc, updateHeureCat, updateHeureHistNote,
   openProjectSettings, closeProjectSettings, pickAutoSavePath, resetAutoSavePath, saveAutoSaveInterval,
