@@ -523,6 +523,18 @@ window.togglePfSection = function(id) {
   section.querySelector('.pf-chevron').textContent = open ? '▾' : '▸';
 };
 
+function wdLeft(dateStr) {
+  if (!dateStr) return null;
+  const target = new Date(dateStr); target.setHours(0, 0, 0, 0);
+  const y = target.getFullYear();
+  if (y < 2000 || y > 2100) return null;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  if (target <= today) return null;
+  let count = 0; const d = new Date(today);
+  while (d <= target) { const day = d.getDay(); if (day !== 0 && day !== 6) count++; d.setDate(d.getDate() + 1); }
+  return count;
+}
+
 async function loadPortfolioData() {
   if (!recent.length) {
     document.getElementById('portfolio-loading').textContent = 'Aucun projet dans la liste récente.';
@@ -580,15 +592,19 @@ async function loadPortfolioData() {
         ? [{ date: installDate, label: 'Mise en production', project: meta.name || p.name, path: p.path, delayed: !!meta.installDateDelayed }]
         : [];
 
+      const activeInstallDate = meta.installDateActual || installDate;
+
       return {
         name: meta.name || p.name,
         client: meta.client || p.client || '—',
         pm: meta.pm || p.pm || '',
+        cdptech: meta.cdptech || '',
         rag: meta.rag || '',
         path: p.path,
         installDate,
         installActual: meta.installDateActual,
         installDelayed: !!meta.installDateDelayed,
+        installWd: meta.installDateActual ? null : wdLeft(installDate),
         tasks: { total: nonUnavail.length, done, overdue: overdueList, thisWeek: thisWeekList },
         hours: { sold: hVente, actual: hActuel },
         billing: { total: bTotal, paid: bPaid },
@@ -753,12 +769,18 @@ function renderPortfolio(projects) {
     const hOver = p.hours.actual > p.hours.sold;
     const bPct = p.billing.total > 0 ? pct(p.billing.paid, p.billing.total) : 0;
     const ragDot = p.rag ? `<span class="rag-dot rag-dot-${p.rag.toLowerCase()}" style="width:13px;height:13px;display:inline-block;border-radius:50%;vertical-align:middle"></span>` : '<span style="display:inline-block;width:13px"></span>';
-    const installStr = p.installActual ? `<span style="color:#059669">✓ ${fmtDateShort(p.installActual)}</span>`
+    const installDateStr = p.installActual ? `<span style="color:#059669">✓ ${fmtDateShort(p.installActual)}</span>`
       : p.installDate ? (p.installDelayed ? `<span style="color:#ea580c">⚠ ${fmtDateShort(p.installDate)}</span>` : fmtDateShort(p.installDate))
       : '—';
-    return `<tr class="pf-row" data-path="${esc(p.path)}" onclick="window.openProjectCard(this.dataset.path)" style="cursor:pointer">
+    const wdBadge = p.installWd !== null && p.installWd !== undefined
+      ? ` <span style="font-size:10px;padding:1px 5px;border-radius:8px;font-weight:600;background:${p.installWd <= 30 ? '#fef2f2' : p.installWd <= 60 ? '#fffbeb' : '#f0fdf4'};color:${p.installWd <= 30 ? '#dc2626' : p.installWd <= 60 ? '#d97706' : '#059669'}">${p.installWd} j.o.</span>`
+      : '';
+    const installStr = installDateStr + wdBadge;
+    return `<tr class="pf-row" data-path="${esc(p.path)}" data-pm="${esc(p.pm)}" data-cdptech="${esc(p.cdptech)}" onclick="window.openProjectCard(this.dataset.path)" style="cursor:pointer">
       <td><strong>${esc(p.name)}</strong></td>
       <td style="color:var(--text-muted)">${esc(p.client)}</td>
+      <td style="font-size:11px">${esc(p.pm) || '—'}</td>
+      <td style="font-size:11px">${esc(p.cdptech) || '—'}</td>
       <td>${ragDot}</td>
       <td><div class="pf-mini-bar"><div style="width:${taskPct}%;background:var(--accent)"></div></div><span class="pf-bar-lbl">${p.tasks.done}/${p.tasks.total}</span>${p.tasks.overdue.length ? `<span class="pf-late"> ⚠${p.tasks.overdue.length}</span>` : ''}</td>
       <td><span style="color:${hOver ? '#dc2626' : 'inherit'}">${p.hours.actual}/${p.hours.sold} h</span></td>
@@ -768,9 +790,28 @@ function renderPortfolio(projects) {
     </tr>`;
   }).join('');
 
+  const pmValues   = [...new Set(projects.map(p => p.pm).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
+  const cdpValues  = [...new Set(projects.map(p => p.cdptech).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
+  const filterBar  = (pmValues.length > 1 || cdpValues.length > 1) ? `
+    <div class="pf-filter-bar">
+      ${pmValues.length > 1 ? `<select id="pf-filter-pm" class="pf-filter-select" onchange="window.filterHealthTable()"><option value="">Tous les DP</option>${pmValues.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('')}</select>` : ''}
+      ${cdpValues.length > 1 ? `<select id="pf-filter-cdp" class="pf-filter-select" onchange="window.filterHealthTable()"><option value="">Tous les CDP Tech</option>${cdpValues.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('')}</select>` : ''}
+    </div>` : '';
+
+  window.filterHealthTable = function() {
+    const pmVal  = (document.getElementById('pf-filter-pm')  || {}).value || '';
+    const cdpVal = (document.getElementById('pf-filter-cdp') || {}).value || '';
+    document.querySelectorAll('#pf-health-tbody tr').forEach(tr => {
+      const ok = (!pmVal  || tr.dataset.pm      === pmVal)
+              && (!cdpVal || tr.dataset.cdptech  === cdpVal);
+      tr.style.display = ok ? '' : 'none';
+    });
+  };
+
   const healthHtml = `<div class="pf-section pf-health-section">
     <div class="pf-section-title">🏥 Santé du portefeuille</div>
-    <table class="pf-table pf-health-table"><thead><tr><th>Projet</th><th>Client</th><th>RAG</th><th>Tâches</th><th>Heures</th><th>Facturation</th><th>Install</th><th>Checklists</th></tr></thead><tbody>${healthRows}</tbody></table>
+    ${filterBar}
+    <table class="pf-table pf-health-table"><thead><tr><th>Projet</th><th>Client</th><th>DP</th><th>CDP Tech</th><th>RAG</th><th>Tâches</th><th>Heures</th><th>Facturation</th><th>Install</th><th>Checklists</th></tr></thead><tbody id="pf-health-tbody">${healthRows}</tbody></table>
   </div>`;
 
   body.innerHTML = healthHtml + kpis + weekHtml + upcomingHtml;

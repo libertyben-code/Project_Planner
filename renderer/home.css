@@ -591,6 +591,8 @@ body {
 
 /* Health table — bigger */
 .pf-health-section { padding-bottom: 18px; }
+.pf-filter-bar { display: flex; gap: 8px; padding: 6px 12px 10px; flex-wrap: wrap; }
+.pf-filter-select { font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); cursor: pointer; }
 .pf-health-table { font-size: 13.5px; }
 .pf-health-table th { font-size: 11.5px; padding: 8px 10px; }
 .pf-health-table td { padding: 11px 10px; }

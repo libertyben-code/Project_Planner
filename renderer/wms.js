@@ -291,6 +291,8 @@ function _updateInstallWdBadge() {
 function workingDaysLeft(dateStr) {
   if (!dateStr) return null;
   const target = new Date(dateStr); target.setHours(0,0,0,0);
+  const y = target.getFullYear();
+  if (y < 2000 || y > 2100) return null;
   const today = new Date(); today.setHours(0,0,0,0);
   if (target < today) return null;
   let count = 0;
@@ -464,15 +466,18 @@ const MONTHS_FR = ['JANVIER','FÉVRIER','MARS','AVRIL','MAI','JUIN','JUILLET','A
 
 function getGanttBounds() {
   const startEl = document.getElementById('pi-start').value, endEl = document.getElementById('pi-end').value;
+  const sane = d => d.getFullYear() >= 2000 && d.getFullYear() <= 2100;
   let minD = startEl ? new Date(startEl) : new Date('2026-03-01');
   let maxD = endEl ? new Date(endEl) : new Date('2026-12-31');
-  tasks.forEach(t => { if (t.start) { const d = new Date(t.start); if (d < minD) minD = d; } if (t.end) { const d = new Date(t.end); if (d > maxD) maxD = d; } });
+  if (!sane(minD)) minD = new Date('2026-01-01');
+  if (!sane(maxD)) maxD = new Date('2026-12-31');
+  tasks.forEach(t => { if (t.start) { const d = new Date(t.start); if (sane(d) && d < minD) minD = d; } if (t.end) { const d = new Date(t.end); if (sane(d) && d > maxD) maxD = d; } });
   minD.setDate(minD.getDate() - 14); maxD.setDate(maxD.getDate() + 14);
   return { start: mondayOf(minD), end: mondayOf(maxD) };
 }
 function generateWeeks() {
   const { start, end } = getGanttBounds(); const w = [], c = new Date(start);
-  while (c <= end) { w.push(new Date(c)); c.setDate(c.getDate() + 7); } return w;
+  while (c <= end && w.length < 520) { w.push(new Date(c)); c.setDate(c.getDate() + 7); } return w;
 }
 function weekLabel(d) { return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0'); }
 function fmtDateShort(d) { return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}); }
@@ -517,8 +522,44 @@ function openEditTask(taskId) {
   document.getElementById('modal-task').classList.add('open');
 }
 
+function easterDate(year) {
+  const a = year % 19, b = Math.floor(year / 100), c = year % 100;
+  const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month - 1, day);
+}
+function getFrenchHolidays(year) {
+  const iso = d => d.toISOString().slice(0, 10);
+  const off = (d, n) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
+  const e = easterDate(year);
+  return new Map([
+    [`${year}-01-01`, 'Jour de l\'An'],
+    [iso(off(e, 1)), 'Lundi de Pâques'],
+    [`${year}-05-01`, 'Fête du Travail'],
+    [`${year}-05-08`, 'Victoire 1945'],
+    [iso(off(e, 39)), 'Ascension'],
+    [iso(off(e, 50)), 'Lundi de Pentecôte'],
+    [`${year}-07-14`, 'Fête Nationale'],
+    [`${year}-08-15`, 'Assomption'],
+    [`${year}-11-01`, 'Toussaint'],
+    [`${year}-11-11`, 'Armistice'],
+    [`${year}-12-25`, 'Noël'],
+  ]);
+}
+
 function renderGantt() {
   const WEEKS = generateWeeks();
+  const _hMap = new Map();
+  new Set(WEEKS.map(w => w.getFullYear())).forEach(y => getFrenchHolidays(y).forEach((name, iso) => _hMap.set(iso, name)));
+  const WEEK_HOLIDAYS = WEEKS.map(w => {
+    const names = [];
+    for (let i = 0; i <= 4; i++) { const d = new Date(w); d.setDate(d.getDate() + i); const k = d.toISOString().slice(0, 10); if (_hMap.has(k)) names.push(_hMap.get(k)); }
+    return names;
+  });
   const table = document.getElementById('gantt-table'); table.innerHTML = '';
   const mGroups = monthGroups(WEEKS);
   const showDates = document.getElementById('tog-dates').checked;
@@ -541,7 +582,7 @@ function renderGantt() {
 
   const r2 = table.insertRow(); r2.className = 'gantt-hrow';
   visFC.forEach(([lbl,cls]) => { const th = document.createElement('th'); th.className = 'th-fixed '+cls; th.textContent = lbl; r2.appendChild(th); });
-  WEEKS.forEach(w => { const th = document.createElement('th'); th.className = 'th-week col-week'; th.textContent = weekLabel(w); if (isToday(w)) th.style.borderLeft = '2px solid #f97316'; r2.appendChild(th); });
+  WEEKS.forEach((w, wi) => { const th = document.createElement('th'); th.className = 'th-week col-week'; th.textContent = weekLabel(w); if (isToday(w)) th.style.borderLeft = '2px solid #f97316'; if (WEEK_HOLIDAYS[wi].length) { th.classList.add('holiday-week'); th.title = WEEK_HOLIDAYS[wi].join(', '); } r2.appendChild(th); });
 
   phases.forEach(phase => {
     const phaseTasks = tasks.filter(t => t.phaseId === phase.id);
@@ -568,7 +609,7 @@ function renderGantt() {
     if (phaseTasks.length === 0) {
       const re = table.insertRow(); re.className = 'tr-task';
       visFC.forEach(([lbl,cls]) => { const td = document.createElement('td'); td.className = cls; if (lbl === 'INTITULÉ') { td.style.padding = '4px 8px'; td.style.color = 'var(--text-muted)'; td.style.fontStyle = 'italic'; td.textContent = 'Aucune tâche — cliquer "+ Tâche" pour en ajouter'; } re.appendChild(td); });
-      WEEKS.forEach(w => { const td = document.createElement('td'); td.className = 'gantt-cell'; if (isToday(w)) td.classList.add('today-col'); re.appendChild(td); });
+      WEEKS.forEach((w, wi) => { const td = document.createElement('td'); td.className = 'gantt-cell'; if (isToday(w)) td.classList.add('today-col'); if (WEEK_HOLIDAYS[wi].length) td.classList.add('holiday-col'); re.appendChild(td); });
       return;
     }
 
@@ -657,9 +698,10 @@ function renderGantt() {
         (s.start ? fmtDateShort(new Date(s.start)) : '?') + ' → ' + (s.end ? fmtDateShort(new Date(s.end)) : '?')
       ).join(' | ');
       const tooltipLines = [formatTemplate(task.name), phase ? phase.name : '', segDesc, task.progress ? `${task.progress}%` : ''].filter(Boolean).join('\n');
-      WEEKS.forEach(w => {
+      WEEKS.forEach((w, wi) => {
         const td = document.createElement('td'); td.className = 'gantt-cell';
         if (isToday(w)) td.classList.add('today-col');
+        if (WEEK_HOLIDAYS[wi].length) td.classList.add('holiday-col');
         if (taskSegs.some(s => isInWeek(s.start, s.end, w))) {
           const bar = document.createElement('span'); bar.className = 'gantt-bar'; bar.style.background = phColor;
           if (done) bar.classList.add('gantt-bar-done');
@@ -699,7 +741,7 @@ function renderGantt() {
           tdEpic.innerHTML = `${epicCollapseBtn}<span style="font-weight:700;color:${epic.color};font-family:monospace;margin-right:6px">${epic.key}</span>${epic.summary}`;
         }
         repic.appendChild(tdEpic);
-        WEEKS.forEach(w => { const td = document.createElement('td'); td.className = 'gantt-cell'; if (isToday(w)) td.classList.add('today-col'); repic.appendChild(td); });
+        WEEKS.forEach((w, wi) => { const td = document.createElement('td'); td.className = 'gantt-cell'; if (isToday(w)) td.classList.add('today-col'); if (WEEK_HOLIDAYS[wi].length) td.classList.add('holiday-col'); repic.appendChild(td); });
 
         if (!epicCollapsed) {
           epicTasks.forEach(jTask => {
@@ -734,9 +776,10 @@ function renderGantt() {
               }
               rt.appendChild(td);
             });
-            WEEKS.forEach(w => {
+            WEEKS.forEach((w, wi) => {
               const td = document.createElement('td'); td.className = 'gantt-cell';
               if (isToday(w)) td.classList.add('today-col');
+              if (WEEK_HOLIDAYS[wi].length) td.classList.add('holiday-col');
               if (jTask.startDate && jTask.dueDate && isInWeek(jTask.startDate, jTask.dueDate, w)) {
                 const bar = document.createElement('span'); bar.className = 'gantt-bar'; bar.style.background = epic.color;
                 if ((jTask.progress || 0) >= 100) bar.classList.add('gantt-bar-done');

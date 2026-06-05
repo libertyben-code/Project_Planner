@@ -311,20 +311,23 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - **Public repo cleanup**: all company-specific identifiers removed — `recMecalux` → `recCompany`, `testMec` → `testCompany` in code + all data files; `lbl-test-company` label now dynamic via `renderFonctionnel()`; `.claude/` added to `.gitignore` and removed from tracking; WORKFLOW.md and FEEDBACK.md neutralized.
 - **`Bugs.md`**: new file for confirmed bugs, read at session start before FEEDBACK.md.
 
+### 2026-06-05 (session 4) — Bug freeze date, portfolio équipe, jours fériés Gantt
+
+- **Bug freeze date pavé numérique** : `getGanttBounds()` acceptait des années hors plage (ex. "0002" lors de la saisie partielle) et `generateWeeks()` bouclair sur ~100 000 semaines. Fix : clamp des années [2000–2100] dans `getGanttBounds()` + cap à 520 semaines dans `generateWeeks()`. Même guard ajouté dans `workingDaysLeft()`.
+- **Bug tâches absences format** : déjà corrigé avant la session — marqué `[x]` dans Bugs.md.
+- **Portfolio — colonne Équipe** : nouveau champ `cdptech` + helper `wdLeft()` dans `home.js`. Tableau Santé : colonne "Équipe" (`DP: X` / `CDP: Y`) après Client ; colonne Install enrichie d'un badge `X j.o.` coloré (rouge ≤30 j, orange ≤60 j, vert au-delà).
+- **Planning — jours fériés français** : `easterDate(year)` + `getFrenchHolidays(year)` (11 jours fériés légaux, Pâques mobile). `WEEK_HOLIDAYS[]` pré-calculé dans `renderGantt()`. Header semaine `holiday-week` (fond ambre + tooltip) ; cellules tâches/JIRA/epic `holiday-col` (léger fond jaune).
+
 ## Pending items (summary from FEEDBACK.md + Bugs.md as of 2026-06-05)
 
 **Bugs (priority):**
-- Date input via numpad freezes the screen while typing the year
-- Tasks added in the absence/unavailability phase should use the same format as other tasks in that phase
+- *(aucun bug ouvert)*
 
 **Export:**
 - HTML export formatting doesn't match app (button disabled — pending review)
 
 **Portfolio:**
-- Show DP / CDP Tech name + working days remaining before install
-
-**Planning (general):**
-- Public holidays: highlight Gantt columns/cells for weeks containing a public holiday
+- *(items précédents fermés — voir évolutions)*
 
 **Evolutions (larger features):**
 - Auto-update check at app launch (tauri-plugin-updater + GitHub Releases)
@@ -332,3 +335,5 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - Client test tracking / Phase 1 read-only HTML export for client
 - Excel import as a new tab
 - Zoom in/out on Gantt (Ctrl+scroll or +/- buttons)
+- Project sharing link (git folder path or equivalent)
+- General: per-project open URL for shared JSON (manager always gets latest version)

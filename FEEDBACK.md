@@ -22,7 +22,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Dans settings, ajouter l'option mode dark ou light — OK
 
 ## Portfolio
-- [ ] Dans le portfolio, mettre le nom du DP et CDP Tech ainsi que le nombre de jours ouvrés restant avant installation pour le suivi niveau managerial
+- [x] Dans le portfolio, mettre le nom du DP et CDP Tech ainsi que le nombre de jours ouvrés restant avant installation pour le suivi niveau managerial — OK
 
 ## Planning (Gantt)
 
@@ -53,7 +53,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Si une l'avancement d'une tâche est passé à 100%. Changer le statut de cette tâche à Terminé. De la même manière si l'avancement est changé >= 0, alors passer la tâche à "En Cours" — OK
 - [x] Ajouter le nombre de jours ouvrés restant à coté de la date d'installation. — OK
   - [x] Ajouter ces jours dans le planning en dessous de la date d'installation — OK
-- [ ] Ajouter une indication des semaines avec des jours fériés. (colonne grisée, cellule semaine d'une certaine couleur ?)
+- [x] Ajouter une indication des semaines avec des jours fériés. (colonne grisée, cellule semaine d'une certaine couleur ?) — OK
 
 
 ## Suivi Heures

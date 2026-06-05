@@ -78,6 +78,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .gantt-bar{display:block;width:18px;height:15px;border-radius:3px;margin:0 auto;transition:opacity .2s;}
 .gantt-bar-done{opacity:.3;}
 .today-col{border-left:2px solid #f97316 !important;}
+.holiday-week{background:#fef3c7 !important;color:#92400e !important;font-weight:700 !important;}
+.holiday-col{background:rgba(251,191,36,.08) !important;}
 /* STATUS BADGE */
 .status-cell{position:relative;}
 .badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10.5px;font-weight:500;white-space:nowrap;cursor:pointer;user-select:none;gap:3px;}
