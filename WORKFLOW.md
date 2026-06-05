@@ -7,9 +7,10 @@ Paste this file (or mention it) at the start of a new conversation to restore co
 ## Starting a session
 
 1. Mention this file and the current branch/feature you want to work on
-2. Reference `FEEDBACK.md` for the pending `[ ]` items backlog
-3. Reference the plan file (`~/.claude/plans/`) for large features in progress
-4. State what you want to accomplish — Claude will ask clarifying questions if needed before starting
+2. Reference `Bugs.md` — bugs to fix take priority over new features
+3. Reference `FEEDBACK.md` for the pending `[ ]` items backlog
+4. Reference the plan file (`~/.claude/plans/`) for large features in progress
+5. State what you want to accomplish — Claude will ask clarifying questions if needed before starting
 
 ---
 
