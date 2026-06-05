@@ -1477,7 +1477,7 @@ function openEditInterface(id) {
   document.getElementById('ei-type').value       = r.type || 'Connecteur ERP';
   document.getElementById('ei-dev').value        = r.dev || 'NON';
   document.getElementById('ei-preprod').value    = r.preprod || 'NON';
-  document.getElementById('ei-recMecalux').value = r.recMecalux || 'NON';
+  document.getElementById('ei-recCompany').value = r.recCompany || 'NON';
   document.getElementById('ei-recClient').value  = r.recClient || 'NON';
   document.getElementById('ei-valide').value     = r.valide || 'NON';
   document.getElementById('ei-comment').value    = r.comment || '';
@@ -1492,7 +1492,7 @@ function saveInterface() {
   r.type       = document.getElementById('ei-type').value;
   r.dev        = document.getElementById('ei-dev').value;
   r.preprod    = document.getElementById('ei-preprod').value;
-  r.recMecalux = document.getElementById('ei-recMecalux').value;
+  r.recCompany = document.getElementById('ei-recCompany').value;
   r.recClient  = document.getElementById('ei-recClient').value;
   r.valide     = document.getElementById('ei-valide').value;
   r.comment    = document.getElementById('ei-comment').value.trim();
@@ -1514,17 +1514,17 @@ function renderInterfaces() {
     tr.innerHTML = `<td>${dh()}</td>
       <td style="font-size:12px">${row.type}</td>
       <td style="font-weight:500">${row.name}</td>
-      <td>${itfBadge(row.dev)}</td><td>${itfBadge(row.preprod)}</td><td>${itfBadge(row.recMecalux)}</td><td>${itfBadge(row.recClient)}</td><td>${itfBadge(row.valide)}</td>
+      <td>${itfBadge(row.dev)}</td><td>${itfBadge(row.preprod)}</td><td>${itfBadge(row.recCompany)}</td><td>${itfBadge(row.recClient)}</td><td>${itfBadge(row.valide)}</td>
       <td style="color:var(--text-muted);font-size:12px">${row.comment}</td>
       <td><button class="btn btn-secondary btn-sm" onclick="openEditInterface('${row.id}')">✏</button></td>`;
-    ['dev','preprod','recMecalux','recClient','valide'].forEach((f,fi) => {
+    ['dev','preprod','recCompany','recClient','valide'].forEach((f,fi) => {
       const sp = tr.cells[fi+3].querySelector('span');
       sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, ITF_STATES.map(v => ({label:v,value:v,dot:ITF_D[v]})), val => { row[f] = val; sp.className = ITF_B[val]||'cell-none'; sp.textContent = val; renderDashboard(); debouncedSave(); }); });
     });
   });
   makeSortable(tbody, interfacesData, renderInterfaces);
 }
-function addInterface() { interfacesData.push({id:uid(),type:'Connecteur ERP',name:'Nouvelle interface',dev:'NON',preprod:'NON',recMecalux:'NON',recClient:'NON',valide:'NON',comment:''}); renderInterfaces(); debouncedSave(); }
+function addInterface() { interfacesData.push({id:uid(),type:'Connecteur ERP',name:'Nouvelle interface',dev:'NON',preprod:'NON',recCompany:'NON',recClient:'NON',valide:'NON',comment:''}); renderInterfaces(); debouncedSave(); }
 function deleteInterface(id) {
   const idx = interfacesData.findIndex(r => r.id === id); if (idx < 0) return;
   const deleted = { ...interfacesData[idx] };
@@ -1540,7 +1540,7 @@ function openEditFonctionnel(id) {
   document.getElementById('ef-name').value       = r.name || '';
   document.getElementById('ef-pct').value        = r.pct || 0;
   document.getElementById('ef-dev').value        = r.dev || 'NON';
-  document.getElementById('ef-testMec').value    = r.testMec || 'NON';
+  document.getElementById('ef-testCompany').value    = r.testCompany || 'NON';
   document.getElementById('ef-preprod').value    = r.preprod || 'NON';
   document.getElementById('ef-formKU').value     = r.formKU || 'NON';
   document.getElementById('ef-testClient').value = r.testClient || 'NON';
@@ -1556,7 +1556,7 @@ function saveFonctionnel() {
   r.name       = name;
   r.pct        = Math.min(100, Math.max(0, +document.getElementById('ef-pct').value || 0));
   r.dev        = document.getElementById('ef-dev').value;
-  r.testMec    = document.getElementById('ef-testMec').value;
+  r.testCompany    = document.getElementById('ef-testCompany').value;
   r.preprod    = document.getElementById('ef-preprod').value;
   r.formKU     = document.getElementById('ef-formKU').value;
   r.testClient = document.getElementById('ef-testClient').value;
@@ -1576,17 +1576,17 @@ function deleteFonctionnelFromModal() {
 
 function renderFonctionnel() {
   const tbody = document.getElementById('tbody-fonctionnel'); tbody.innerHTML = '';
-  document.querySelectorAll('#th-test-company').forEach(el => el.textContent = 'Test ' + (_companyName || 'Intégrateur'));
+  ['th-test-company','lbl-test-company'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = 'Test ' + (_companyName || 'Intégrateur'); });
   fonctionnelData.forEach(row => {
     const tr = tbody.insertRow(); tr.dataset.rowId = row.id;
     tr.innerHTML = `<td>${dh()}</td>
       <td style="font-weight:600;min-width:160px">${row.name}</td>
       <td>${itfBadge(row.dev)}</td>
       <td style="text-align:center;cursor:pointer"><span>${row.pct}%</span></td>
-      <td>${itfBadge(row.testMec)}</td><td>${itfBadge(row.preprod)}</td><td>${itfBadge(row.formKU)}</td><td>${itfBadge(row.testClient)}</td><td>${itfBadge(row.formUsers)}</td>
+      <td>${itfBadge(row.testCompany)}</td><td>${itfBadge(row.preprod)}</td><td>${itfBadge(row.formKU)}</td><td>${itfBadge(row.testClient)}</td><td>${itfBadge(row.formUsers)}</td>
       <td style="color:var(--text-muted);min-width:110px;font-size:12px">${row.comment}</td>
       <td><button class="btn btn-secondary btn-sm" onclick="openEditFonctionnel('${row.id}')">✏</button></td>`;
-    ['dev','testMec','preprod','formKU','testClient','formUsers'].forEach((f,fi) => {
+    ['dev','testCompany','preprod','formKU','testClient','formUsers'].forEach((f,fi) => {
       const td = tr.cells[[2,4,5,6,7,8][fi]]; const sp = td.querySelector('span');
       sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, ITF_STATES.map(v => ({label:v,value:v,dot:ITF_D[v]})), val => { row[f] = val; sp.className = ITF_B[val]||'cell-none'; sp.textContent = val; debouncedSave(); }); });
     });
@@ -1594,7 +1594,7 @@ function renderFonctionnel() {
   });
   makeSortable(tbody, fonctionnelData, renderFonctionnel);
 }
-function addFonctionnel() { fonctionnelData.push({id:uid(),name:'Nouveau flux',dev:'NON',pct:0,testMec:'NON',preprod:'NON',formKU:'NON',testClient:'NON',formUsers:'NON',comment:''}); renderFonctionnel(); debouncedSave(); }
+function addFonctionnel() { fonctionnelData.push({id:uid(),name:'Nouveau flux',dev:'NON',pct:0,testCompany:'NON',preprod:'NON',formKU:'NON',testClient:'NON',formUsers:'NON',comment:''}); renderFonctionnel(); debouncedSave(); }
 
 // ═══ DRY RUN ═══
 const DR_STATES = ['NON','En cours','OK','KO'];
@@ -2621,12 +2621,12 @@ async function doExportHTML() {
 
   // Interfaces
   addSection('page-interfaces', 'Interfaces ERP', `<table>${tblHead(['Interface','Type','Dev','Préprod','Rec. '+(_companyName||'Intégrateur'),'Rec. Client','Validé','Commentaire'])}<tbody>
-    ${interfacesData.map(i=>tblRow([e(i.name),e(i.type),bdg(i.dev),bdg(i.preprod),bdg(i.recMecalux),bdg(i.recClient),bdg(i.valide),e(i.comment||'')])).join('')}
+    ${interfacesData.map(i=>tblRow([e(i.name),e(i.type),bdg(i.dev),bdg(i.preprod),bdg(i.recCompany),bdg(i.recClient),bdg(i.valide),e(i.comment||'')])).join('')}
   </tbody></table>`);
 
   // Functional
   addSection('page-fonctionnel', 'Suivi Fonctionnel', `<table>${tblHead(['Processus','Dev','%','Test Mec.','Préprod','Form. KU','Test Client','Form. Users','Commentaire'])}<tbody>
-    ${fonctionnelData.map(f=>tblRow([e(f.name),bdg(f.dev),pct(f.pct),bdg(f.testMec),bdg(f.preprod),bdg(f.formKU),bdg(f.testClient),bdg(f.formUsers),e(f.comment||'')])).join('')}
+    ${fonctionnelData.map(f=>tblRow([e(f.name),bdg(f.dev),pct(f.pct),bdg(f.testCompany),bdg(f.preprod),bdg(f.formKU),bdg(f.testClient),bdg(f.formUsers),e(f.comment||'')])).join('')}
   </tbody></table>`);
 
   // Dry Run
@@ -2824,7 +2824,7 @@ async function exportMarkdown() {
     lines.push('');
     lines.push(row(['Interface', 'Type', 'Dev', 'Préprod', 'Rec. '+(_companyName||'Intégrateur'), 'Rec. Client', 'Validé', 'Commentaire']));
     lines.push(sep(8));
-    interfacesData.forEach(i => lines.push(row([i.name, i.type, i.dev, i.preprod, i.recMecalux, i.recClient, i.valide, i.comment || ''])));
+    interfacesData.forEach(i => lines.push(row([i.name, i.type, i.dev, i.preprod, i.recCompany, i.recClient, i.valide, i.comment || ''])));
     lines.push('');
   }
 
@@ -2834,7 +2834,7 @@ async function exportMarkdown() {
     lines.push('');
     lines.push(row(['Processus', 'Dev', '%', 'Test Mec.', 'Préprod', 'Form. KU', 'Test Client', 'Form. Users', 'Commentaire']));
     lines.push(sep(9));
-    fonctionnelData.forEach(f => lines.push(row([f.name, f.dev, `${f.pct}%`, f.testMec, f.preprod, f.formKU, f.testClient, f.formUsers, f.comment || ''])));
+    fonctionnelData.forEach(f => lines.push(row([f.name, f.dev, `${f.pct}%`, f.testCompany, f.preprod, f.formKU, f.testClient, f.formUsers, f.comment || ''])));
     lines.push('');
   }
 

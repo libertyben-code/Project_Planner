@@ -8,7 +8,7 @@ Paste this file (or mention it) at the start of a new conversation to restore co
 
 1. Mention this file and the current branch/feature you want to work on
 2. Reference `FEEDBACK.md` for the pending `[ ]` items backlog
-3. Reference the plan file (`C:\Users\J4ck\.claude\plans\`) for large features in progress
+3. Reference the plan file (`~/.claude/plans/`) for large features in progress
 4. State what you want to accomplish — Claude will ask clarifying questions if needed before starting
 
 ---
@@ -214,7 +214,7 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 
 ### 2026-05-24 — Tauri fix + docs
 - Fixed `tauri.conf.json` window URL crash on built `.exe`
-- Replaced EasyWMS / company-specific strings with generic WMS tokens
+- Replaced company-specific strings with generic WMS tokens
 - Added bilingual README links
 
 ### 2026-05-25 — Core UX polish (feedback pass 1)
@@ -226,7 +226,7 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - Column resizing on all tables (pointer events, persisted to `localStorage`)
 - Gantt improvements: phase duration, drag-drop across phases, dependency outlines
 - Edit modals with delete button for every table row
-- Owner dropdown (Client / MECALUX / Intégrateur / Autre) propagated across tabs
+- Owner dropdown (Client / Intégrateur / Autre + configurable company name) propagated across tabs
 - Status badges on cards
 
 ### 2026-05-25 — Multi-segment Gantt (`feature/multi-segment-gantt`)
@@ -251,7 +251,7 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - All docs updated; branch merged to `main`
 
 ### 2026-05-29 — Company name + feedback
-- Replaced remaining "MECALUX" occurrences in views and settings with configurable company name
+- Replaced remaining hardcoded company name occurrences in views and settings with configurable company name
 - FEEDBACK.md updated with new pending items
 
 ### 2026-05-29 — Home screen tabs + light mode (`feature/home-tabs-light-mode`)
@@ -266,9 +266,9 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 
 - **Collapsible Gantt phases**: toggle ▼/▶ button on each phase row; collapsed state stored in `_collapsedPhases` Set (resets on reload)
 - **Dashboard Personnaliser**: modal now includes all items — Cartes KPI, Indicateur dérive installation, Tâches de la semaine + 8 graphiques; `isChartVisible()` applied in `renderDashboard`, `renderInstallDrift`, `renderThisWeek`
-- **Tauri identifier**: `com.mecalux.wmsplanner` → `com.wmsplanner.app` (removes "mecalux" from AppData path)
+- **Tauri identifier**: updated to `com.wmsplanner.app`
 - **PDF export**: header label changed from "Chef de Projet" → "Directeur de Projet" (field `pm`)
-- **Interfaces / Fonctionnel column headers**: "Recette Mecalux" / "Test Mecalux" now use `_companyName` from Settings dynamically, updated in `renderInterfaces()` and `renderFonctionnel()`
+- **Interfaces / Fonctionnel column headers**: "Recette [company]" / "Test [company]" use `_companyName` from Settings dynamically, updated in `renderInterfaces()` and `renderFonctionnel()`
 - **HTML export button**: temporarily disabled pending formatting review (code preserved, button commented out in `app.html`)
 
 ### 2026-05-29 — Save, backup, template, owner options (`feature/settings-autosave-backup-template-dropdowns`)

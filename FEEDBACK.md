@@ -11,7 +11,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 <!-- Project cards, search, create/open/duplicate/delete -->
 
 - [x] Le bouton ouvrir... ne fonctionne pas. Il devrait permettre d; importe in Json de projet et de créer ce nouveau projet - OK
-- [x] Dans la modale de création de projet, enlever (mecalux) du champ Dir Projet. - OK
+- [x] Dans la modale de création de projet, enlever le nom de la société du champ Dir Projet. - OK
 - [x] Dans la meme modale, enlever la date de fin. Celle ci sera renseignée automatiquement avec la date la plus eloignée d'une tâche du planning. - OK
 - [x] Enlever (Originiale) du champ date d'installation. - OK
 - [x] En plus de supprimer et dupliquer un projet, ajouter la possibilité de partager un projet. - OK
@@ -35,7 +35,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] le bouton de suppression de tache doit etre dans la modate d'edition - OK
 - [x] le bouton de suppression de tache doit se trouver aussi dans une modate edition au niveau de la phase. - OK
 - [x] pour les colonnes avec un menu déroulant, celui ci doit être clickable dans toute la cellule. - OK
-- [x] Dans la colonne propriétaire, il faut les champs suivant : nom du client, mecalux, intégrateur, autre dans un menu déroulant.
+- [x] Dans la colonne propriétaire, il faut les champs suivant : nom du client, intégrateur (nom configurable), autre dans un menu déroulant.
   - [x] Si le nom du client est changé en haut de la page, cela doit se refletter dans les menus déroulant et autres pages. - OK
 - [x] Chaque phase doit avoir le nombre de jours de durée en prenant les dates de tache min et max - ok
 - [x] si l'on hover sur une celulle colorié du planning, on doit pouvoir voir la date hovered. - OK
@@ -155,7 +155,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Pour les backups, prévoir un dossier "Backup" dans le dossier de sauvegarde principale pour permettre la récupération d'une version anterieure. Prévoir la fréquence de manière journalière. — OK
 - [x] Dans le menu Settings du menu principal, prévoir la possibilité de choisir son propre template pour tous les nouveaux projets. — OK
 - [x] Ajouter une partie Settings qui permet de définit les listes de menu déroulant comme "propriétaire". — OK (par projet, via ⚙ Paramètres du projet)
-- [x] Remove the mecalux in the app data default save path — OK (identifier → com.wmsplanner.app)
+- [x] Mettre à jour l'identifiant app dans AppData — OK (identifier → com.wmsplanner.app)
 - [ ] Pour chaques projets, demander le lien d'ouverture du Json. Par exemple si celui ci est partager sur un dossier git, cela permet au manager d'avoir la dernière version. Si tu as une méthode plus efficace n'hésite pas. On pourrais aussi dire que le path d'ouverture du projet la première fois reste celui par défaut.
 
 ## Notes Techniques

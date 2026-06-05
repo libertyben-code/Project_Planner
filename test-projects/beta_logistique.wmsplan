@@ -70,20 +70,20 @@
     { "id": "it_05", "action": "Monter WMS de production",           "etat": "À FAIRE", "temps": 0,  "deadline": "2026-07-01", "urg": 1, "comment": "" }
   ],
   "interfaces": [
-    { "id": "itf_01", "type": "Connecteur ERP", "name": "Base Article - ITM",           "dev": "OUI", "preprod": "OUI", "recMecalux": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
-    { "id": "itf_02", "type": "Connecteur ERP", "name": "Base Fournisseurs - SUP",      "dev": "OUI", "preprod": "OUI", "recMecalux": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
-    { "id": "itf_03", "type": "Connecteur ERP", "name": "Préavis de Réception - ROR",  "dev": "OUI", "preprod": "OUI", "recMecalux": "OUI", "recClient": "NON", "valide": "NON", "comment": "En attente validation client" },
-    { "id": "itf_04", "type": "Connecteur ERP", "name": "Commande Client - SOR",        "dev": "OUI", "preprod": "OUI", "recMecalux": "OUI", "recClient": "NON", "valide": "NON", "comment": "Anomalie SOC — correctif en cours" },
-    { "id": "itf_05", "type": "Connecteur ERP", "name": "Clôture Commande Client - SOF","dev": "OUI", "preprod": "NON", "recMecalux": "NON", "recClient": "NON", "valide": "NON", "comment": "Retard livraison ERP" },
-    { "id": "itf_06", "type": "API REST",        "name": "Appel API Transporteur",       "dev": "OUI", "preprod": "NON", "recMecalux": "NON", "recClient": "NON", "valide": "NON", "comment": "" }
+    { "id": "itf_01", "type": "Connecteur ERP", "name": "Base Article - ITM",           "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_02", "type": "Connecteur ERP", "name": "Base Fournisseurs - SUP",      "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_03", "type": "Connecteur ERP", "name": "Préavis de Réception - ROR",  "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "NON", "valide": "NON", "comment": "En attente validation client" },
+    { "id": "itf_04", "type": "Connecteur ERP", "name": "Commande Client - SOR",        "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "NON", "valide": "NON", "comment": "Anomalie SOC — correctif en cours" },
+    { "id": "itf_05", "type": "Connecteur ERP", "name": "Clôture Commande Client - SOF","dev": "OUI", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "Retard livraison ERP" },
+    { "id": "itf_06", "type": "API REST",        "name": "Appel API Transporteur",       "dev": "OUI", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "" }
   ],
   "functional": [
-    { "id": "fn_01", "name": "RÉCEPTION / RETOUR",  "dev": "OUI", "pct": 100, "testMec": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "OUI", "formUsers": "NON", "comment": "" },
-    { "id": "fn_02", "name": "RANGEMENT",            "dev": "OUI", "pct": 100, "testMec": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "NON", "formUsers": "NON", "comment": "" },
-    { "id": "fn_03", "name": "PRÉPARATION",          "dev": "OUI", "pct": 90,  "testMec": "OUI", "preprod": "OUI", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "Tests client bloqués" },
-    { "id": "fn_04", "name": "PICKING",              "dev": "OUI", "pct": 90,  "testMec": "OUI", "preprod": "OUI", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "" },
-    { "id": "fn_05", "name": "EXPÉDITION",           "dev": "OUI", "pct": 70,  "testMec": "OUI", "preprod": "NON", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "Dépend API transporteur" },
-    { "id": "fn_06", "name": "INVENTAIRE",           "dev": "OUI", "pct": 100, "testMec": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "OUI", "formUsers": "NON", "comment": "" }
+    { "id": "fn_01", "name": "RÉCEPTION / RETOUR",  "dev": "OUI", "pct": 100, "testCompany": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "OUI", "formUsers": "NON", "comment": "" },
+    { "id": "fn_02", "name": "RANGEMENT",            "dev": "OUI", "pct": 100, "testCompany": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "NON", "formUsers": "NON", "comment": "" },
+    { "id": "fn_03", "name": "PRÉPARATION",          "dev": "OUI", "pct": 90,  "testCompany": "OUI", "preprod": "OUI", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "Tests client bloqués" },
+    { "id": "fn_04", "name": "PICKING",              "dev": "OUI", "pct": 90,  "testCompany": "OUI", "preprod": "OUI", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "" },
+    { "id": "fn_05", "name": "EXPÉDITION",           "dev": "OUI", "pct": 70,  "testCompany": "OUI", "preprod": "NON", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "Dépend API transporteur" },
+    { "id": "fn_06", "name": "INVENTAIRE",           "dev": "OUI", "pct": 100, "testCompany": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "OUI", "formUsers": "NON", "comment": "" }
   ],
   "dryRun": [
     { "id": "dr_01", "name": "Plan de l'entrepôt disponible",  "etat": "OK",  "comment": "" },
