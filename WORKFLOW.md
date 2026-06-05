@@ -31,6 +31,48 @@ git push
 
 ---
 
+## Version management
+
+### Rules
+
+| Rule | Detail |
+|---|---|
+| **Never bump per branch** | Branches are dev-in-progress; version reflects what is released |
+| **Bump at merge to `main`** | One bump per merge, committed right after the merge commit |
+| Commit message | `chore: bump version to X.Y.Z` |
+| Two files to keep in sync | `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json` |
+
+### Increment guide
+
+| Change type | Bump | Example |
+|---|---|---|
+| Bug fix, UI tweak, wording | `PATCH` | 1.0.0 → 1.0.1 |
+| New feature (new tab, new section, new capability) | `MINOR` | 1.0.x → 1.1.0 |
+| Major architectural change (backend, multi-user, etc.) | `MAJOR` | 1.x → 2.0.0 |
+
+### How to bump
+
+```powershell
+.\scripts\bump-version.ps1 1.1.0
+git add src-tauri/Cargo.toml src-tauri/tauri.conf.json
+git commit -m "chore: bump version to 1.1.0"
+git push
+```
+
+The script updates both files atomically and prints the expected installer filename.
+
+### EXE / Installer name
+
+Tauri v2 + NSIS produces the installer automatically as:
+
+```
+WMS Project Planner_<version>_x64-setup.exe
+```
+
+Bumping the version in `tauri.conf.json` (via the script) changes the installer name for the next `cargo tauri build`.  No manual renaming needed.
+
+---
+
 ## Commit discipline
 
 - **One commit per logical change** — not one per file, not one per session
