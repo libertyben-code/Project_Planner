@@ -175,6 +175,12 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [ ] Intégrer l'import de fichier Excel en tant que nouvelle tab (tableau avec colonnes et types configurables).
 - [ ] Calendrier global des ressources : connaitre les disponibilités de chaque CDP Tech et DP. Leurs congés pourront être remplis automatiquement depuis ce calendrier (source actuelle : Google Calendar).
   - [ ] Les utilisateurs devront être créés à l'avance. Dans la création de projet, un menu déroulant permettra de choisir le DP et le CDP Tech.
+- [ ] **Mises à jour automatiques** : à l'ouverture de l'app, vérifier si une nouvelle version est disponible et proposer la mise à jour.
+  - Utiliser `tauri-plugin-updater` (intégré Tauri v2).
+  - Hébergement des manifestes de mise à jour : GitHub Releases (option la plus simple — tag `vX.Y.Z`, asset `latest.json` + EXE signé).
+  - Flow : au démarrage, appel silencieux au manifest → si nouvelle version détectée, modale "Une mise à jour est disponible (vX.Y.Z) — Installer maintenant / Plus tard" → téléchargement + relance automatique.
+  - Nécessite une clé de signature (`tauri signer generate`) et le champ `updater.pubkey` dans `tauri.conf.json`.
+  - À décider : dépôt GitHub public ou privé pour héberger les releases.
 
 ### Phase 1 — Vue client read-only (export HTML autonome)
 

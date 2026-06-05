@@ -61,15 +61,22 @@ git push
 
 The script updates both files atomically and prints the expected installer filename.
 
-### EXE / Installer name
+### Building a release
 
-Tauri v2 + NSIS produces the installer automatically as:
+Two outputs are produced by `.\scripts\build-release.ps1` (run from project root):
 
+| Output | Path | Use |
+|---|---|---|
+| **Versioned EXE** (portable) | `src-tauri\target\release\WMSPlanner_<version>.exe` | Quick local testing — no install |
+| **NSIS installer** | `src-tauri\target\release\bundle\nsis\WMS Project Planner_<version>_x64-setup.exe` | Distribution |
+
+```powershell
+# After bumping the version:
+.\scripts\build-release.ps1
+# → builds, then copies wms-planner.exe → WMSPlanner_1.1.0.exe
 ```
-WMS Project Planner_<version>_x64-setup.exe
-```
 
-Bumping the version in `tauri.conf.json` (via the script) changes the installer name for the next `cargo tauri build`.  No manual renaming needed.
+The versioned EXE is a copy of the raw Rust binary — no install required, just double-click to test.
 
 ---
 
