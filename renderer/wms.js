@@ -23,10 +23,10 @@ let jalonsProjet = [];
 let jalonsEquip = [];
 let jalonsDeplacements = [];
 const DEFAULT_DEPLACEMENTS = [
-  { id: 'avion-train',  label: 'Avion / Train',  vendu: 0, depenses: [], etat: '—' },
-  { id: 'voiture',      label: 'Voiture',         vendu: 0, depenses: [], etat: '—' },
-  { id: 'hotel',        label: 'Hôtel',           vendu: 0, depenses: [], etat: '—' },
-  { id: 'restauration', label: 'Restauration',    vendu: 0, depenses: [], etat: '—' },
+  { id: 'avion-train',  label: 'Avion / Train',  vendu: 0, depenses: [] },
+  { id: 'voiture',      label: 'Voiture',         vendu: 0, depenses: [] },
+  { id: 'hotel',        label: 'Hôtel',           vendu: 0, depenses: [] },
+  { id: 'restauration', label: 'Restauration',    vendu: 0, depenses: [] },
 ];
 let customTabs = [];
 let jiraData = { epics: [], tasks: [], lastSync: '' };
@@ -169,7 +169,7 @@ function applyState(state) {
   jalonsDeplacements = DEFAULT_DEPLACEMENTS.map(def => {
     const saved = savedDepl.find(r => r.id === def.id);
     if (!saved) return { ...def };
-    return { ...def, vendu: saved.vendu ?? saved.montant ?? 0, depenses: saved.depenses || [], etat: saved.etat || '—' };
+    return { ...def, vendu: saved.vendu ?? saved.montant ?? 0, depenses: saved.depenses || [] };
   });
   customTabs    = state.customTabs    || [];
 
@@ -1303,6 +1303,7 @@ function renderHeures() {
     <div class="kpi-card"><div class="kpi-label">Total Actuel</div><div class="kpi-value">${actuel} h</div><div class="kpi-sub">${vente>0?Math.round(actuel/vente*100):0}% du budget</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:${vente>0?Math.min(100,actuel/vente*100):0}%;background:${actuel>vente?'#dc2626':'var(--accent)'}"></div></div></div>
     <div class="kpi-card"><div class="kpi-label">Écart</div><div class="kpi-value" style="color:${actuel>vente?'#dc2626':actuel<vente?'#059669':'var(--text)'}">${actuel>vente?'+':''}${actuel-vente} h</div></div>
     <div class="kpi-card"><div class="kpi-label">Jours Restants (vente)</div><div class="kpi-value">${Math.round((vente-actuel)/7)}</div><div class="kpi-sub">Base 7h/jour</div></div>`;
+  renderDeplRow(document.getElementById('tbody-deplacements'));
 }
 
 function addCustomHeuresRow() {
@@ -1771,12 +1772,12 @@ function saveDeplExpense() {
   if (!row.depenses) row.depenses = [];
   row.depenses.push({ date, montant, note });
   closeModal('modal-depl-expense');
-  renderFacturation(); renderDashboard(); debouncedSave();
+  renderHeures(); renderDashboard(); debouncedSave();
 }
 function deleteDeplExpense(id, idx) {
   const row = jalonsDeplacements.find(r => r.id === id); if (!row) return;
   row.depenses.splice(idx, 1);
-  renderFacturation(); renderDashboard(); debouncedSave();
+  renderHeures(); renderDashboard(); debouncedSave();
 }
 function toggleDeplHistory(id, btn) {
   const existingRow = btn.closest('tr').nextElementSibling;
@@ -1797,6 +1798,18 @@ function toggleDeplHistory(id, btn) {
   tr.appendChild(td);
   btn.closest('tr').insertAdjacentElement('afterend', tr);
 }
+function _renderDeplKpi() {
+  const el = document.getElementById('kpi-deplacements');
+  if (!el) return;
+  const tDVendu = jalonsDeplacements.reduce((s,r) => s+(r.vendu||0), 0);
+  const tDDepl  = jalonsDeplacements.reduce((s,r) => s+(r.depenses||[]).reduce((a,d) => a+(d.montant||0), 0), 0);
+  const ecart = tDDepl - tDVendu;
+  const ec = ecart > 0 ? '#dc2626' : ecart < 0 ? '#059669' : 'var(--text-muted)';
+  el.innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">Budget Déplacements</div><div class="kpi-value">${tDVendu.toLocaleString('fr-FR')} €</div></div>
+    <div class="kpi-card"><div class="kpi-label">Dépensé</div><div class="kpi-value">${tDDepl.toLocaleString('fr-FR')} €</div>${tDVendu > 0 ? `<div class="kpi-bar"><div class="kpi-bar-fill" style="width:${Math.min(100,Math.round(tDDepl/tDVendu*100))}%;background:${ecart>0?'#dc2626':'var(--accent)'}"></div></div>` : ''}</div>
+    <div class="kpi-card"><div class="kpi-label">Écart</div><div class="kpi-value" style="color:${ec}">${ecart > 0 ? '+' : ''}${ecart.toLocaleString('fr-FR')} €</div></div>`;
+}
 function renderDeplRow(tbody) {
   tbody.innerHTML = '';
   jalonsDeplacements.forEach(row => {
@@ -1806,28 +1819,21 @@ function renderDeplRow(tbody) {
       <td style="font-weight:600">${row.label}</td>
       <td style="text-align:right;cursor:pointer;text-decoration:underline dotted;font-family:'DM Mono',monospace" title="Cliquer pour modifier le budget vendu">${fmtMontant(row.vendu||0)}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;font-weight:600">${fmtMontant(totalDepl)}</td>
-      <td style="min-width:78px">${factBadge(row.etat)}</td>
       <td style="text-align:center;white-space:nowrap">
         ${(row.depenses||[]).length ? `<span title="Historique des dépenses" style="cursor:pointer;font-size:14px" onclick="toggleDeplHistory('${row.id}',this)">🕐</span> ` : ''}
         <span title="Ajouter une dépense" style="cursor:pointer;font-size:16px;color:var(--accent);font-weight:700" onclick="openAddDeplExpense('${row.id}')">+</span>
       </td>`;
     tr.cells[1].addEventListener('click', () => {
       const v = prompt(`Budget vendu — ${row.label} :`, row.vendu || 0);
-      if (v !== null && !isNaN(+v)) { row.vendu = +v; renderFacturation(); renderDashboard(); debouncedSave(); }
+      if (v !== null && !isNaN(+v)) { row.vendu = +v; renderHeures(); renderDashboard(); debouncedSave(); }
     });
-    const sp = tr.cells[3].querySelector('span');
-    sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, FACT_STATES.map(v => ({label:v,value:v,dot:FACT_D[v]})), val => { row.etat = val; sp.className = FACT_B[val]||'cell-none'; sp.textContent = val; renderFacturation(); renderDashboard(); debouncedSave(); }); });
   });
+  _renderDeplKpi();
 }
 function renderFacturation() {
   renderFactRow(document.getElementById('tbody-jalons-projet'), jalonsProjet, 'projet');
   renderFactRow(document.getElementById('tbody-jalons-equip'), jalonsEquip, 'equip');
-  renderDeplRow(document.getElementById('tbody-deplacements'));
   const tP = jalonsProjet.reduce((s,r) => s+r.montant, 0), tE = jalonsEquip.reduce((s,r) => s+r.montant, 0), total = tP + tE;
-  const tDVendu = jalonsDeplacements.reduce((s,r) => s+(r.vendu||0), 0);
-  const tDDepl  = jalonsDeplacements.reduce((s,r) => s+(r.depenses||[]).reduce((a,d) => a+(d.montant||0), 0), 0);
-  const ecartDepl = tDDepl - tDVendu;
-  const ecartDeplColor = ecartDepl > 0 ? '#dc2626' : ecartDepl < 0 ? '#059669' : 'var(--text-muted)';
   const paye = [...jalonsProjet,...jalonsEquip].filter(r => r.etat === 'Payé').reduce((s,r) => s+r.montant, 0);
   const reste = total - paye, sp = v => total > 0 ? Math.round(v/total*100) : 0;
   document.getElementById('kpi-fact').innerHTML = `
@@ -1835,8 +1841,7 @@ function renderFacturation() {
     <div class="kpi-card"><div class="kpi-label">Total Équipement</div><div class="kpi-value">${tE.toLocaleString('fr-FR')} €</div></div>
     <div class="kpi-card"><div class="kpi-label">Total Contrat</div><div class="kpi-value">${total.toLocaleString('fr-FR')} €</div></div>
     <div class="kpi-card"><div class="kpi-label">Encaissé</div><div class="kpi-value" style="color:#059669">${paye.toLocaleString('fr-FR')} €</div><div class="kpi-sub">${sp(paye)}%</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:${sp(paye)}%;background:#059669"></div></div></div>
-    <div class="kpi-card"><div class="kpi-label">Reste à facturer</div><div class="kpi-value" style="color:#dc2626">${reste.toLocaleString('fr-FR')} €</div><div class="kpi-sub">${sp(reste)}%</div></div>
-    <div class="kpi-card"><div class="kpi-label">Déplacements — Budget</div><div class="kpi-value">${tDVendu.toLocaleString('fr-FR')} €</div><div class="kpi-sub">Dépensé : ${tDDepl.toLocaleString('fr-FR')} €</div><div class="kpi-sub" style="color:${ecartDeplColor}">Écart : ${ecartDepl > 0 ? '+' : ''}${ecartDepl.toLocaleString('fr-FR')} €</div></div>`;
+    <div class="kpi-card"><div class="kpi-label">Reste à facturer</div><div class="kpi-value" style="color:#dc2626">${reste.toLocaleString('fr-FR')} €</div><div class="kpi-sub">${sp(reste)}%</div></div>`;
 }
 
 // ═══ DASHBOARD ═══
