@@ -476,6 +476,7 @@ function generateWeeks() {
 }
 function weekLabel(d) { return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0'); }
 function fmtDateShort(d) { return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}); }
+function fmtDDMMYY(iso) { const [y,m,d] = iso.split('-'); return `${d}/${m}/${y.slice(2)}`; }
 function isInWeek(s, e, w) { if (!s || !e) return false; const sd = new Date(s), ed = new Date(e), ws = new Date(w), we = new Date(w); ed.setHours(23,59,59); we.setDate(we.getDate()+6); we.setHours(23,59,59); return sd <= we && ed >= ws; }
 function isToday(w) { const ws = new Date(w), we = new Date(w); we.setDate(we.getDate()+6); we.setHours(23,59,59); return TODAY >= ws && TODAY <= we; }
 function monthGroups(weeks) { const g = []; let c = null; weeks.forEach((w,i) => { const m = w.getMonth(); if (!c || c.month !== m) { c = {month:m,label:MONTHS_FR[m],start:i,span:1}; g.push(c); } else c.span++; }); return g; }
@@ -672,66 +673,82 @@ function renderGantt() {
   // ── JIRA phase ──
   if (jiraData.tasks.length > 0) {
     const JIRA_COLOR = '#0052CC';
-    const rpJ = table.insertRow(); rpJ.className = 'tr-phase';
+    const jiraCollapsed = _collapsedPhases.has('__jira__');
+    const rpJ = table.insertRow(); rpJ.className = 'tr-phase jira-main-row';
     const tdPhJ = document.createElement('td'); tdPhJ.colSpan = fixedCount; tdPhJ.style.background = JIRA_COLOR;
-    tdPhJ.innerHTML = `<span style="font-weight:700;letter-spacing:.5px">◈ JIRA</span>
+    const jiraCollapseBtn = `<button data-phase-id="__jira__" onclick="togglePhaseCollapse('__jira__')" title="${jiraCollapsed ? 'Développer' : 'Réduire'}" style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:4px;padding:1px 7px;cursor:pointer;font-size:11px;font-family:inherit;line-height:1.4">${jiraCollapsed ? '▶' : '▼'}</button>`;
+    tdPhJ.innerHTML = `${jiraCollapseBtn}<span style="font-weight:700;letter-spacing:.5px;margin-left:6px">◈ JIRA</span>
       <span style="opacity:.7;font-size:10px;margin-left:8px">${jiraData.tasks.length} tâches · ${jiraData.epics.length} epics</span>
       <span style="float:right"><button onclick="syncJira()" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;font-family:inherit">⟳ Sync</button></span>`;
     rpJ.appendChild(tdPhJ);
     WEEKS.forEach(w => { const td = document.createElement('td'); td.className = 'gantt-cell'; td.style.background = JIRA_COLOR; td.style.opacity = '.2'; if (isToday(w)) td.style.borderLeft = '2px solid #f97316'; rpJ.appendChild(td); });
 
-    jiraData.epics.forEach(epic => {
-      const epicTasks = jiraData.tasks.filter(t => t.epicId === epic.id);
-      if (!epicTasks.length) return;
-      // Epic sub-header
-      const repic = table.insertRow(); repic.className = 'tr-phase';
-      const tdEpic = document.createElement('td'); tdEpic.colSpan = fixedCount;
-      tdEpic.style.cssText = `background:${epic.color}18;border-left:3px solid ${epic.color};padding-left:12px;font-size:11px`;
-      tdEpic.innerHTML = `<span style="font-weight:700;color:${epic.color};font-family:monospace;margin-right:6px">${epic.key}</span>${epic.summary}`;
-      repic.appendChild(tdEpic);
-      WEEKS.forEach(w => { const td = document.createElement('td'); td.className = 'gantt-cell'; if (isToday(w)) td.classList.add('today-col'); repic.appendChild(td); });
+    if (!jiraCollapsed) {
+      jiraData.epics.forEach(epic => {
+        const epicTasks = jiraData.tasks.filter(t => t.epicId === epic.id);
+        if (!epicTasks.length) return;
+        const epicCollapsed = _collapsedPhases.has('__epic_' + epic.id);
+        // Epic sub-header
+        const repic = table.insertRow(); repic.className = 'tr-phase'; repic.dataset.jiraEpicId = epic.id;
+        const tdEpic = document.createElement('td'); tdEpic.colSpan = fixedCount;
+        tdEpic.style.cssText = `background:${epic.color}18;border-left:3px solid ${epic.color};padding-left:8px;font-size:11px`;
+        const epicCollapseBtn = `<button onclick="togglePhaseCollapse('__epic_${epic.id}')" title="${epicCollapsed ? 'Développer' : 'Réduire'}" style="background:rgba(0,0,0,.08);border:none;color:${epic.color};border-radius:4px;padding:1px 7px;cursor:pointer;font-size:11px;font-family:inherit;line-height:1.4;margin-right:4px">${epicCollapsed ? '▶' : '▼'}</button>`;
+        if (_ganttEditMode) {
+          tdEpic.innerHTML = `<span class="drag-handle gantt-drag-handle" style="color:${epic.color};margin-right:6px;font-size:13px;vertical-align:middle">⠿</span><span style="font-weight:700;color:${epic.color};font-family:monospace;margin-right:6px">${epic.key}</span>${epic.summary}`;
+        } else {
+          tdEpic.innerHTML = `${epicCollapseBtn}<span style="font-weight:700;color:${epic.color};font-family:monospace;margin-right:6px">${epic.key}</span>${epic.summary}`;
+        }
+        repic.appendChild(tdEpic);
+        WEEKS.forEach(w => { const td = document.createElement('td'); td.className = 'gantt-cell'; if (isToday(w)) td.classList.add('today-col'); repic.appendChild(td); });
 
-      epicTasks.forEach(jTask => {
-        const rt = table.insertRow(); rt.className = 'tr-task';
-        visFC.forEach(([lbl, cls]) => {
-          const td = document.createElement('td'); td.className = cls;
-          if (lbl === 'STATUT') {
-            td.className += ' status-cell';
-            td.innerHTML = `<span class="badge badge-${jiraStatusBadgeClass(jTask.status)}">${jiraStatusLabel(jTask.status)}</span>`;
-          } else if (lbl === 'PRIORITÉ') {
-            td.style.cssText = 'text-align:center;font-size:10px;color:var(--text-muted)';
-            td.textContent = jTask.storyPoints ? jTask.storyPoints + ' pts' : '—';
-          } else if (lbl === 'INTITULÉ') {
-            td.style.cssText = 'padding:2px 6px;font-size:11.5px';
-            td.innerHTML = `<span style="font-size:10px;font-weight:700;color:#0052CC;background:#EAF0FF;padding:1px 4px;border-radius:2px;margin-right:5px;font-family:monospace">${jTask.key}</span>${jTask.summary}`;
-          } else if (lbl === 'PROPRIÉTAIRE') {
-            td.style.cssText = 'padding:2px 4px;font-size:11px'; td.textContent = jTask.assignee || '—';
-          } else if (lbl === 'DÉBUT') {
-            td.style.fontSize = '11px'; td.textContent = jTask.startDate || '—';
-          } else if (lbl === 'FIN') {
-            td.style.fontSize = '11px'; td.textContent = jTask.dueDate || '—';
-          } else if (lbl === 'J') {
-            td.style.cssText = 'text-align:center;font-size:11px';
-            if (jTask.startDate && jTask.dueDate) { const d = Math.round((new Date(jTask.dueDate) - new Date(jTask.startDate)) / 86400000) + 1; td.textContent = d > 0 ? d : ''; }
-          } else if (lbl === '% AVA.') {
-            const pct = jTask.progress || 0; td.style.padding = '2px 6px';
-            td.innerHTML = `<div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${epic.color}"></div></div><span class="progress-pct">${pct}%</span></div>`;
-          }
-          rt.appendChild(td);
-        });
-        WEEKS.forEach(w => {
-          const td = document.createElement('td'); td.className = 'gantt-cell';
-          if (isToday(w)) td.classList.add('today-col');
-          if (jTask.startDate && jTask.dueDate && isInWeek(jTask.startDate, jTask.dueDate, w)) {
-            const bar = document.createElement('span'); bar.className = 'gantt-bar'; bar.style.background = epic.color;
-            if ((jTask.progress || 0) >= 100) bar.classList.add('gantt-bar-done');
-            td.appendChild(bar);
-            td.title = `${jTask.key}: ${jTask.summary}\n${jiraStatusLabel(jTask.status)}\n${jTask.startDate} → ${jTask.dueDate}\n${jTask.progress || 0}%`;
-          }
-          rt.appendChild(td);
-        });
+        if (!epicCollapsed) {
+          epicTasks.forEach(jTask => {
+            const rt = table.insertRow(); rt.className = 'tr-task'; rt.dataset.jiraTaskId = jTask.id;
+            visFC.forEach(([lbl, cls]) => {
+              const td = document.createElement('td'); td.className = cls;
+              if (lbl === 'STATUT') {
+                if (_ganttEditMode) {
+                  td.innerHTML = `<span class="drag-handle gantt-drag-handle" title="Déplacer la tâche" style="display:block;text-align:center">⠿</span>`;
+                } else {
+                  td.className += ' status-cell';
+                  td.innerHTML = `<span class="badge badge-${jiraStatusBadgeClass(jTask.status)}">${jiraStatusLabel(jTask.status)}</span>`;
+                }
+              } else if (lbl === 'PRIORITÉ') {
+                td.style.cssText = 'text-align:center;font-size:10px;color:var(--text-muted)';
+                td.textContent = jTask.storyPoints ? jTask.storyPoints + ' pts' : '—';
+              } else if (lbl === 'INTITULÉ') {
+                td.style.cssText = 'padding:2px 6px;font-size:11.5px';
+                td.innerHTML = `<span style="font-size:10px;font-weight:700;color:#0052CC;background:#EAF0FF;padding:1px 4px;border-radius:2px;margin-right:5px;font-family:monospace">${jTask.key}</span>${jTask.summary}`;
+              } else if (lbl === 'PROPRIÉTAIRE') {
+                td.style.cssText = 'padding:2px 4px;font-size:11px'; td.textContent = jTask.assignee || '—';
+              } else if (lbl === 'DÉBUT') {
+                td.style.fontSize = '11px'; td.textContent = jTask.startDate ? fmtDDMMYY(jTask.startDate) : '—';
+              } else if (lbl === 'FIN') {
+                td.style.fontSize = '11px'; td.textContent = jTask.dueDate ? fmtDDMMYY(jTask.dueDate) : '—';
+              } else if (lbl === 'J') {
+                td.style.cssText = 'text-align:center;font-size:11px';
+                if (jTask.startDate && jTask.dueDate) { const d = Math.round((new Date(jTask.dueDate) - new Date(jTask.startDate)) / 86400000) + 1; if (d > 0) td.textContent = d; }
+              } else if (lbl === '% AVA.') {
+                const pct = jTask.progress || 0; td.style.padding = '2px 6px';
+                td.innerHTML = `<div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${epic.color}"></div></div><span class="progress-pct">${pct}%</span></div>`;
+              }
+              rt.appendChild(td);
+            });
+            WEEKS.forEach(w => {
+              const td = document.createElement('td'); td.className = 'gantt-cell';
+              if (isToday(w)) td.classList.add('today-col');
+              if (jTask.startDate && jTask.dueDate && isInWeek(jTask.startDate, jTask.dueDate, w)) {
+                const bar = document.createElement('span'); bar.className = 'gantt-bar'; bar.style.background = epic.color;
+                if ((jTask.progress || 0) >= 100) bar.classList.add('gantt-bar-done');
+                td.appendChild(bar);
+                td.title = `${jTask.key}: ${jTask.summary}\n${jiraStatusLabel(jTask.status)}\n${jTask.startDate} → ${jTask.dueDate}\n${jTask.progress || 0}%`;
+              }
+              rt.appendChild(td);
+            });
+          });
+        }
       });
-    });
+    }
   }
 
   if (_ganttEditMode) {
@@ -799,21 +816,48 @@ function initGanttSort(tbody) {
     forceFallback: true,
     fallbackTolerance: 3,
     onMove(evt) {
-      // Block dropping before/onto header rows
       if (evt.related.classList.contains('gantt-hrow')) return false;
+      const draggingJira = !!(evt.dragged.dataset.jiraEpicId || evt.dragged.dataset.jiraTaskId);
+      const targetIsJira  = !!(evt.related.dataset.jiraEpicId || evt.related.dataset.jiraTaskId)
+                              || evt.related.classList.contains('jira-main-row');
+      if (draggingJira && !targetIsJira) return false;
+      if (!draggingJira && targetIsJira) return false;
       return true;
     },
     onEnd({ item }) {
       const rows = Array.from(tbody.rows);
-      if (item.classList.contains('tr-phase')) {
-        // Phase moved: reorder phases[], tasks keep their phaseId
+      if (item.dataset.jiraEpicId) {
+        // JIRA epic reordered within the JIRA section
+        const newOrder = rows
+          .filter(r => r.dataset.jiraEpicId)
+          .map(r => jiraData.epics.find(e => e.id === r.dataset.jiraEpicId))
+          .filter(Boolean);
+        jiraData.epics = newOrder;
+      } else if (item.dataset.jiraTaskId) {
+        // JIRA task reordered: rebuild epicId from nearest epic row above
+        let curEpicId = null;
+        const taskAssign = [];
+        rows.forEach(tr => {
+          if (tr.dataset.jiraEpicId) curEpicId = tr.dataset.jiraEpicId;
+          else if (tr.dataset.jiraTaskId) taskAssign.push({ id: tr.dataset.jiraTaskId, epicId: curEpicId });
+        });
+        taskAssign.forEach(({ id, epicId }) => {
+          const t = jiraData.tasks.find(t => t.id === id); if (t && epicId) t.epicId = epicId;
+        });
+        jiraData.tasks.sort((a, b) => {
+          const ia = taskAssign.findIndex(x => x.id === a.id);
+          const ib = taskAssign.findIndex(x => x.id === b.id);
+          return (ia === -1 ? Infinity : ia) - (ib === -1 ? Infinity : ib);
+        });
+      } else if (item.classList.contains('tr-phase')) {
+        // Regular phase moved: reorder phases[], tasks keep their phaseId
         const newOrder = rows
           .filter(r => r.classList.contains('tr-phase') && r.dataset.phaseId)
           .map(r => phases.find(p => p.id === r.dataset.phaseId))
           .filter(Boolean);
         phases = newOrder;
       } else if (item.dataset.taskId) {
-        // Task moved: rebuild phaseId assignments + task order from DOM
+        // Regular task moved: rebuild phaseId assignments + task order from DOM
         let curPhaseId = null;
         const taskAssign = [];
         rows.forEach(tr => {
@@ -863,7 +907,7 @@ function transformJiraIssues(epicsRaw, tasksRaw) {
     status: normalizeJiraStatus(iss.fields.status?.name || ''),
     assignee: iss.fields.assignee?.displayName || '',
     storyPoints: iss.fields.customfield_10016 || 0,
-    startDate: '',
+    startDate: iss.fields.startdate || '',
     dueDate: iss.fields.duedate || '',
     progress: iss.fields.progress?.percent || 0
   }));
@@ -881,7 +925,7 @@ async function syncJira() {
     const jiraUrl = `${cfg.url}/rest/api/3/search/jql`;
     const [erText, trText] = await Promise.all([
       invoke('jira_fetch', { url: jiraUrl, email: cfg.email, token: cfg.token, body: JSON.stringify({ jql: `project=${cfg.projectKey} AND issuetype=Epic`, fields: ['summary', 'status'], maxResults: 50 }) }),
-      invoke('jira_fetch', { url: jiraUrl, email: cfg.email, token: cfg.token, body: JSON.stringify({ jql: `project=${cfg.projectKey} AND issuetype in (Story,Task,Bug)`, fields: ['summary', 'status', 'assignee', 'customfield_10016', 'duedate', 'parent', 'progress'], maxResults: 100 }) })
+      invoke('jira_fetch', { url: jiraUrl, email: cfg.email, token: cfg.token, body: JSON.stringify({ jql: `project=${cfg.projectKey} AND issuetype in (Story,Task,Bug)`, fields: ['summary', 'status', 'assignee', 'customfield_10016', 'duedate', 'startdate', 'parent', 'progress'], maxResults: 100 }) })
     ]);
     jiraData = transformJiraIssues(JSON.parse(erText), JSON.parse(trText));
     jiraData.lastSync = new Date().toLocaleString('fr-FR');
@@ -954,16 +998,20 @@ function renderJira() {
         </div>
       </div>
       <div class="jira-epic-tasks">
-        <div class="jira-tasks-header"><span>Clé</span><span>Intitulé</span><span>Statut</span><span>Responsable</span><span>Pts</span><span>Échéance</span><span>Avancement</span></div>
-        ${epicTasks.map(t => `<div class="jira-task-row">
+        <div class="jira-tasks-header"><span>Clé</span><span>Intitulé</span><span>Statut</span><span>Responsable</span><span>Pts</span><span>Début</span><span>Échéance</span><span>J</span><span>Avancement</span></div>
+        ${epicTasks.map(t => {
+          const days = (t.startDate && t.dueDate) ? Math.round((new Date(t.dueDate) - new Date(t.startDate)) / 86400000) + 1 : null;
+          return `<div class="jira-task-row">
           <span class="jira-task-key">${t.key}</span>
           <span class="jira-task-summary">${t.summary}</span>
           <span class="badge badge-${jiraStatusBadgeClass(t.status)}" style="font-size:10px">${jiraStatusLabel(t.status)}</span>
           <span style="font-size:12px;color:var(--text-muted)">${t.assignee ? formatTemplate(t.assignee) : '—'}</span>
           <span style="font-size:12px;text-align:center">${t.storyPoints ? t.storyPoints + ' pts' : '—'}</span>
-          <span style="font-size:12px;color:var(--text-muted)">${t.dueDate ? new Date(t.dueDate).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'}) : '—'}</span>
+          <span style="font-size:12px;color:var(--text-muted)">${t.startDate ? fmtDDMMYY(t.startDate) : '—'}</span>
+          <span style="font-size:12px;color:var(--text-muted)">${t.dueDate ? fmtDDMMYY(t.dueDate) : '—'}</span>
+          <span style="font-size:12px;text-align:center;color:var(--text-muted)">${days && days > 0 ? days : '—'}</span>
           <div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${t.progress||0}%;background:${epic.color}"></div></div><span class="progress-pct">${t.progress||0}%</span></div>
-        </div>`).join('')}
+        </div>`;}).join('')}
       </div>`;
     container.appendChild(section);
   });

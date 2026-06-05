@@ -244,16 +244,25 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - **Jours ouvrés restants (Planning)**: badge dynamique `#install-wd-badge` sous le champ date d'installation dans le header du planning. Couleur : rouge ≤ 30 j, orange ≤ 60 j, vert au-delà. Mis à jour à chaque `onMetaInput()` et au chargement.
 - **Suivi Heures — Déplacements**: section déplacée de Facturation vers Suivi Heures. Modèle : `{ id, label, vendu, depenses: [{date, montant, note}] }`. Colonnes : Catégorie | Vendu (budget, clic pour éditer) | Dépensé (calculé) | 🕐 + (accordion historique + modal ajout dépense). KPI dédié (Budget / Dépensé / Écart) affiché au-dessus du tableau. Colonne État supprimée. `renderDeplRow()` appelé depuis `renderHeures()`.
 
+### 2026-06-05 (session 2) — JIRA Gantt collapse + drag-and-drop + dates
+
+- **JIRA Gantt collapse**: main `◈ JIRA` row gets a collapse toggle (key `'__jira__'`); each epic sub-header gets its own toggle (key `'__epic_<id>'`). Both reuse `_collapsedPhases` Set and `togglePhaseCollapse()`.
+- **JIRA drag-and-drop**: in edit mode, epic rows get `data-jira-epic-id` + drag handle; task rows get `data-jira-task-id` + drag handle. `initGanttSort.onMove` blocks JIRA↔regular cross-area drops. `onEnd` reorders `jiraData.epics` or `jiraData.tasks` (with `epicId` reassignment when a task moves between epics).
+- **JIRA task start date**: `transformJiraIssues` now reads `iss.fields.startdate`; `syncJira` adds `'startdate'` to the API fields list. DÉBUT and FIN columns in the Gantt show `fmtDDMMYY()` (dd/mm/yy). J column calculates calendar days between start and due.
+- **JIRA tab — Début + J columns**: grid expanded from 7 to 9 columns (`80px 1fr 120px 120px 45px 80px 80px 40px 90px`); header and task rows updated to show start date and day count.
+- **`fmtDDMMYY` helper**: added next to `fmtDateShort`; splits ISO string directly (`yyyy-mm-dd → dd/mm/yy`) with no timezone risk.
+- **Demo JIRA data**: `example.wmsplan` now has 2 epics (WMS-1, WMS-2) and 5 tasks with start/end dates and progress for testing.
+- **Note on PROPRIÉTAIRE**: the JIRA assignee (`iss.fields.assignee?.displayName`) has always been displayed in the PROPRIÉTAIRE column for JIRA tasks. Column is on by default (`tog-owner` checked). If blank after sync, the JIRA ticket has no assignee.
+
 ## Pending items (summary from FEEDBACK.md as of 2026-06-05)
 
 **Export:**
 
 - HTML export formatting doesn't match app (button disabled — pending review)
 
-**Planning (JIRA):**
+**Portfolio:**
 
-- JIRA phases/tasks: same collapse + drag-and-drop behaviour as regular phases
-- JIRA tasks: show start/end dates + planned day count
+- Show DP / CDP Tech name + working days remaining before install
 
 **Planning (general):**
 

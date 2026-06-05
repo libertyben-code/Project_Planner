@@ -21,6 +21,9 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Mettre le porfolio et la page principale en mode clair — OK
 - [x] Dans settings, ajouter l'option mode dark ou light — OK
 
+## Portfolio
+- [ ] Dans le portfolio, mettre le nom du DP et CDP Tech ainsi que le nombre de jours ouvrés restant avant installation pour le suivi niveau managerial
+
 ## Planning (Gantt)
 
 <!-- Gantt chart, task add/edit/delete, phase management, date inputs -->
@@ -45,8 +48,8 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Ajouter la possibilité de supprimer la date revue d'installation et donc le message retardé. — OK
 - [x] Dans la phase Indisponibilité/Congés, les nouvelles tâches créées ne doivent pas afficher le statut, priorité, J et %AVA comme le reste des tâche dans cette phase. — OK
 - [x] Dans la tâche Chef de Projet Technique, remplis le nom du CDP Tech et non du DP. — OK
-- [ ] Dans la vue planning, permettre que les phases JIRA et tâches aient les mêmes attribut que le reste des taches/phase = réduire, deplacer en drag and drop etc.
-- [ ] Dans les taches JIRA, integrer les dates de début et fin avec le nombre de jours prévus.
+- [x] Dans la vue planning, permettre que les phases JIRA et tâches aient les mêmes attribut que le reste des taches/phase = réduire, deplacer en drag and drop etc. — OK
+- [x] Dans les taches JIRA, integrer les dates de début et fin avec le nombre de jours prévus. — OK
 - [x] Si une l'avancement d'une tâche est passé à 100%. Changer le statut de cette tâche à Terminé. De la même manière si l'avancement est changé >= 0, alors passer la tâche à "En Cours" — OK
 - [x] Ajouter le nombre de jours ouvrés restant à coté de la date d'installation. — OK
   - [x] Ajouter ces jours dans le planning en dessous de la date d'installation — OK
@@ -153,6 +156,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Dans le menu Settings du menu principal, prévoir la possibilité de choisir son propre template pour tous les nouveaux projets. — OK
 - [x] Ajouter une partie Settings qui permet de définit les listes de menu déroulant comme "propriétaire". — OK (par projet, via ⚙ Paramètres du projet)
 - [x] Remove the mecalux in the app data default save path — OK (identifier → com.wmsplanner.app)
+- [ ] Pour chaques projets, demander le lien d'ouverture du Json. Par exemple si celui ci est partager sur un dossier git, cela permet au manager d'avoir la dernière version. Si tu as une méthode plus efficace n'hésite pas. On pourrais aussi dire que le path d'ouverture du projet la première fois reste celui par défaut.
 
 ## Notes Techniques
 
