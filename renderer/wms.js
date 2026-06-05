@@ -21,12 +21,20 @@ let dryrunData = [];
 let installData = [];
 let jalonsProjet = [];
 let jalonsEquip = [];
+let jalonsDeplacements = [];
+const DEFAULT_DEPLACEMENTS = [
+  { id: 'avion-train',  label: 'Avion / Train',  vendu: 0, depenses: [] },
+  { id: 'voiture',      label: 'Voiture',         vendu: 0, depenses: [] },
+  { id: 'hotel',        label: 'Hôtel',           vendu: 0, depenses: [] },
+  { id: 'restauration', label: 'Restauration',    vendu: 0, depenses: [] },
+];
 let customTabs = [];
 let jiraData = { epics: [], tasks: [], lastSync: '' };
 let _ganttEditMode = false;
 let _collapsedPhases = new Set();
 let _companyName = 'COMPANY';
 let _ownerOptions = ['Intégrateur', 'Autre'];
+let _userSettings = {};
 let _lastDailyBackupDay = '';
 let _lastSecondaryBackupTime = 0;
 
@@ -39,7 +47,7 @@ function buildState() {
     functional: fonctionnelData,
     dryRun: dryrunData,
     install: installData,
-    billing: { jalonsProjet, jalonsEquipement: jalonsEquip },
+    billing: { jalonsProjet, jalonsEquipement: jalonsEquip, jalonsDeplacements },
     customTabs,
     jiraData
   };
@@ -108,6 +116,7 @@ async function loadProject(path) {
       const rawSettings = await invoke('read_settings');
       const s = typeof rawSettings === 'string' ? JSON.parse(rawSettings) : (rawSettings || {});
       if (s.companyName) _companyName = s.companyName;
+      _userSettings = s;
     } catch {}
     const raw = await invoke('read_project', { path });
     const state = JSON.parse(raw);
@@ -134,7 +143,7 @@ function applyState(state) {
   jiraData      = state.jiraData      || { epics: [], tasks: [], lastSync: '' };
   if (!jiraData.epics)  jiraData.epics  = [];
   if (!jiraData.tasks)  jiraData.tasks  = [];
-  if (!projectMeta.jiraConfig) projectMeta.jiraConfig = { url: '', projectKey: '', email: '', token: '' };
+  if (!_userSettings.jiraConfig) _userSettings.jiraConfig = { url: '', projectKey: '', email: '', token: '' };
   _ownerOptions = (Array.isArray(projectMeta.ownerOptions) && projectMeta.ownerOptions.length > 0)
     ? projectMeta.ownerOptions
     : ['Intégrateur', 'Autre'];
@@ -155,6 +164,13 @@ function applyState(state) {
   installData   = state.install       || [];
   jalonsProjet  = state.billing?.jalonsProjet    || [];
   jalonsEquip   = state.billing?.jalonsEquipement || [];
+  // Merge saved deplacements with defaults — migrate old montant → vendu
+  const savedDepl = state.billing?.jalonsDeplacements || [];
+  jalonsDeplacements = DEFAULT_DEPLACEMENTS.map(def => {
+    const saved = savedDepl.find(r => r.id === def.id);
+    if (!saved) return { ...def };
+    return { ...def, vendu: saved.vendu ?? saved.montant ?? 0, depenses: saved.depenses || [] };
+  });
   customTabs    = state.customTabs    || [];
 
   const m = projectMeta;
@@ -172,6 +188,7 @@ function applyState(state) {
   setVal('pi-install-actual', m.installDateActual || '');
   setVal('pi-install-comment', m.installDateComment || '');
   _syncInstallDelayUI();
+  _updateInstallWdBadge();
 
   const title = 'WMS Planning — ' + (m.name || 'Sans titre');
   setWindowTitle(title); document.title = title;
@@ -217,6 +234,7 @@ function onMetaInput() {
   setWindowTitle(title); document.title = title;
   debouncedSave();
   renderInstallDrift();
+  _updateInstallWdBadge();
 }
 function syncNav() { onMetaInput(); }
 
@@ -254,6 +272,32 @@ function clearInstallDelay() {
 }
 
 // ═══ INSTALL DRIFT ═══
+function _updateInstallWdBadge() {
+  const badge = document.getElementById('install-wd-badge');
+  if (!badge) return;
+  const m = projectMeta;
+  const activeDate = m.installDateActual || m.installDateDelayed || m.installDateOriginal;
+  const wd = workingDaysLeft(activeDate);
+  if (wd !== null) {
+    badge.textContent = `🗓 ${wd} jour${wd > 1 ? 's' : ''} ouvré${wd > 1 ? 's' : ''} restant${wd > 1 ? 's' : ''}`;
+    badge.style.color = wd <= 30 ? '#dc2626' : wd <= 60 ? '#d97706' : '#059669';
+  } else if (activeDate) {
+    badge.textContent = 'Date d\'installation dépassée';
+    badge.style.color = '#dc2626';
+  } else {
+    badge.textContent = '';
+  }
+}
+function workingDaysLeft(dateStr) {
+  if (!dateStr) return null;
+  const target = new Date(dateStr); target.setHours(0,0,0,0);
+  const today = new Date(); today.setHours(0,0,0,0);
+  if (target < today) return null;
+  let count = 0;
+  const d = new Date(today);
+  while (d <= target) { const day = d.getDay(); if (day !== 0 && day !== 6) count++; d.setDate(d.getDate()+1); }
+  return count;
+}
 function renderInstallDrift() {
   const block = document.getElementById('install-drift-block');
   if (!block) return;
@@ -278,6 +322,10 @@ function renderInstallDrift() {
     html += `<div class="drift-point"><span class="drift-label drift-label-actual">Réelle${d !== 0 ? ' ('+(d>0?'+':'')+d+'j)' : ''}</span><span class="drift-date drift-actual">${fmt(actual)}</span></div>`;
   }
   html += `</div>`;
+  const activeDate = m.installDateActual || m.installDateDelayed || orig;
+  const wdLeft = workingDaysLeft(activeDate);
+  if (wdLeft !== null) html += `<div class="drift-comment" style="font-weight:600">🗓 ${wdLeft} jour${wdLeft > 1 ? 's' : ''} ouvré${wdLeft > 1 ? 's' : ''} restant${wdLeft > 1 ? 's' : ''}</div>`;
+  else if (activeDate) html += `<div class="drift-comment" style="color:var(--danger)">Date d'installation dépassée</div>`;
   if (m.installDateComment) html += `<div class="drift-comment">💬 ${m.installDateComment}</div>`;
   block.innerHTML = html;
 }
@@ -592,7 +640,7 @@ function renderGantt() {
             td.style.padding = '2px 6px'; td.style.cursor = 'pointer';
             const pct = task.progress || 0; const color = getPhaseColor(task);
             td.innerHTML = `<div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div><span class="progress-pct">${pct}%</span></div>`;
-            td.onclick = () => { const v = prompt("% d'avancement :", pct); if (v !== null && !isNaN(+v)) { updateTask(task.id,'progress',Math.min(100,Math.max(0,+v))); renderGantt(); renderDashboard(); debouncedSave(); } };
+            td.onclick = () => { const v = prompt("% d'avancement :", pct); if (v !== null && !isNaN(+v)) { const newPct = Math.min(100,Math.max(0,+v)); updateTask(task.id,'progress',newPct); if (newPct === 100) { updateTask(task.id,'status','Terminé'); } else if (newPct > 0 && (task.status === '' || task.status === 'Non commencé' || task.status === 'Terminé')) { updateTask(task.id,'status','En cours'); } renderGantt(); renderDashboard(); debouncedSave(); } };
           }
         } else if (lbl === '') {
           td.style.padding = '1px 4px'; td.style.textAlign = 'center'; td.style.whiteSpace = 'nowrap';
@@ -822,7 +870,7 @@ function transformJiraIssues(epicsRaw, tasksRaw) {
   return { epics, tasks, lastSync: '' };
 }
 async function syncJira() {
-  const cfg = projectMeta.jiraConfig;
+  const cfg = _userSettings.jiraConfig;
   if (!cfg?.token || !cfg?.url || !cfg?.projectKey) {
     openJiraConfig();
     return;
@@ -848,21 +896,21 @@ async function syncJira() {
   }
 }
 function openJiraConfig() {
-  const cfg = projectMeta.jiraConfig || {};
+  const cfg = _userSettings.jiraConfig || {};
   document.getElementById('jira-cfg-url').value   = cfg.url          || '';
   document.getElementById('jira-cfg-key').value   = cfg.projectKey   || '';
   document.getElementById('jira-cfg-email').value = cfg.email        || '';
   document.getElementById('jira-cfg-token').value = cfg.token        || '';
   document.getElementById('modal-jira-config').classList.add('open');
 }
-function saveJiraConfig() {
-  if (!projectMeta.jiraConfig) projectMeta.jiraConfig = {};
-  projectMeta.jiraConfig.url        = document.getElementById('jira-cfg-url').value.trim().replace(/\/$/, '');
-  projectMeta.jiraConfig.projectKey = document.getElementById('jira-cfg-key').value.trim();
-  projectMeta.jiraConfig.email      = document.getElementById('jira-cfg-email').value.trim();
-  projectMeta.jiraConfig.token      = document.getElementById('jira-cfg-token').value.trim();
+async function saveJiraConfig() {
+  if (!_userSettings.jiraConfig) _userSettings.jiraConfig = {};
+  _userSettings.jiraConfig.url        = document.getElementById('jira-cfg-url').value.trim().replace(/\/$/, '');
+  _userSettings.jiraConfig.projectKey = document.getElementById('jira-cfg-key').value.trim();
+  _userSettings.jiraConfig.email      = document.getElementById('jira-cfg-email').value.trim();
+  _userSettings.jiraConfig.token      = document.getElementById('jira-cfg-token').value.trim();
+  await invoke('write_settings', { data: JSON.stringify(_userSettings) });
   closeModal('modal-jira-config');
-  debouncedSave();
 }
 function renderJira() {
   const container = document.getElementById('jira-epics-container');
@@ -1255,6 +1303,7 @@ function renderHeures() {
     <div class="kpi-card"><div class="kpi-label">Total Actuel</div><div class="kpi-value">${actuel} h</div><div class="kpi-sub">${vente>0?Math.round(actuel/vente*100):0}% du budget</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:${vente>0?Math.min(100,actuel/vente*100):0}%;background:${actuel>vente?'#dc2626':'var(--accent)'}"></div></div></div>
     <div class="kpi-card"><div class="kpi-label">Écart</div><div class="kpi-value" style="color:${actuel>vente?'#dc2626':actuel<vente?'#059669':'var(--text)'}">${actuel>vente?'+':''}${actuel-vente} h</div></div>
     <div class="kpi-card"><div class="kpi-label">Jours Restants (vente)</div><div class="kpi-value">${Math.round((vente-actuel)/7)}</div><div class="kpi-sub">Base 7h/jour</div></div>`;
+  renderDeplRow(document.getElementById('tbody-deplacements'));
 }
 
 function addCustomHeuresRow() {
@@ -1707,6 +1756,80 @@ function del_fact_equip(id) {
   showUndoToast(`Jalon "${deleted.jalon}" supprimé`, () => { jalonsEquip.splice(idx, 0, deleted); renderFacturation(); renderDashboard(); });
 }
 function addJalon(type) { const list = type === 'projet' ? jalonsProjet : jalonsEquip; list.push({id:uid(),jalon:'Nouveau jalon',date:'',echeance:'',etat:'—',pct:0,montant:0}); renderFacturation(); debouncedSave(); }
+let _addingDeplId = null;
+function openAddDeplExpense(id) {
+  _addingDeplId = id;
+  document.getElementById('depl-exp-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('depl-exp-montant').value = '';
+  document.getElementById('depl-exp-note').value = '';
+  document.getElementById('modal-depl-expense').classList.add('open');
+}
+function saveDeplExpense() {
+  const row = jalonsDeplacements.find(r => r.id === _addingDeplId); if (!row) return;
+  const montant = +document.getElementById('depl-exp-montant').value || 0;
+  const date    = document.getElementById('depl-exp-date').value || new Date().toISOString().slice(0,10);
+  const note    = document.getElementById('depl-exp-note').value.trim();
+  if (!row.depenses) row.depenses = [];
+  row.depenses.push({ date, montant, note });
+  closeModal('modal-depl-expense');
+  renderHeures(); renderDashboard(); debouncedSave();
+}
+function deleteDeplExpense(id, idx) {
+  const row = jalonsDeplacements.find(r => r.id === id); if (!row) return;
+  row.depenses.splice(idx, 1);
+  renderHeures(); renderDashboard(); debouncedSave();
+}
+function toggleDeplHistory(id, btn) {
+  const existingRow = btn.closest('tr').nextElementSibling;
+  if (existingRow && existingRow.classList.contains('depl-history-row')) { existingRow.remove(); return; }
+  const row = jalonsDeplacements.find(r => r.id === id);
+  if (!row || !row.depenses?.length) return;
+  const tr = document.createElement('tr'); tr.className = 'depl-history-row';
+  const td = document.createElement('td'); td.colSpan = 5; td.style.padding = '0 16px 8px 24px';
+  const rows = row.depenses.map((d,i) => `<tr>
+    <td style="font-size:11px;padding:2px 8px">${d.date||'—'}</td>
+    <td style="text-align:right;font-size:11px;padding:2px 8px;font-weight:600">${fmtMontant(d.montant)}</td>
+    <td style="font-size:11px;color:var(--text-muted);padding:2px 8px">${d.note||''}</td>
+    <td><button style="font-size:10px;border:none;background:none;cursor:pointer;color:#dc2626;padding:0 4px" onclick="deleteDeplExpense('${id}',${i})">✕</button></td>
+  </tr>`).join('');
+  td.innerHTML = `<table style="font-size:11px;border-collapse:collapse;margin:4px 0">
+    <thead><tr><th style="padding:2px 8px;text-align:left;color:var(--text-muted)">Date</th><th style="padding:2px 8px;color:var(--text-muted)">Montant</th><th style="padding:2px 8px;color:var(--text-muted)">Note</th><th></th></tr></thead>
+    <tbody>${rows}</tbody></table>`;
+  tr.appendChild(td);
+  btn.closest('tr').insertAdjacentElement('afterend', tr);
+}
+function _renderDeplKpi() {
+  const el = document.getElementById('kpi-deplacements');
+  if (!el) return;
+  const tDVendu = jalonsDeplacements.reduce((s,r) => s+(r.vendu||0), 0);
+  const tDDepl  = jalonsDeplacements.reduce((s,r) => s+(r.depenses||[]).reduce((a,d) => a+(d.montant||0), 0), 0);
+  const ecart = tDDepl - tDVendu;
+  const ec = ecart > 0 ? '#dc2626' : ecart < 0 ? '#059669' : 'var(--text-muted)';
+  el.innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">Budget Déplacements</div><div class="kpi-value">${tDVendu.toLocaleString('fr-FR')} €</div></div>
+    <div class="kpi-card"><div class="kpi-label">Dépensé</div><div class="kpi-value">${tDDepl.toLocaleString('fr-FR')} €</div>${tDVendu > 0 ? `<div class="kpi-bar"><div class="kpi-bar-fill" style="width:${Math.min(100,Math.round(tDDepl/tDVendu*100))}%;background:${ecart>0?'#dc2626':'var(--accent)'}"></div></div>` : ''}</div>
+    <div class="kpi-card"><div class="kpi-label">Écart</div><div class="kpi-value" style="color:${ec}">${ecart > 0 ? '+' : ''}${ecart.toLocaleString('fr-FR')} €</div></div>`;
+}
+function renderDeplRow(tbody) {
+  tbody.innerHTML = '';
+  jalonsDeplacements.forEach(row => {
+    const totalDepl = (row.depenses||[]).reduce((s,d) => s+(d.montant||0), 0);
+    const tr = tbody.insertRow();
+    tr.innerHTML = `
+      <td style="font-weight:600">${row.label}</td>
+      <td style="text-align:right;cursor:pointer;text-decoration:underline dotted;font-family:'DM Mono',monospace" title="Cliquer pour modifier le budget vendu">${fmtMontant(row.vendu||0)}</td>
+      <td style="text-align:right;font-family:'DM Mono',monospace;font-weight:600">${fmtMontant(totalDepl)}</td>
+      <td style="text-align:center;white-space:nowrap">
+        ${(row.depenses||[]).length ? `<span title="Historique des dépenses" style="cursor:pointer;font-size:14px" onclick="toggleDeplHistory('${row.id}',this)">🕐</span> ` : ''}
+        <span title="Ajouter une dépense" style="cursor:pointer;font-size:16px;color:var(--accent);font-weight:700" onclick="openAddDeplExpense('${row.id}')">+</span>
+      </td>`;
+    tr.cells[1].addEventListener('click', () => {
+      const v = prompt(`Budget vendu — ${row.label} :`, row.vendu || 0);
+      if (v !== null && !isNaN(+v)) { row.vendu = +v; renderHeures(); renderDashboard(); debouncedSave(); }
+    });
+  });
+  _renderDeplKpi();
+}
 function renderFacturation() {
   renderFactRow(document.getElementById('tbody-jalons-projet'), jalonsProjet, 'projet');
   renderFactRow(document.getElementById('tbody-jalons-equip'), jalonsEquip, 'equip');
@@ -2892,6 +3015,7 @@ Object.assign(window, {
   addInstall, openEditInstall, saveInstall, deleteInstallFromModal, deleteInstall,
   addJalon, openEditJalon, saveJalon, deleteJalonFromModal, autoCalcJalonPct,
   del_fact_projet, del_fact_equip, renderFacturation,
+  openAddDeplExpense, saveDeplExpense, deleteDeplExpense, toggleDeplHistory,
   addCustomHeuresRow, deleteHeuresRow, deleteHeuresFromModal, openEditHeure, saveHeures, toggleHeuresHistory,
   updateHeures, updateHeuresDesc, updateHeureCat, updateHeureHistNote,
   openProjectSettings, closeProjectSettings, pickAutoSavePath, resetAutoSavePath, saveAutoSaveInterval,

@@ -236,24 +236,31 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 
 ---
 
-## Pending items (summary from FEEDBACK.md as of 2026-06-02)
+### 2026-06-05 — Avancement auto-statut, JIRA user settings, jours ouvrés, déplacements
+
+- **Avancement → statut automatique**: passer avancement à 100 % force le statut "Terminé" ; passer à 1–99 % force "En cours" si le statut était vide/Non commencé/Terminé.
+- **Credentials JIRA dans user settings**: `openJiraConfig` / `saveJiraConfig` / `syncJira` lisent et écrivent dans `_userSettings.jiraConfig` (persisté via `write_settings`) au lieu de `projectMeta`. Les credentials ne sont plus embarqués dans le `.wmsplan`.
+- **Jours ouvrés restants (Dashboard)**: `workingDaysLeft(dateStr)` compte les jours ouvrés (lun–ven) jusqu'à la date active (réelle → reportée → originale). Affiché dans le bloc dérive installation du Dashboard.
+- **Jours ouvrés restants (Planning)**: badge dynamique `#install-wd-badge` sous le champ date d'installation dans le header du planning. Couleur : rouge ≤ 30 j, orange ≤ 60 j, vert au-delà. Mis à jour à chaque `onMetaInput()` et au chargement.
+- **Suivi Heures — Déplacements**: section déplacée de Facturation vers Suivi Heures. Modèle : `{ id, label, vendu, depenses: [{date, montant, note}] }`. Colonnes : Catégorie | Vendu (budget, clic pour éditer) | Dépensé (calculé) | 🕐 + (accordion historique + modal ajout dépense). KPI dédié (Budget / Dépensé / Écart) affiché au-dessus du tableau. Colonne État supprimée. `renderDeplRow()` appelé depuis `renderHeures()`.
+
+## Pending items (summary from FEEDBACK.md as of 2026-06-05)
 
 **Export:**
 
 - HTML export formatting doesn't match app (button disabled — pending review)
 
-**Planning:**
+**Planning (JIRA):**
 
-- Delete revised install date (remove the "delayed" message)
-- Indisponibilité/Congés phase: new tasks should not show Statut, Priorité, J, %AVA columns
-- "Chef de Projet Technique" task should fill CDP Tech name, not DP name
+- JIRA phases/tasks: same collapse + drag-and-drop behaviour as regular phases
+- JIRA tasks: show start/end dates + planned day count
 
-**Custom tabs:**
+**Planning (general):**
 
-- "Qui?" column must be a dropdown matching the Planning owner list (regression — was marked done, found broken again)
+- Public holidays: highlight Gantt columns/cells for weeks containing a public holiday
 
 **Evolutions (larger features):**
 - Global resource calendar (CDP Tech / DP availability, synced from Google Calendar)
-- Client test tracking process integration
+- Client test tracking / Phase 1 read-only HTML export for client
 - Excel import as a new tab
 - Zoom in/out on Gantt (Ctrl+scroll or +/- buttons)

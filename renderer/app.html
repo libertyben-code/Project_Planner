@@ -154,6 +154,7 @@
           <button class="btn btn-ghost btn-xs" onclick="clearInstallDelay()" title="Annuler le report" style="font-size:11px;padding:1px 6px;color:#111;font-weight:700">✕</button>
         </div>
         <button id="btn-signal-report" class="btn btn-ghost" style="font-size:10px;padding:2px 8px;margin-top:4px" onclick="openInstallDelaySection()">Signaler un report…</button>
+        <div id="install-wd-badge" style="font-size:11px;font-weight:600;margin-top:4px"></div>
       </div>
     </div>
     <!-- Hidden fields: in DOM for data model, not shown in UI -->
@@ -217,6 +218,11 @@
         </td>
       </tr></tfoot>
     </table></div>
+  </div>
+  <div class="kpi-grid" id="kpi-deplacements"></div>
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Déplacements</span></div>
+    <div style="padding:0"><table class="data-table"><thead><tr><th>Catégorie</th><th style="width:130px;text-align:right">Vendu (€)</th><th style="width:130px;text-align:right">Dépensé (€)</th><th style="width:60px"></th></tr></thead><tbody id="tbody-deplacements"></tbody></table></div>
   </div>
 </div>
 
@@ -372,6 +378,18 @@
 </div>
 
 <!-- Edit Jalon modal -->
+<div class="modal-overlay" id="modal-depl-expense">
+  <div class="modal" style="max-width:360px">
+    <h3>Ajouter une dépense</h3>
+    <div class="form-row"><label>Date</label><input id="depl-exp-date" type="date"></div>
+    <div class="form-row"><label>Montant (€)</label><input id="depl-exp-montant" type="number" min="0" placeholder="0"></div>
+    <div class="form-row"><label>Note</label><input id="depl-exp-note" type="text" placeholder="Référence, fournisseur…"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-depl-expense')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveDeplExpense()">Ajouter</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="modal-edit-jalon">
   <div class="modal">
     <h3 id="modal-edit-jalon-title">Modifier le jalon</h3>
