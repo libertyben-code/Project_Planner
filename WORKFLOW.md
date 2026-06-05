@@ -236,24 +236,31 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 
 ---
 
-## Pending items (summary from FEEDBACK.md as of 2026-06-02)
+### 2026-06-05 — Avancement auto-statut, JIRA user settings, jours ouvrés, déplacements
+
+- **Avancement → statut automatique**: passer avancement à 100 % force le statut "Terminé" ; passer à 1–99 % force "En cours" si le statut était vide/Non commencé/Terminé.
+- **Credentials JIRA dans user settings**: `openJiraConfig` / `saveJiraConfig` / `syncJira` lisent et écrivent dans `_userSettings.jiraConfig` (persisté via `write_settings`) au lieu de `projectMeta`. Les credentials ne sont plus embarqués dans le `.wmsplan`.
+- **Jours ouvrés restants**: `workingDaysLeft(dateStr)` compte les jours ouvrés (lun–ven) jusqu'à la date active (réelle → reportée → originale). Affiché dans le bloc dérive installation du Dashboard.
+- **Facturation — Déplacements**: nouvelle section avec 4 lignes fixes (Avion/Train, Voiture, Hôtel, Restauration). État cliquable (dropdown), montant cliquable (prompt). Total Déplacements ajouté aux KPI. Persisté dans `billing.jalonsDeplacements`.
+
+## Pending items (summary from FEEDBACK.md as of 2026-06-05)
 
 **Export:**
 
 - HTML export formatting doesn't match app (button disabled — pending review)
 
-**Planning:**
+**Planning (JIRA):**
 
-- Delete revised install date (remove the "delayed" message)
-- Indisponibilité/Congés phase: new tasks should not show Statut, Priorité, J, %AVA columns
-- "Chef de Projet Technique" task should fill CDP Tech name, not DP name
+- JIRA phases/tasks: same collapse + drag-and-drop behaviour as regular phases
+- JIRA tasks: show start/end dates + planned day count
 
-**Custom tabs:**
+**Planning (general):**
 
-- "Qui?" column must be a dropdown matching the Planning owner list (regression — was marked done, found broken again)
+- Public holidays: highlight Gantt columns/cells for weeks containing a public holiday
+- Working days remaining already done (see 2026-06-05 entry above)
 
 **Evolutions (larger features):**
 - Global resource calendar (CDP Tech / DP availability, synced from Google Calendar)
-- Client test tracking process integration
+- Client test tracking / Phase 1 read-only HTML export for client
 - Excel import as a new tab
 - Zoom in/out on Gantt (Ctrl+scroll or +/- buttons)

@@ -45,6 +45,11 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Ajouter la possibilité de supprimer la date revue d'installation et donc le message retardé. — OK
 - [x] Dans la phase Indisponibilité/Congés, les nouvelles tâches créées ne doivent pas afficher le statut, priorité, J et %AVA comme le reste des tâche dans cette phase. — OK
 - [x] Dans la tâche Chef de Projet Technique, remplis le nom du CDP Tech et non du DP. — OK
+- [ ] Dans la vue planning, permettre que les phases JIRA et tâches aient les mêmes attribut que le reste des taches/phase = réduire, deplacer en drag and drop etc.
+- [ ] Dans les taches JIRA, integrer les dates de début et fin avec le nombre de jours prévus.
+- [x] Si une l'avancement d'une tâche est passé à 100%. Changer le statut de cette tâche à Terminé. De la même manière si l'avancement est changé >= 0, alors passer la tâche à "En Cours" — OK
+- [x] Ajouter le nombre de jours ouvrés restant à coté de la date d'installation. — OK
+- [ ] Ajouter une indication des semaines avec des jours fériés. (colonne grisée, cellule semaine d'une certaine couleur ?)
 
 ## Suivi Heures
 
@@ -107,6 +112,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] le drag and drop ne fonctionne pas.
 - [x] ajuster le formating des montants.
 - [x] Les pourcentages doivent être calculés automatiquement en fonction du cout total et des manton de chaques jalons. - OK
+- [x] Ajouter une partie Déplacement dans la facturation avec une ligne Avion/Train, Voiture, Hôtel et Restauration. — OK
 
 ## Tableau de Bord (Dashboard)
 
@@ -130,6 +136,9 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 
 <!-- Gantt PDF export -->
 - [x] Changer le Chef de Projet en haut à gauche et mettre Directeur de Projet. — OK
+
+## JIRA
+- [x] Enregistrer les indentifiants JIRA dans le JSON settings de l'utilisateur et non du projet. Chaque utilisateur devra mettre ses identifiants et clé JIRA. — OK
 
 ## General / Cross-cutting
 

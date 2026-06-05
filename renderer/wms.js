@@ -21,12 +21,20 @@ let dryrunData = [];
 let installData = [];
 let jalonsProjet = [];
 let jalonsEquip = [];
+let jalonsDeplacements = [];
+const DEFAULT_DEPLACEMENTS = [
+  { id: 'avion-train',  label: 'Avion / Train',  montant: 0, etat: '—' },
+  { id: 'voiture',      label: 'Voiture',         montant: 0, etat: '—' },
+  { id: 'hotel',        label: 'Hôtel',           montant: 0, etat: '—' },
+  { id: 'restauration', label: 'Restauration',    montant: 0, etat: '—' },
+];
 let customTabs = [];
 let jiraData = { epics: [], tasks: [], lastSync: '' };
 let _ganttEditMode = false;
 let _collapsedPhases = new Set();
 let _companyName = 'COMPANY';
 let _ownerOptions = ['Intégrateur', 'Autre'];
+let _userSettings = {};
 let _lastDailyBackupDay = '';
 let _lastSecondaryBackupTime = 0;
 
@@ -39,7 +47,7 @@ function buildState() {
     functional: fonctionnelData,
     dryRun: dryrunData,
     install: installData,
-    billing: { jalonsProjet, jalonsEquipement: jalonsEquip },
+    billing: { jalonsProjet, jalonsEquipement: jalonsEquip, jalonsDeplacements },
     customTabs,
     jiraData
   };
@@ -108,6 +116,7 @@ async function loadProject(path) {
       const rawSettings = await invoke('read_settings');
       const s = typeof rawSettings === 'string' ? JSON.parse(rawSettings) : (rawSettings || {});
       if (s.companyName) _companyName = s.companyName;
+      _userSettings = s;
     } catch {}
     const raw = await invoke('read_project', { path });
     const state = JSON.parse(raw);
@@ -134,7 +143,7 @@ function applyState(state) {
   jiraData      = state.jiraData      || { epics: [], tasks: [], lastSync: '' };
   if (!jiraData.epics)  jiraData.epics  = [];
   if (!jiraData.tasks)  jiraData.tasks  = [];
-  if (!projectMeta.jiraConfig) projectMeta.jiraConfig = { url: '', projectKey: '', email: '', token: '' };
+  if (!_userSettings.jiraConfig) _userSettings.jiraConfig = { url: '', projectKey: '', email: '', token: '' };
   _ownerOptions = (Array.isArray(projectMeta.ownerOptions) && projectMeta.ownerOptions.length > 0)
     ? projectMeta.ownerOptions
     : ['Intégrateur', 'Autre'];
@@ -155,6 +164,12 @@ function applyState(state) {
   installData   = state.install       || [];
   jalonsProjet  = state.billing?.jalonsProjet    || [];
   jalonsEquip   = state.billing?.jalonsEquipement || [];
+  // Merge saved deplacements with defaults so all 4 rows always exist
+  const savedDepl = state.billing?.jalonsDeplacements || [];
+  jalonsDeplacements = DEFAULT_DEPLACEMENTS.map(def => {
+    const saved = savedDepl.find(r => r.id === def.id);
+    return saved ? { ...def, ...saved } : { ...def };
+  });
   customTabs    = state.customTabs    || [];
 
   const m = projectMeta;
@@ -254,6 +269,16 @@ function clearInstallDelay() {
 }
 
 // ═══ INSTALL DRIFT ═══
+function workingDaysLeft(dateStr) {
+  if (!dateStr) return null;
+  const target = new Date(dateStr); target.setHours(0,0,0,0);
+  const today = new Date(); today.setHours(0,0,0,0);
+  if (target < today) return null;
+  let count = 0;
+  const d = new Date(today);
+  while (d <= target) { const day = d.getDay(); if (day !== 0 && day !== 6) count++; d.setDate(d.getDate()+1); }
+  return count;
+}
 function renderInstallDrift() {
   const block = document.getElementById('install-drift-block');
   if (!block) return;
@@ -278,6 +303,10 @@ function renderInstallDrift() {
     html += `<div class="drift-point"><span class="drift-label drift-label-actual">Réelle${d !== 0 ? ' ('+(d>0?'+':'')+d+'j)' : ''}</span><span class="drift-date drift-actual">${fmt(actual)}</span></div>`;
   }
   html += `</div>`;
+  const activeDate = m.installDateActual || m.installDateDelayed || orig;
+  const wdLeft = workingDaysLeft(activeDate);
+  if (wdLeft !== null) html += `<div class="drift-comment" style="font-weight:600">🗓 ${wdLeft} jour${wdLeft > 1 ? 's' : ''} ouvré${wdLeft > 1 ? 's' : ''} restant${wdLeft > 1 ? 's' : ''}</div>`;
+  else if (activeDate) html += `<div class="drift-comment" style="color:var(--danger)">Date d'installation dépassée</div>`;
   if (m.installDateComment) html += `<div class="drift-comment">💬 ${m.installDateComment}</div>`;
   block.innerHTML = html;
 }
@@ -592,7 +621,7 @@ function renderGantt() {
             td.style.padding = '2px 6px'; td.style.cursor = 'pointer';
             const pct = task.progress || 0; const color = getPhaseColor(task);
             td.innerHTML = `<div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div><span class="progress-pct">${pct}%</span></div>`;
-            td.onclick = () => { const v = prompt("% d'avancement :", pct); if (v !== null && !isNaN(+v)) { updateTask(task.id,'progress',Math.min(100,Math.max(0,+v))); renderGantt(); renderDashboard(); debouncedSave(); } };
+            td.onclick = () => { const v = prompt("% d'avancement :", pct); if (v !== null && !isNaN(+v)) { const newPct = Math.min(100,Math.max(0,+v)); updateTask(task.id,'progress',newPct); if (newPct === 100) { updateTask(task.id,'status','Terminé'); } else if (newPct > 0 && (task.status === '' || task.status === 'Non commencé' || task.status === 'Terminé')) { updateTask(task.id,'status','En cours'); } renderGantt(); renderDashboard(); debouncedSave(); } };
           }
         } else if (lbl === '') {
           td.style.padding = '1px 4px'; td.style.textAlign = 'center'; td.style.whiteSpace = 'nowrap';
@@ -822,7 +851,7 @@ function transformJiraIssues(epicsRaw, tasksRaw) {
   return { epics, tasks, lastSync: '' };
 }
 async function syncJira() {
-  const cfg = projectMeta.jiraConfig;
+  const cfg = _userSettings.jiraConfig;
   if (!cfg?.token || !cfg?.url || !cfg?.projectKey) {
     openJiraConfig();
     return;
@@ -848,21 +877,21 @@ async function syncJira() {
   }
 }
 function openJiraConfig() {
-  const cfg = projectMeta.jiraConfig || {};
+  const cfg = _userSettings.jiraConfig || {};
   document.getElementById('jira-cfg-url').value   = cfg.url          || '';
   document.getElementById('jira-cfg-key').value   = cfg.projectKey   || '';
   document.getElementById('jira-cfg-email').value = cfg.email        || '';
   document.getElementById('jira-cfg-token').value = cfg.token        || '';
   document.getElementById('modal-jira-config').classList.add('open');
 }
-function saveJiraConfig() {
-  if (!projectMeta.jiraConfig) projectMeta.jiraConfig = {};
-  projectMeta.jiraConfig.url        = document.getElementById('jira-cfg-url').value.trim().replace(/\/$/, '');
-  projectMeta.jiraConfig.projectKey = document.getElementById('jira-cfg-key').value.trim();
-  projectMeta.jiraConfig.email      = document.getElementById('jira-cfg-email').value.trim();
-  projectMeta.jiraConfig.token      = document.getElementById('jira-cfg-token').value.trim();
+async function saveJiraConfig() {
+  if (!_userSettings.jiraConfig) _userSettings.jiraConfig = {};
+  _userSettings.jiraConfig.url        = document.getElementById('jira-cfg-url').value.trim().replace(/\/$/, '');
+  _userSettings.jiraConfig.projectKey = document.getElementById('jira-cfg-key').value.trim();
+  _userSettings.jiraConfig.email      = document.getElementById('jira-cfg-email').value.trim();
+  _userSettings.jiraConfig.token      = document.getElementById('jira-cfg-token').value.trim();
+  await invoke('write_settings', { data: JSON.stringify(_userSettings) });
   closeModal('modal-jira-config');
-  debouncedSave();
 }
 function renderJira() {
   const container = document.getElementById('jira-epics-container');
@@ -1707,10 +1736,25 @@ function del_fact_equip(id) {
   showUndoToast(`Jalon "${deleted.jalon}" supprimé`, () => { jalonsEquip.splice(idx, 0, deleted); renderFacturation(); renderDashboard(); });
 }
 function addJalon(type) { const list = type === 'projet' ? jalonsProjet : jalonsEquip; list.push({id:uid(),jalon:'Nouveau jalon',date:'',echeance:'',etat:'—',pct:0,montant:0}); renderFacturation(); debouncedSave(); }
+function renderDeplRow(tbody) {
+  tbody.innerHTML = '';
+  jalonsDeplacements.forEach(row => {
+    const tr = tbody.insertRow();
+    tr.innerHTML = `
+      <td style="font-weight:600">${row.label}</td>
+      <td style="min-width:78px">${factBadge(row.etat)}</td>
+      <td style="text-align:right;font-weight:600;font-family:'DM Mono',monospace;cursor:pointer;text-decoration:underline dotted" title="Cliquer pour modifier">${fmtMontant(row.montant)}</td>`;
+    const sp = tr.cells[1].querySelector('span');
+    sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, FACT_STATES.map(v => ({label:v,value:v,dot:FACT_D[v]})), val => { row.etat = val; sp.className = FACT_B[val]||'cell-none'; sp.textContent = val; renderFacturation(); renderDashboard(); debouncedSave(); }); });
+    tr.cells[2].addEventListener('click', () => { const v = prompt(`Montant — ${row.label} :`, row.montant || 0); if (v !== null && !isNaN(+v)) { row.montant = +v; renderFacturation(); renderDashboard(); debouncedSave(); } });
+  });
+}
 function renderFacturation() {
   renderFactRow(document.getElementById('tbody-jalons-projet'), jalonsProjet, 'projet');
   renderFactRow(document.getElementById('tbody-jalons-equip'), jalonsEquip, 'equip');
+  renderDeplRow(document.getElementById('tbody-deplacements'));
   const tP = jalonsProjet.reduce((s,r) => s+r.montant, 0), tE = jalonsEquip.reduce((s,r) => s+r.montant, 0), total = tP + tE;
+  const tD = jalonsDeplacements.reduce((s,r) => s+r.montant, 0);
   const paye = [...jalonsProjet,...jalonsEquip].filter(r => r.etat === 'Payé').reduce((s,r) => s+r.montant, 0);
   const reste = total - paye, sp = v => total > 0 ? Math.round(v/total*100) : 0;
   document.getElementById('kpi-fact').innerHTML = `
@@ -1718,7 +1762,8 @@ function renderFacturation() {
     <div class="kpi-card"><div class="kpi-label">Total Équipement</div><div class="kpi-value">${tE.toLocaleString('fr-FR')} €</div></div>
     <div class="kpi-card"><div class="kpi-label">Total Contrat</div><div class="kpi-value">${total.toLocaleString('fr-FR')} €</div></div>
     <div class="kpi-card"><div class="kpi-label">Encaissé</div><div class="kpi-value" style="color:#059669">${paye.toLocaleString('fr-FR')} €</div><div class="kpi-sub">${sp(paye)}%</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:${sp(paye)}%;background:#059669"></div></div></div>
-    <div class="kpi-card"><div class="kpi-label">Reste à facturer</div><div class="kpi-value" style="color:#dc2626">${reste.toLocaleString('fr-FR')} €</div><div class="kpi-sub">${sp(reste)}%</div></div>`;
+    <div class="kpi-card"><div class="kpi-label">Reste à facturer</div><div class="kpi-value" style="color:#dc2626">${reste.toLocaleString('fr-FR')} €</div><div class="kpi-sub">${sp(reste)}%</div></div>
+    <div class="kpi-card"><div class="kpi-label">Déplacements</div><div class="kpi-value">${tD.toLocaleString('fr-FR')} €</div></div>`;
 }
 
 // ═══ DASHBOARD ═══
