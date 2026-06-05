@@ -304,21 +304,30 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - **Demo JIRA data**: `example.wmsplan` now has 2 epics (WMS-1, WMS-2) and 5 tasks with start/end dates and progress for testing.
 - **Note on PROPRIÉTAIRE**: the JIRA assignee (`iss.fields.assignee?.displayName`) has always been displayed in the PROPRIÉTAIRE column for JIRA tasks. Column is on by default (`tog-owner` checked). If blank after sync, the JIRA ticket has no assignee.
 
-## Pending items (summary from FEEDBACK.md as of 2026-06-05)
+### 2026-06-05 (session 3) — Version management, public repo cleanup, Bugs.md
+
+- **Version management**: `scripts/bump-version.ps1 X.Y.Z` updates `Cargo.toml` + `tauri.conf.json` atomically. Bump only at merge to `main` (never per branch). PATCH/MINOR/MAJOR rules documented in WORKFLOW.md.
+- **`scripts/build-release.ps1`**: runs `npx tauri build` then copies `wms-planner.exe` → `WMSPlanner_<version>.exe` for portable testing. NSIS installer at `bundle/nsis/WMS Project Planner_<version>_x64-setup.exe`.
+- **Public repo cleanup**: all company-specific identifiers removed — `recMecalux` → `recCompany`, `testMec` → `testCompany` in code + all data files; `lbl-test-company` label now dynamic via `renderFonctionnel()`; `.claude/` added to `.gitignore` and removed from tracking; WORKFLOW.md and FEEDBACK.md neutralized.
+- **`Bugs.md`**: new file for confirmed bugs, read at session start before FEEDBACK.md.
+
+## Pending items (summary from FEEDBACK.md + Bugs.md as of 2026-06-05)
+
+**Bugs (priority):**
+- Date input via numpad freezes the screen while typing the year
+- Tasks added in the absence/unavailability phase should use the same format as other tasks in that phase
 
 **Export:**
-
 - HTML export formatting doesn't match app (button disabled — pending review)
 
 **Portfolio:**
-
 - Show DP / CDP Tech name + working days remaining before install
 
 **Planning (general):**
-
 - Public holidays: highlight Gantt columns/cells for weeks containing a public holiday
 
 **Evolutions (larger features):**
+- Auto-update check at app launch (tauri-plugin-updater + GitHub Releases)
 - Global resource calendar (CDP Tech / DP availability, synced from Google Calendar)
 - Client test tracking / Phase 1 read-only HTML export for client
 - Excel import as a new tab
