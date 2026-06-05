@@ -114,7 +114,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] le drag and drop ne fonctionne pas.
 - [x] ajuster le formating des montants.
 - [x] Les pourcentages doivent être calculés automatiquement en fonction du cout total et des manton de chaques jalons. - OK
-- [x] Ajouter une partie Déplacement dans la facturation avec une ligne Avion/Train, Voiture, Hôtel et Restauration. — OK
+- [x] Ajouter une partie Déplacement dans la facturation avec une ligne Avion/Train, Voiture, Hôtel et Restauration. — OK (déplacé dans Suivi Heures, colonne État supprimée)
   - [x] Pour ces lignes, ajouter une colonne Vendu (comme les heures) et permettre de rentrer les dépenses lorsqu'elles arrivent (comme le récap des heures lors des éditions) — OK
 
 ## Tableau de Bord (Dashboard)

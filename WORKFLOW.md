@@ -240,8 +240,9 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 
 - **Avancement → statut automatique**: passer avancement à 100 % force le statut "Terminé" ; passer à 1–99 % force "En cours" si le statut était vide/Non commencé/Terminé.
 - **Credentials JIRA dans user settings**: `openJiraConfig` / `saveJiraConfig` / `syncJira` lisent et écrivent dans `_userSettings.jiraConfig` (persisté via `write_settings`) au lieu de `projectMeta`. Les credentials ne sont plus embarqués dans le `.wmsplan`.
-- **Jours ouvrés restants**: `workingDaysLeft(dateStr)` compte les jours ouvrés (lun–ven) jusqu'à la date active (réelle → reportée → originale). Affiché dans le bloc dérive installation du Dashboard.
-- **Facturation — Déplacements**: nouvelle section avec 4 lignes fixes (Avion/Train, Voiture, Hôtel, Restauration). État cliquable (dropdown), montant cliquable (prompt). Total Déplacements ajouté aux KPI. Persisté dans `billing.jalonsDeplacements`.
+- **Jours ouvrés restants (Dashboard)**: `workingDaysLeft(dateStr)` compte les jours ouvrés (lun–ven) jusqu'à la date active (réelle → reportée → originale). Affiché dans le bloc dérive installation du Dashboard.
+- **Jours ouvrés restants (Planning)**: badge dynamique `#install-wd-badge` sous le champ date d'installation dans le header du planning. Couleur : rouge ≤ 30 j, orange ≤ 60 j, vert au-delà. Mis à jour à chaque `onMetaInput()` et au chargement.
+- **Suivi Heures — Déplacements**: section déplacée de Facturation vers Suivi Heures. Modèle : `{ id, label, vendu, depenses: [{date, montant, note}] }`. Colonnes : Catégorie | Vendu (budget, clic pour éditer) | Dépensé (calculé) | 🕐 + (accordion historique + modal ajout dépense). KPI dédié (Budget / Dépensé / Écart) affiché au-dessus du tableau. Colonne État supprimée. `renderDeplRow()` appelé depuis `renderHeures()`.
 
 ## Pending items (summary from FEEDBACK.md as of 2026-06-05)
 
@@ -257,7 +258,6 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 **Planning (general):**
 
 - Public holidays: highlight Gantt columns/cells for weeks containing a public holiday
-- Working days remaining already done (see 2026-06-05 entry above)
 
 **Evolutions (larger features):**
 - Global resource calendar (CDP Tech / DP availability, synced from Google Calendar)
