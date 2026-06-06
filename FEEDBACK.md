@@ -55,7 +55,6 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
   - [x] Ajouter ces jours dans le planning en dessous de la date d'installation — OK
 - [x] Ajouter une indication des semaines avec des jours fériés. (colonne grisée, cellule semaine d'une certaine couleur ?) — OK
 
-
 ## Suivi Heures
 
 <!-- Hours table, custom rows, history accordion, KPI cards -->
@@ -87,6 +86,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] toutes les lignes doivent avoir un bouton edit avec un bouton delete dans la modale.
 - [x] Les colonnes doivent être assez large pour afficher tout le texte.
 - [x] le drag and drop ne fonctionne pas.
+- [x] dans la colonne type, les cellules doivent être un menu déroulant avec les options : Connecteur ERP, GNA, Connecteur SAGE, REST API, Autre — OK
 
 ## Fonctionnel
 
@@ -145,6 +145,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 
 ## JIRA
 - [x] Enregistrer les indentifiants JIRA dans le JSON settings de l'utilisateur et non du projet. Chaque utilisateur devra mettre ses identifiants et clé JIRA. — OK
+ - [x] Les identifiants et clé API JIRA seront renseigné au niveau du menu settings du menu principal. La clé 3 lettres du projet sera renseigné au niveau du projet dans le menu settings de chaques projets. — OK
 
 ## General / Cross-cutting
 
@@ -156,7 +157,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Dans le menu Settings du menu principal, prévoir la possibilité de choisir son propre template pour tous les nouveaux projets. — OK
 - [x] Ajouter une partie Settings qui permet de définit les listes de menu déroulant comme "propriétaire". — OK (par projet, via ⚙ Paramètres du projet)
 - [x] Mettre à jour l'identifiant app dans AppData — OK (identifier → com.wmsplanner.app)
-- [ ] Pour chaques projets, demander le lien d'ouverture du Json. Par exemple si celui ci est partager sur un dossier git, cela permet au manager d'avoir la dernière version. Si tu as une méthode plus efficace n'hésite pas. On pourrais aussi dire que le path d'ouverture du projet la première fois reste celui par défaut.
+- [x] Pour chaques projets, demander le path d'ouverture du Json. Par exemple si celui ci est partager sur un dossier git, cela permet au manager d'avoir la dernière version. — OK (`projectMeta.sourcePath` dans ⚙ Paramètres du projet ; au clic sur la carte, l'app lit depuis sourcePath et met à jour le fichier local avant de naviguer)
 
 ## Notes Techniques
 
