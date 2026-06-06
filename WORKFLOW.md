@@ -328,22 +328,28 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - **XSS** : message d'erreur échappé avant injection dans `innerHTML` dans le catch de `loadProject`.
 - Net : −19 lignes (38 supprimées, 19 ajoutées).
 
+### 2026-06-06 (session 5) — JIRA split, source path, project meta settings, interface type dropdown
+
+- **JIRA settings split**: credentials (URL, email, token) moved to global Settings modal (`home.html` / `home.js`, persisted via `write_settings`). Project key (3-letter code) moved to per-project ⚙ settings modal (`projectMeta.jiraProjectKey`). Dedicated `modal-jira-config` removed from `app.html`. JIRA tab "⚙ Configurer" button removed — use navbar ⚙ instead. `syncJira()` now reads credentials from `_userSettings.jiraConfig` and project key from `projectMeta.jiraProjectKey`; missing config shows inline message pointing to the right settings location.
+- **Source path per project**: `projectMeta.sourcePath` — set via file picker in ⚙ project settings. On home screen card click, `openProjectCard()` reads the local file first; if `sourcePath` is set and reachable, pulls the source file and writes it locally before navigating, so the app always opens the freshest version from a shared folder (e.g. git). Falls back silently to local copy if source is unreachable.
+- **Project meta in settings modal**: new "Informations du projet" grid at the top of ⚙ project settings — Nom, Client, DP, CDP Tech, Resp. Logistique, Consultant ERP. `saveMetaFromSettings()` writes to `projectMeta`, syncs `pi-*` Planning header inputs, and calls `renderGantt()` / `renderTaches()`. Also patches baked-in names in `isUnavail` tasks (congés phase): captures old values, replaces old→new in `task.name` for any task where the actual name was stored literally rather than as a token.
+- **Interface type dropdown**: `ITF_TYPES` constant added. Type cell in `renderInterfaces()` is now a clickable `<span>` using `showDropdown` (same pattern as status badges). Options: Connecteur ERP, GNA, Connecteur SAGE, REST API, Autre. Edit modal `<select id="ei-type">` updated to the same list.
+- **Data migration**: `template.json` and `example.wmsplan` updated — `jiraConfig` block in meta replaced with flat `jiraProjectKey: ""`.
+
 ## Pending items (summary from FEEDBACK.md + Bugs.md as of 2026-06-06)
 
 **Bugs (priority):**
+
 - *(aucun bug ouvert)*
 
 **Export:**
+
 - HTML export formatting doesn't match app (button disabled — pending review)
 
-**Portfolio:**
-- *(items précédents fermés — voir évolutions)*
-
 **Evolutions (larger features):**
+
 - Auto-update check at app launch (tauri-plugin-updater + GitHub Releases)
 - Global resource calendar (CDP Tech / DP availability, synced from Google Calendar)
 - Client test tracking / Phase 1 read-only HTML export for client
 - Excel import as a new tab
 - Zoom in/out on Gantt (Ctrl+scroll or +/- buttons)
-- Project sharing link (git folder path or equivalent)
-- General: per-project open URL for shared JSON (manager always gets latest version)
