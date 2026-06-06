@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "WMS Project Planner",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "identifier": "com.wmsplanner.app",
   "build": {
     "frontendDist": "../renderer",
@@ -29,7 +29,9 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
+    "targets": [
+      "nsis"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
