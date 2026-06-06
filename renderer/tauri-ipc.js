@@ -28,6 +28,15 @@ export async function getAppVersion() {
   return 'dev';
 }
 
+export async function checkForUpdates() {
+  if (TAURI) return invoke('check_update');
+  return { available: false };
+}
+
+export async function installUpdate() {
+  if (TAURI) return invoke('install_update');
+}
+
 export function setWindowTitle(title) {
   if (TAURI) {
     window.__TAURI__.window.getCurrentWindow().setTitle(title);

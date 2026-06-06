@@ -121,7 +121,9 @@ Click the **⚙** icon in the top-right of the home screen:
 - **Project template** — choose an existing `.wmsplan` file to use as the base for all new projects (pre-filled phases, config, etc.).
 - **Light mode** — toggles between dark (default) and light theme.
 
-The app version is displayed at the bottom of this panel and in the home screen header (`v1.0.0`).
+The app version is displayed at the bottom of this panel and in the home screen header.
+
+A **Check for updates** button is available in this panel. The app also checks silently on startup: if a new version is available, a banner appears at the top of the screen with a one-click install button. Release notes are shown before installation.
 
 ## Per-project settings
 

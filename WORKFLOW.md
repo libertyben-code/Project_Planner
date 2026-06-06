@@ -336,6 +336,14 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - **Interface type dropdown**: `ITF_TYPES` constant added. Type cell in `renderInterfaces()` is now a clickable `<span>` using `showDropdown` (same pattern as status badges). Options: Connecteur ERP, GNA, Connecteur SAGE, REST API, Autre. Edit modal `<select id="ei-type">` updated to the same list.
 - **Data migration**: `template.json` and `example.wmsplan` updated — `jiraConfig` block in meta replaced with flat `jiraProjectKey: ""`.
 
+### 2026-06-06 (session 6) — Auto-update + JSON schema migration
+
+- **Auto-update** (`feature/auto-update`): `tauri-plugin-updater` registered in `lib.rs`. Two Rust commands — `check_update` (returns `{ available, version, notes, checkFailed }`, never throws) and `install_update` (downloads, installs, calls `app.restart()`). Silent startup check in `home.js`; update banner at top of home screen; "Vérifier les mises à jour" button + release notes display in Settings modal.
+- **GitHub Actions CI** (`.github/workflows/release.yml`): triggers on `v*` tag push; builds NSIS installer on `windows-latest`, signs with `TAURI_SIGNING_PRIVATE_KEY` secret, creates GitHub Release, uploads installer + `latest.json`.
+- **Bilingual release notes**: `CHANGELOG.md` holds FR + EN notes per version. CI extracts the matching section and uses it as the GitHub Release body — same text shown to users in the in-app update dialog.
+- **JSON schema migration**: `CURRENT_SCHEMA_VERSION = 1` constant + `migrateProjectData()` in `wms.js`; called on every project open after `JSON.parse`. `meta.schemaVersion` stamped in `template.json` and `example.wmsplan`. Add a migration patch here whenever the schema changes.
+- **Signing keypair**: generated with `npx tauri signer generate --ci -p ""`; public key in `tauri.conf.json`; private key stored as GitHub Secret `TAURI_SIGNING_PRIVATE_KEY` (no password).
+
 ## Pending items (summary from FEEDBACK.md + Bugs.md as of 2026-06-06)
 
 **Bugs (priority):**
@@ -348,7 +356,6 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 
 **Evolutions (larger features):**
 
-- Auto-update check at app launch (tauri-plugin-updater + GitHub Releases)
 - Global resource calendar (CDP Tech / DP availability, synced from Google Calendar)
 - Client test tracking / Phase 1 read-only HTML export for client
 - Excel import as a new tab

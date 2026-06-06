@@ -8,6 +8,13 @@
 </head>
 <body>
 
+<!-- ── UPDATE BANNER ── -->
+<div id="update-banner" style="display:none;align-items:center;justify-content:center;gap:12px;background:var(--accent);color:#fff;padding:8px 16px;font-size:13px;flex-wrap:wrap">
+  <span id="update-banner-text"></span>
+  <button onclick="installFromBanner()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:3px 12px;border-radius:4px;cursor:pointer;font-size:12px">Voir &amp; Installer</button>
+  <button onclick="dismissUpdateBanner()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:16px;line-height:1">×</button>
+</div>
+
 <header class="home-header">
   <div class="home-logo">● WMS <span>Planner</span><span class="app-version-badge" id="app-version"></span></div>
   <nav class="home-tabs-center">
@@ -130,6 +137,12 @@
     </div>
     <div class="settings-section settings-version-section">
       <span id="settings-version-text" class="settings-version-text"></span>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <button id="btn-check-update" class="btn btn-ghost btn-sm" onclick="checkForUpdatesManual()">Vérifier les mises à jour</button>
+        <button id="btn-install-update" class="btn btn-primary btn-sm" onclick="doInstallUpdate()" style="display:none">Installer et redémarrer</button>
+        <span id="update-status" style="font-size:12px;color:var(--text-muted)"></span>
+      </div>
+      <pre id="update-notes" style="display:block;margin-top:8px;font-size:11px;color:var(--text-muted);white-space:pre-wrap;max-height:120px;overflow-y:auto;background:var(--bg-secondary);border-radius:4px;padding:6px 8px"></pre>
     </div>
     <div class="modal-footer">
       <button class="btn btn-primary" onclick="closeSettings()">Fermer</button>
