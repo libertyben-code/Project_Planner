@@ -2,6 +2,18 @@
 
 ---
 
+## 1.2.1 — 2026-06-06
+
+### 🇫🇷 Correctifs
+
+- Test de la mise à jour automatique — vérification du circuit complet de livraison.
+
+### 🇬🇧 Fixes
+
+- Auto-update smoke test — verifying the full delivery pipeline end-to-end.
+
+---
+
 ## 1.2.0 — 2026-06-06
 
 ### 🇫🇷 Nouveautés
