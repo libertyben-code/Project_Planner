@@ -318,7 +318,17 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - **Portfolio — colonne Équipe** : nouveau champ `cdptech` + helper `wdLeft()` dans `home.js`. Tableau Santé : colonne "Équipe" (`DP: X` / `CDP: Y`) après Client ; colonne Install enrichie d'un badge `X j.o.` coloré (rouge ≤30 j, orange ≤60 j, vert au-delà).
 - **Planning — jours fériés français** : `easterDate(year)` + `getFrenchHolidays(year)` (11 jours fériés légaux, Pâques mobile). `WEEK_HOLIDAYS[]` pré-calculé dans `renderGantt()`. Header semaine `holiday-week` (fond ambre + tooltip) ; cellules tâches/JIRA/epic `holiday-col` (léger fond jaune).
 
-## Pending items (summary from FEEDBACK.md + Bugs.md as of 2026-06-05)
+### 2026-06-06 — Code cleanup (pre-deployment review)
+
+- **`tauri-ipc.js`** : suppression d'un `try { … } catch (e) { throw e; }` inutile dans le stub `read_project`.
+- **`cellBadge(map, v)`** : les 4 fonctions identiques `itfBadge`, `drBadge`, `instBadge`, `factBadge` fusionnées en un seul helper paramétré.
+- **`_delFactJalon(id, list)`** : `del_fact_projet` et `del_fact_equip` (corps identiques, tableau différent) fusionnés en un helper privé.
+- **`normalizeSpecialLabel`** : fonction définie mais jamais appelée — supprimée.
+- **Exports `window`** : `normalizeSpecialLabel`, `buildState`, `del_fact_projet`, `del_fact_equip` retirés (aucun handler HTML ne les référençait).
+- **XSS** : message d'erreur échappé avant injection dans `innerHTML` dans le catch de `loadProject`.
+- Net : −19 lignes (38 supprimées, 19 ajoutées).
+
+## Pending items (summary from FEEDBACK.md + Bugs.md as of 2026-06-06)
 
 **Bugs (priority):**
 - *(aucun bug ouvert)*
