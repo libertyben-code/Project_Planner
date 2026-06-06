@@ -173,7 +173,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 
 ### Fonctionnalités standalone (pas de backend requis)
 
-- [ ] Permettre le zoom in et out sur le Gantt en faisant Ctrl+scroll ou boutons +/- dans le nav.
+- [x] Permettre le zoom in et out sur le Gantt en faisant Ctrl+scroll ou boutons +/- dans le nav. — OK (étendu à toutes les pages, Ctrl+scroll + bouton reset dans le nav)
 - [ ] Intégrer l'import de fichier Excel en tant que nouvelle tab (tableau avec colonnes et types configurables).
 - [ ] Calendrier global des ressources : connaitre les disponibilités de chaque CDP Tech et DP. Leurs congés pourront être remplis automatiquement depuis ce calendrier (source actuelle : Google Calendar).
   - [ ] Les utilisateurs devront être créés à l'avance. Dans la création de projet, un menu déroulant permettra de choisir le DP et le CDP Tech.

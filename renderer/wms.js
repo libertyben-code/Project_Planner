@@ -49,6 +49,7 @@ let _ownerOptions = ['Intégrateur', 'Autre'];
 let _userSettings = {};
 let _lastDailyBackupDay = '';
 let _lastSecondaryBackupTime = 0;
+let _pageZoom = JSON.parse(localStorage.getItem('pageZoom') || '{}');
 
 // ═══ IPC / SAVE ═══
 function buildState() {
@@ -135,6 +136,7 @@ async function loadProject(path) {
     currentPath = path;
     applyState(state);
     renderAll();
+    _syncZoomDisplay('page-dashboard');
     if (!_fileWatcherRegistered) {
       _fileWatcherRegistered = true;
       listenFileChanged(() => {
@@ -371,8 +373,32 @@ document.querySelectorAll('.nav-tab[data-page]').forEach(tab => {
     tab.classList.add('active');
     const pg = document.getElementById(tab.dataset.page);
     if (pg) { pg.classList.add('active'); if (tab.dataset.page === 'page-dashboard') setTimeout(renderDashboard, 50); }
+    _syncZoomDisplay(tab.dataset.page);
   });
 });
+
+// ═══ PAGE ZOOM ═══
+function _syncZoomDisplay(pageId) {
+  const z = _pageZoom[pageId] || 100;
+  const el = document.getElementById(pageId);
+  if (el) el.style.zoom = z + '%';
+  const disp = document.getElementById('nav-zoom-display');
+  if (disp) disp.textContent = z === 100 ? '100%' : z + '%';
+}
+function changeZoom(delta) {
+  const id = document.querySelector('.page.active')?.id;
+  if (!id) return;
+  _pageZoom[id] = Math.max(50, Math.min(200, (_pageZoom[id] || 100) + delta));
+  localStorage.setItem('pageZoom', JSON.stringify(_pageZoom));
+  _syncZoomDisplay(id);
+}
+function resetZoom() {
+  const id = document.querySelector('.page.active')?.id;
+  if (!id) return;
+  delete _pageZoom[id];
+  localStorage.setItem('pageZoom', JSON.stringify(_pageZoom));
+  _syncZoomDisplay(id);
+}
 
 // ═══ UTILS ═══
 function uid() { return '_' + Math.random().toString(36).slice(2, 9); }
@@ -2383,6 +2409,7 @@ function renderCustomTabs() {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       navTab.classList.add('active');
       document.getElementById('page-ct-' + tab.id).classList.add('active');
+      _syncZoomDisplay('page-ct-' + tab.id);
     });
     navTabs.insertBefore(navTab, addBtn);
 
@@ -2956,6 +2983,11 @@ document.addEventListener('keydown', e => {
     if (open) { open.classList.remove('open'); return; }
   }
 });
+document.addEventListener('wheel', e => {
+  if (!e.ctrlKey) return;
+  e.preventDefault();
+  changeZoom(e.deltaY < 0 ? 10 : -10);
+}, { passive: false });
 async function openFilePicker() {
   const path = await invoke('open_dialog');
   if (path) loadProject(path);
@@ -3155,6 +3187,7 @@ function resetSourcePath() {
 
 // ═══ WINDOW EXPORTS (for onclick handlers in HTML) ═══
 Object.assign(window, {
+  changeZoom, resetZoom,
   goHome, reloadProject, undoDelete, toggleRagDropdown, closeRagDropdown,
   syncNav, onMetaInput, handleInstallOrigChange, openInstallDelaySection, clearInstallDelay,
   openAddPhaseModal, openAddTaskModal, openEditTask, openEditPhase,
