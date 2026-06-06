@@ -265,6 +265,49 @@ All called via `invoke(cmd, args)` in `tauri-ipc.js`, which falls back to `local
 
 Tauri v2's dialog plugin returns `FilePath` which may contain a `file:///C:/...` URI. **Always** use `file_path_to_string(fp)` (defined in `lib.rs`) to convert — it calls `.into_path()` to extract a proper `PathBuf`, then `to_string_lossy()`. Never call `.to_string()` directly on a `FilePath`.
 
+## Auto-update
+
+### How it works
+
+`tauri-plugin-updater` is registered in `lib.rs`. On startup, `home.js` calls `checkForUpdates()` (fire-and-forget). If an update is found, a banner appears at the top of the home screen. The Settings panel also has a manual "Vérifier les mises à jour" button.
+
+Two custom Rust commands handle the flow:
+
+| Command | Returns | Notes |
+| --- | --- | --- |
+| `check_update` | `{ available, version?, notes?, checkFailed? }` | Never returns `Err` — network/404 becomes `{ checkFailed: true }` |
+| `install_update` | `Ok(())` | Downloads, installs, then calls `app.restart()` |
+
+The public key is in `tauri.conf.json → plugins.updater.pubkey`. The private key must be stored as a GitHub Secret `TAURI_SIGNING_PRIVATE_KEY`. Generated once with `npx tauri signer generate --ci -p ""`.
+
+### JSON schema migration
+
+Every `.wmsplan` file carries `meta.schemaVersion`. `migrateProjectData()` in `wms.js` runs on every project open. Current version: `1`.
+
+When adding a new schema change:
+
+1. Bump `CURRENT_SCHEMA_VERSION` in `wms.js`
+2. Add a migration patch inside `migrateProjectData()` for the previous version number
+3. Update `template.json` and `example.wmsplan`
+
+### Releasing a new version
+
+```powershell
+# 1. Merge feature branch to main, then:
+.\scripts\bump-version.ps1 X.Y.Z
+git add src-tauri/Cargo.toml src-tauri/tauri.conf.json
+git commit -m "chore: bump version to X.Y.Z"
+
+# 2. Add FR+EN release notes to CHANGELOG.md (Claude writes these at session end)
+
+# 3. Tag and push — triggers GitHub Actions automatically
+git push
+git tag vX.Y.Z
+git push origin vX.Y.Z
+```
+
+CI (`.github/workflows/release.yml`) builds on `windows-latest`, signs the NSIS installer, creates a GitHub Release, uploads the installer + `latest.json`. The release body is extracted from `CHANGELOG.md` for the matching version.
+
 ## Building for distribution
 
 ```bash

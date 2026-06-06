@@ -121,7 +121,9 @@ Cliquez sur l'icône **⚙** en haut à droite de l'écran d'accueil :
 - **Template de projet** — choisissez un fichier `.wmsplan` existant comme base pour tous les nouveaux projets (phases, configurations pré-remplies).
 - **Mode clair** — bascule entre le mode sombre (défaut) et le mode clair.
 
-La version de l'application est affichée en bas de ce panneau et dans la barre d'en-tête de l'écran d'accueil (`v1.0.0`).
+La version de l'application est affichée en bas de ce panneau et dans la barre d'en-tête de l'écran d'accueil.
+
+Un bouton **Vérifier les mises à jour** est disponible dans ce panneau. L'application vérifie également au démarrage si une nouvelle version est disponible : si c'est le cas, une bannière apparaît en haut de l'écran avec un bouton d'installation en un clic. Les notes de version s'affichent avant installation.
 
 ## Paramètres par projet
 
