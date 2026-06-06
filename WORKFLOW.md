@@ -318,6 +318,10 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - **Portfolio — colonne Équipe** : nouveau champ `cdptech` + helper `wdLeft()` dans `home.js`. Tableau Santé : colonne "Équipe" (`DP: X` / `CDP: Y`) après Client ; colonne Install enrichie d'un badge `X j.o.` coloré (rouge ≤30 j, orange ≤60 j, vert au-delà).
 - **Planning — jours fériés français** : `easterDate(year)` + `getFrenchHolidays(year)` (11 jours fériés légaux, Pâques mobile). `WEEK_HOLIDAYS[]` pré-calculé dans `renderGantt()`. Header semaine `holiday-week` (fond ambre + tooltip) ; cellules tâches/JIRA/epic `holiday-col` (léger fond jaune).
 
+### 2026-06-06 (session 7) — Per-page zoom
+
+- **Per-page zoom**: `Ctrl+scroll` zooms each page independently (50–200%, 10% per step). Zoom persists per page in `localStorage` under key `pageZoom`. A small badge in the nav-right shows the current page's zoom; clicking it resets to 100%. Implementation: `_pageZoom` object in module state; `_syncZoomDisplay(pageId)` applies `element.style.zoom` and updates the badge; both built-in and custom-tab click handlers patched to sync the display on page switch; `Ctrl+wheel` listener added in the keyboard shortcuts section. Functions `changeZoom(delta)` and `resetZoom()` exported to `window`. Files changed: `renderer/app.html` (+1 line), `renderer/wms.js` (+33 lines). **Pending test + commit.**
+
 ### 2026-06-06 — Code cleanup (pre-deployment review)
 
 - **`tauri-ipc.js`** : suppression d'un `try { … } catch (e) { throw e; }` inutile dans le stub `read_project`.
