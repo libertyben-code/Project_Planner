@@ -118,6 +118,16 @@
         </label>
       </div>
     </div>
+    <div class="settings-section">
+      <div class="settings-section-title">JIRA / Atlassian</div>
+      <p class="settings-hint">Identifiants partagés entre tous les projets. La clé de projet (ex : WMS) se configure dans les paramètres de chaque projet.</p>
+      <div class="settings-section-title" style="font-size:12px;font-weight:500;margin-bottom:4px">URL Atlassian</div>
+      <input type="text" id="settings-jira-url" class="settings-text-input" placeholder="https://votre-domaine.atlassian.net" onchange="saveJiraCredentials()">
+      <div class="settings-section-title" style="font-size:12px;font-weight:500;margin-top:8px;margin-bottom:4px">Email</div>
+      <input type="email" id="settings-jira-email" class="settings-text-input" placeholder="prenom.nom@entreprise.com" onchange="saveJiraCredentials()">
+      <div class="settings-section-title" style="font-size:12px;font-weight:500;margin-top:8px;margin-bottom:4px">Token API <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank" style="font-size:11px;color:var(--accent)">(Générer)</a></div>
+      <input type="password" id="settings-jira-token" class="settings-text-input" placeholder="Token API Atlassian" onchange="saveJiraCredentials()">
+    </div>
     <div class="settings-section settings-version-section">
       <span id="settings-version-text" class="settings-version-text"></span>
     </div>

@@ -16,7 +16,7 @@
     "endDate": "",
     "createdAt": "",
     "updatedAt": "",
-    "jiraConfig": { "url": "", "projectKey": "", "email": "", "token": "" }
+    "jiraProjectKey": ""
   },
   "phases": [
     { "id": "INDISPO", "name": "INDISPONIBILITÉS / CONGÉS",  "code": "I", "color": "#64748b" },

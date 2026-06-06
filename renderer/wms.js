@@ -144,7 +144,7 @@ function applyState(state) {
   jiraData      = state.jiraData      || { epics: [], tasks: [], lastSync: '' };
   if (!jiraData.epics)  jiraData.epics  = [];
   if (!jiraData.tasks)  jiraData.tasks  = [];
-  if (!_userSettings.jiraConfig) _userSettings.jiraConfig = { url: '', projectKey: '', email: '', token: '' };
+  if (!_userSettings.jiraConfig) _userSettings.jiraConfig = { url: '', email: '', token: '' };
   _ownerOptions = (Array.isArray(projectMeta.ownerOptions) && projectMeta.ownerOptions.length > 0)
     ? projectMeta.ownerOptions
     : ['Intégrateur', 'Autre'];
@@ -952,8 +952,15 @@ function transformJiraIssues(epicsRaw, tasksRaw) {
 }
 async function syncJira() {
   const cfg = _userSettings.jiraConfig;
-  if (!cfg?.token || !cfg?.url || !cfg?.projectKey) {
-    openJiraConfig();
+  const projectKey = projectMeta.jiraProjectKey;
+  if (!cfg?.token || !cfg?.url || !projectKey) {
+    const info = document.getElementById('jira-sync-info');
+    if (!cfg?.url || !cfg?.token) {
+      if (info) info.textContent = 'Configurez vos identifiants JIRA dans les Paramètres de l\'application (écran d\'accueil).';
+    } else {
+      if (info) info.textContent = 'Clé de projet JIRA manquante — configurez-la dans ⚙ Paramètres du projet.';
+      openProjectSettings();
+    }
     return;
   }
   const syncBtn = document.getElementById('jira-sync-btn');
@@ -961,8 +968,8 @@ async function syncJira() {
   try {
     const jiraUrl = `${cfg.url}/rest/api/3/search/jql`;
     const [erText, trText] = await Promise.all([
-      invoke('jira_fetch', { url: jiraUrl, email: cfg.email, token: cfg.token, body: JSON.stringify({ jql: `project=${cfg.projectKey} AND issuetype=Epic`, fields: ['summary', 'status'], maxResults: 50 }) }),
-      invoke('jira_fetch', { url: jiraUrl, email: cfg.email, token: cfg.token, body: JSON.stringify({ jql: `project=${cfg.projectKey} AND issuetype in (Story,Task,Bug)`, fields: ['summary', 'status', 'assignee', 'customfield_10016', 'duedate', 'startdate', 'parent', 'progress'], maxResults: 100 }) })
+      invoke('jira_fetch', { url: jiraUrl, email: cfg.email, token: cfg.token, body: JSON.stringify({ jql: `project=${projectKey} AND issuetype=Epic`, fields: ['summary', 'status'], maxResults: 50 }) }),
+      invoke('jira_fetch', { url: jiraUrl, email: cfg.email, token: cfg.token, body: JSON.stringify({ jql: `project=${projectKey} AND issuetype in (Story,Task,Bug)`, fields: ['summary', 'status', 'assignee', 'customfield_10016', 'duedate', 'startdate', 'parent', 'progress'], maxResults: 100 }) })
     ]);
     jiraData = transformJiraIssues(JSON.parse(erText), JSON.parse(trText));
     jiraData.lastSync = new Date().toLocaleString('fr-FR');
@@ -975,23 +982,6 @@ async function syncJira() {
   } finally {
     if (syncBtn) { syncBtn.disabled = false; syncBtn.textContent = '⟳ Synchroniser'; }
   }
-}
-function openJiraConfig() {
-  const cfg = _userSettings.jiraConfig || {};
-  document.getElementById('jira-cfg-url').value   = cfg.url          || '';
-  document.getElementById('jira-cfg-key').value   = cfg.projectKey   || '';
-  document.getElementById('jira-cfg-email').value = cfg.email        || '';
-  document.getElementById('jira-cfg-token').value = cfg.token        || '';
-  document.getElementById('modal-jira-config').classList.add('open');
-}
-async function saveJiraConfig() {
-  if (!_userSettings.jiraConfig) _userSettings.jiraConfig = {};
-  _userSettings.jiraConfig.url        = document.getElementById('jira-cfg-url').value.trim().replace(/\/$/, '');
-  _userSettings.jiraConfig.projectKey = document.getElementById('jira-cfg-key').value.trim();
-  _userSettings.jiraConfig.email      = document.getElementById('jira-cfg-email').value.trim();
-  _userSettings.jiraConfig.token      = document.getElementById('jira-cfg-token').value.trim();
-  await invoke('write_settings', { data: JSON.stringify(_userSettings) });
-  closeModal('modal-jira-config');
 }
 function renderJira() {
   const container = document.getElementById('jira-epics-container');
@@ -1505,6 +1495,7 @@ const ITF_STATES = ['NON','EN COURS','OUI','KO'];
 const ITF_TYPE_OPTS = ['Connecteur ERP','API REST','Fichier plat','Web Service','Manuel'];
 const ITF_D = {'OUI':'#059669','NON':'#94a3b8','EN COURS':'#2563eb','KO':'#dc2626'};
 const ITF_B = {'OUI':'cell-ok','NON':'cell-none','EN COURS':'cell-wip','KO':'cell-ko'};
+const ITF_TYPES = ['Connecteur ERP','GNA','Connecteur SAGE','REST API','Autre'];
 
 let _editingInterfaceId = null;
 function openEditInterface(id) {
@@ -1549,11 +1540,13 @@ function renderInterfaces() {
   interfacesData.forEach(row => {
     const tr = tbody.insertRow(); tr.dataset.rowId = row.id;
     tr.innerHTML = `<td>${dh()}</td>
-      <td style="font-size:12px">${row.type}</td>
+      <td style="font-size:12px"><span class="cell-type" style="cursor:pointer">${row.type || 'Connecteur ERP'}</span></td>
       <td style="font-weight:500">${row.name}</td>
       <td>${cellBadge(ITF_B,row.dev)}</td><td>${cellBadge(ITF_B,row.preprod)}</td><td>${cellBadge(ITF_B,row.recCompany)}</td><td>${cellBadge(ITF_B,row.recClient)}</td><td>${cellBadge(ITF_B,row.valide)}</td>
       <td style="color:var(--text-muted);font-size:12px">${row.comment}</td>
       <td><button class="btn btn-secondary btn-sm" onclick="openEditInterface('${row.id}')">✏</button></td>`;
+    const typeSp = tr.cells[1].querySelector('span');
+    typeSp.addEventListener('click', e => { e.stopPropagation(); showDropdown(typeSp, ITF_TYPES.map(v => ({label:v,value:v,dot:'#94a3b8'})), val => { row.type = val; typeSp.textContent = val; debouncedSave(); }); });
     ['dev','preprod','recCompany','recClient','valide'].forEach((f,fi) => {
       const sp = tr.cells[fi+3].querySelector('span');
       sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, ITF_STATES.map(v => ({label:v,value:v,dot:ITF_D[v]})), val => { row[f] = val; sp.className = ITF_B[val]||'cell-none'; sp.textContent = val; renderDashboard(); debouncedSave(); }); });
@@ -3000,11 +2993,22 @@ function initResizableTables() {
 
 // ═══ PROJECT SETTINGS MODAL ═══
 function openProjectSettings() {
+  const g = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+  g('ps-meta-name',      projectMeta.name      || '');
+  g('ps-meta-client',    projectMeta.client    || '');
+  g('ps-meta-pm',        projectMeta.pm        || '');
+  g('ps-meta-cdptech',   projectMeta.cdptech   || '');
+  g('ps-meta-resplog',   projectMeta.respLog   || '');
+  g('ps-meta-erpconsult',projectMeta.erpConsult|| '');
   const folderDisplay = document.getElementById('ps-folder-display');
   if (folderDisplay) folderDisplay.textContent = projectMeta.autoSavePath || 'Aucun';
   const intervalInput = document.getElementById('ps-interval');
   if (intervalInput) intervalInput.value = projectMeta.autoSaveIntervalMins || 5;
   renderProjectOwnerList();
+  const jiraKey = document.getElementById('ps-jira-key');
+  if (jiraKey) jiraKey.value = projectMeta.jiraProjectKey || '';
+  const sourceDisplay = document.getElementById('ps-source-path-display');
+  if (sourceDisplay) sourceDisplay.textContent = projectMeta.sourcePath || 'Aucun (chemin par défaut)';
   const modal = document.getElementById('modal-project-settings');
   if (modal) modal.classList.add('open');
 }
@@ -3048,6 +3052,55 @@ function closeProjectSettings() {
   const modal = document.getElementById('modal-project-settings');
   if (modal) modal.classList.remove('open');
 }
+function saveMetaFromSettings() {
+  const r = id => document.getElementById(id)?.value || '';
+
+  // Capture old resolved names before overwriting — needed to patch baked-in task names
+  const oldPm     = projectMeta.pm         || '';
+  const oldCdp    = projectMeta.cdptech    || '';
+  const oldRl     = projectMeta.respLog    || '';
+  const oldErp    = projectMeta.erpConsult || '';
+  const oldClient = projectMeta.client     || '';
+
+  projectMeta.name       = r('ps-meta-name');
+  projectMeta.pm         = r('ps-meta-pm');
+  projectMeta.client     = r('ps-meta-client');
+  projectMeta.cdptech    = r('ps-meta-cdptech');
+  projectMeta.respLog    = r('ps-meta-resplog');
+  projectMeta.erpConsult = r('ps-meta-erpconsult');
+
+  // For tasks where the actual name was baked in (not a token placeholder),
+  // replace the old name with the new one so congés rows stay in sync.
+  // Skip if oldVal is itself a token — formatTemplate handles those at render time.
+  const tokens = new Set([TOKEN_PM, TOKEN_CDP, TOKEN_RL, TOKEN_ERP, TOKEN_CLIENT]);
+  const nameChanges = [
+    [oldPm,     projectMeta.pm],
+    [oldCdp,    projectMeta.cdptech],
+    [oldRl,     projectMeta.respLog],
+    [oldErp,    projectMeta.erpConsult],
+    [oldClient, projectMeta.client],
+  ];
+  tasks.forEach(task => {
+    if (!task.isUnavail) return;
+    nameChanges.forEach(([oldVal, newVal]) => {
+      if (oldVal && newVal !== oldVal && !tokens.has(oldVal) && task.name.includes(oldVal))
+        task.name = task.name.replaceAll(oldVal, newVal);
+    });
+  });
+
+  // Keep pi-* inputs in sync so Planning tab header stays current
+  const s = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+  s('pi-project',   projectMeta.name);
+  s('pi-pm',        projectMeta.pm);
+  s('pi-client',    projectMeta.client);
+  s('pi-cdptech',   projectMeta.cdptech);
+  s('pi-resplog',   projectMeta.respLog);
+  s('pi-erpconsult',projectMeta.erpConsult);
+  const title = 'WMS Planning — ' + (projectMeta.name || 'Sans titre');
+  setWindowTitle(title); document.title = title;
+  renderGantt(); renderTaches();
+  debouncedSave();
+}
 async function pickAutoSavePath() {
   const folder = await invoke('pick_folder');
   if (!folder) return;
@@ -3069,6 +3122,24 @@ function saveAutoSaveInterval() {
   projectMeta.autoSaveIntervalMins = isNaN(val) || val < 1 ? 5 : val;
   debouncedSave();
 }
+function saveJiraProjectKey() {
+  projectMeta.jiraProjectKey = (document.getElementById('ps-jira-key')?.value || '').trim().toUpperCase();
+  debouncedSave();
+}
+async function pickSourcePath() {
+  const path = await invoke('open_dialog');
+  if (!path) return;
+  projectMeta.sourcePath = path;
+  const display = document.getElementById('ps-source-path-display');
+  if (display) display.textContent = path;
+  debouncedSave();
+}
+function resetSourcePath() {
+  projectMeta.sourcePath = '';
+  const display = document.getElementById('ps-source-path-display');
+  if (display) display.textContent = 'Aucun (chemin par défaut)';
+  debouncedSave();
+}
 
 // ═══ WINDOW EXPORTS (for onclick handlers in HTML) ═══
 Object.assign(window, {
@@ -3081,7 +3152,7 @@ Object.assign(window, {
   addTaskSegment, removeTaskSegment,
   setRag,
   openManageTabsModal, saveManageTabs, resetTabOrder,
-  renderJira, openJiraConfig, saveJiraConfig, syncJira,
+  renderJira, syncJira,
   renderTaches, renderInstall,
   addInternalTask, openEditInternalTask, saveInternalTask, deleteInternalTask, deleteInternalTaskFromModal,
   addInterface, openEditInterface, saveInterface, deleteInterfaceFromModal,
@@ -3093,7 +3164,9 @@ Object.assign(window, {
   openAddDeplExpense, saveDeplExpense, deleteDeplExpense, toggleDeplHistory,
   addCustomHeuresRow, deleteHeuresRow, deleteHeuresFromModal, openEditHeure, saveHeures, toggleHeuresHistory,
   updateHeures, updateHeuresDesc, updateHeureCat, updateHeureHistNote,
-  openProjectSettings, closeProjectSettings, pickAutoSavePath, resetAutoSavePath, saveAutoSaveInterval,
+  openProjectSettings, closeProjectSettings, saveMetaFromSettings,
+  pickAutoSavePath, resetAutoSavePath, saveAutoSaveInterval,
+  saveJiraProjectKey, pickSourcePath, resetSourcePath,
   addProjectOwnerOption, removeProjectOwnerOption,
   openExportHTMLModal, doExportHTML, exportSelectAll, exportMarkdown,
   openDashCustomize, saveDashCustomize,
