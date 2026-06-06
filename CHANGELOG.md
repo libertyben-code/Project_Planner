@@ -2,6 +2,18 @@
 
 ---
 
+## 1.3.0 — 2026-06-06
+
+### 🇫🇷 Nouveautés
+
+- **Zoom par page** : maintenez `Ctrl` et faites défiler la molette pour zoomer ou dézoomer n'importe quelle page indépendamment (50 % – 200 %, pas de 10 %). Le niveau de zoom est affiché dans la barre de navigation et mémorisé par page entre les sessions. Cliquez sur l'indicateur de zoom pour revenir à 100 %.
+
+### 🇬🇧 What's new
+
+- **Per-page zoom**: hold `Ctrl` and scroll the mouse wheel to zoom in or out on any page independently (50 % – 200 %, 10 % steps). The zoom level is shown in the nav bar and remembered per page across sessions. Click the zoom indicator to reset to 100 %.
+
+---
+
 ## 1.2.1 — 2026-06-06
 
 ### 🇫🇷 Correctifs

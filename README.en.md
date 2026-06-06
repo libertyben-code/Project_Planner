@@ -143,6 +143,7 @@ Click **📖 Exemple** in the home screen header (or the button on the empty sta
 
 - `Ctrl+O` — Open a project file
 - `Ctrl+S` — Force save immediately
+- `Ctrl+scroll` — Zoom in / out on the current page (50 %–200 %). The zoom level is shown in the nav bar; click it to reset to 100 %. Each page has its own zoom level, remembered across sessions.
 - `Escape` — Close the open modal
 
 ---

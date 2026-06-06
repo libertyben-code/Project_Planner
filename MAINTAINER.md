@@ -136,6 +136,16 @@ The `isUnavail: true` flag on a task suppresses Statut, Priorité, J, and % Avan
 
 When saving, `saveTask()` reads all `.task-seg-row` elements, filters out blanks, sets `task.segments` only when there are 2+, and deletes the property otherwise to keep the JSON clean.
 
+### Per-page zoom
+
+`_pageZoom` is a module-level object (`{ [pageId]: zoomPercent }`) persisted to `localStorage` under the key `pageZoom`. Range: 50–200, step: 10.
+
+- `_syncZoomDisplay(pageId)` — applies `element.style.zoom = z + '%'` to the page element and updates the `#nav-zoom-display` button text. Called on every page switch (both built-in nav-tab click handler and custom-tab click handler) and once on project load for the initial `page-dashboard`.
+- `changeZoom(delta)` — reads the active page via `document.querySelector('.page.active')?.id`, clamps and saves, then calls `_syncZoomDisplay`. Wired to `Ctrl+wheel` on `document`.
+- `resetZoom()` — deletes the active page's entry from `_pageZoom` and syncs. Wired to the `#nav-zoom-display` button in `app.html`.
+
+`element.style.zoom` is set on the `.page` div, not on inner containers, so `renderXxx()` calls that only touch children do not reset the zoom.
+
 ### Column resizing
 
 `makeResizable(tbodyId)` attaches pointer-event resize handles to all `thead th` elements of the table containing that tbody. Widths are persisted to `localStorage` under `col-w:<tbodyId>` and restored on each render call.

@@ -143,6 +143,7 @@ Cliquez sur **📖 Exemple** dans l'en-tête de l'écran d'accueil (ou sur le bo
 
 - `Ctrl+O` — Ouvrir un fichier projet
 - `Ctrl+S` — Forcer la sauvegarde immédiatement
+- `Ctrl+scroll` — Zoomer / dézoomer la page en cours (50 %–200 %). Le niveau est affiché dans la barre de navigation ; cliquez dessus pour revenir à 100 %. Chaque page a son propre zoom, mémorisé entre les sessions.
 - `Échap` — Fermer la modale ouverte
 
 ---
