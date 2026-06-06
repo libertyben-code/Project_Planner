@@ -1,5 +1,5 @@
 // home.js — WMS Project Planner home screen logic
-import { invoke, setWindowTitle, getAppVersion } from './tauri-ipc.js';
+import { invoke, setWindowTitle, getAppVersion, checkForUpdates, installUpdate } from './tauri-ipc.js';
 
 setWindowTitle('WMS Project Planner');
 
@@ -33,6 +33,9 @@ async function init() {
   } catch { recent = []; }
   render();
   loadPortfolioData();
+  checkForUpdates().then(r => {
+    if (r?.available) showUpdateBanner(r.version, r.notes);
+  }).catch(() => {});
 }
 
 async function persistSettings() {
@@ -855,6 +858,71 @@ function fmtDateShort(iso) {
 window.openProjectCard = async function(path) {
   if (!path) return;
   navigateToApp(path);
+};
+
+// ── Update check ─────────────────────────────────────────────────────────────
+function showUpdateBanner(version, notes) {
+  const banner = document.getElementById('update-banner');
+  const text   = document.getElementById('update-banner-text');
+  if (!banner || !text) return;
+  text.textContent = `Version ${version} disponible.`;
+  banner.style.display = 'flex';
+  const notesEl    = document.getElementById('update-notes');
+  const statusEl   = document.getElementById('update-status');
+  const installBtn = document.getElementById('btn-install-update');
+  if (notesEl && notes)  notesEl.textContent  = notes;
+  if (statusEl)          statusEl.textContent = `Version ${version} disponible.`;
+  if (installBtn)        installBtn.style.display = 'inline-block';
+}
+
+window.dismissUpdateBanner = function() {
+  const banner = document.getElementById('update-banner');
+  if (banner) banner.style.display = 'none';
+};
+
+window.installFromBanner = function() {
+  window.dismissUpdateBanner();
+  window.openSettings();
+};
+
+window.checkForUpdatesManual = async function() {
+  const btn        = document.getElementById('btn-check-update');
+  const statusEl   = document.getElementById('update-status');
+  const notesEl    = document.getElementById('update-notes');
+  const installBtn = document.getElementById('btn-install-update');
+  if (btn)        btn.disabled = true;
+  if (statusEl)   statusEl.textContent = 'Vérification…';
+  if (notesEl)    notesEl.textContent  = '';
+  if (installBtn) installBtn.style.display = 'none';
+  try {
+    const result = await checkForUpdates();
+    if (result?.available) {
+      if (statusEl)   statusEl.textContent = `Version ${result.version} disponible.`;
+      if (notesEl && result.notes) notesEl.textContent = result.notes;
+      if (installBtn) installBtn.style.display = 'inline-block';
+    } else if (result?.checkFailed) {
+      if (statusEl) statusEl.textContent = 'Vérification impossible (réseau ou aucune release publiée).';
+    } else {
+      if (statusEl) statusEl.textContent = 'Application à jour.';
+    }
+  } catch {
+    if (statusEl) statusEl.textContent = 'Vérification impossible.';
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+};
+
+window.doInstallUpdate = async function() {
+  const installBtn = document.getElementById('btn-install-update');
+  const statusEl   = document.getElementById('update-status');
+  if (installBtn) installBtn.disabled = true;
+  if (statusEl)   statusEl.textContent = 'Téléchargement en cours…';
+  try {
+    await installUpdate();
+  } catch (e) {
+    if (statusEl)   statusEl.textContent = `Erreur : ${e}`;
+    if (installBtn) installBtn.disabled = false;
+  }
 };
 
 // ── Boot ──────────────────────────────────────────────────────────────────────

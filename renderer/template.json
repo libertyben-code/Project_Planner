@@ -1,5 +1,6 @@
 {
   "meta": {
+    "schemaVersion": 1,
     "id": "",
     "name": "Nouveau Projet WMS",
     "client": "clientName",

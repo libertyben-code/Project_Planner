@@ -4,6 +4,18 @@
 // =====================================================
 import { invoke, listenFileChanged, setWindowTitle, getAppVersion } from './tauri-ipc.js';
 
+// ── Schema migration ────────────────────────────────���────────────────────────
+const CURRENT_SCHEMA_VERSION = 1;
+
+function migrateProjectData(data) {
+  const v = data?.meta?.schemaVersion ?? 0;
+  if (v >= CURRENT_SCHEMA_VERSION) return data;
+  // v0 → v1: no structural changes yet; just stamp the version
+  if (!data.meta) data.meta = {};
+  data.meta.schemaVersion = CURRENT_SCHEMA_VERSION;
+  return data;
+}
+
 // ═══ STATE ═══
 let currentPath = null;
 let _saveTimer = null;
@@ -119,7 +131,7 @@ async function loadProject(path) {
       _userSettings = s;
     } catch {}
     const raw = await invoke('read_project', { path });
-    const state = JSON.parse(raw);
+    const state = migrateProjectData(JSON.parse(raw));
     currentPath = path;
     applyState(state);
     renderAll();
