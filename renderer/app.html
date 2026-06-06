@@ -63,6 +63,17 @@
   <div class="modal">
     <h3>⚙ Paramètres du projet</h3>
     <div class="settings-section">
+      <div class="settings-section-title">Informations du projet</div>
+      <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin-bottom:4px">
+        <div><label style="font-size:11px;color:var(--text-muted)">Nom du projet</label><input type="text" id="ps-meta-name" class="settings-text-input" oninput="saveMetaFromSettings()"></div>
+        <div><label style="font-size:11px;color:var(--text-muted)">Client</label><input type="text" id="ps-meta-client" class="settings-text-input" oninput="saveMetaFromSettings()"></div>
+        <div><label style="font-size:11px;color:var(--text-muted)">Directeur de Projet</label><input type="text" id="ps-meta-pm" class="settings-text-input" oninput="saveMetaFromSettings()"></div>
+        <div><label style="font-size:11px;color:var(--text-muted)">Chef de Projet Tech.</label><input type="text" id="ps-meta-cdptech" class="settings-text-input" oninput="saveMetaFromSettings()"></div>
+        <div><label style="font-size:11px;color:var(--text-muted)">Resp. Logistique Client</label><input type="text" id="ps-meta-resplog" class="settings-text-input" oninput="saveMetaFromSettings()"></div>
+        <div><label style="font-size:11px;color:var(--text-muted)">Consultant ERP</label><input type="text" id="ps-meta-erpconsult" class="settings-text-input" oninput="saveMetaFromSettings()"></div>
+      </div>
+    </div>
+    <div class="settings-section">
       <div class="settings-section-title">Dossier de sauvegarde secondaire</div>
       <p class="settings-hint">Ce projet sera aussi sauvegardé dans ce dossier à l'intervalle défini ci-dessous.</p>
       <div class="folder-picker-row">
@@ -82,6 +93,20 @@
       <div class="folder-picker-row" style="margin-top:8px">
         <input type="text" id="ps-owner-new" class="settings-text-input" placeholder="Nouvelle valeur…" style="flex:1">
         <button class="btn btn-secondary btn-sm" onclick="addProjectOwnerOption()">Ajouter</button>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Clé de projet JIRA</div>
+      <p class="settings-hint">Clé courte identifiant ce projet dans JIRA (ex : WMS, DEV). Les identifiants de connexion se configurent dans les Paramètres de l'application.</p>
+      <input type="text" id="ps-jira-key" class="settings-text-input" placeholder="ex : WMS" style="text-transform:uppercase" oninput="saveJiraProjectKey()">
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Chemin source (lecture)</div>
+      <p class="settings-hint">Si défini, le projet sera rechargé depuis ce fichier à chaque ouverture (ex : dossier partagé Git). L'enregistrement reste local.</p>
+      <div class="folder-picker-row">
+        <div class="folder-display" id="ps-source-path-display">Aucun (chemin par défaut)</div>
+        <button class="btn btn-secondary btn-sm" onclick="pickSourcePath()">Choisir…</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetSourcePath()">Réinitialiser</button>
       </div>
     </div>
     <div class="modal-footer">
@@ -339,7 +364,7 @@
   <div class="modal">
     <h3>Modifier l'interface ERP</h3>
     <div class="form-row"><label>Nom du fichier *</label><input id="ei-name" type="text"></div>
-    <div class="form-row"><label>Type</label><select id="ei-type"><option>Connecteur ERP</option><option>API REST</option><option>Fichier plat</option><option>Web Service</option><option>Manuel</option></select></div>
+    <div class="form-row"><label>Type</label><select id="ei-type"><option>Connecteur ERP</option><option>GNA</option><option>Connecteur SAGE</option><option>REST API</option><option>Autre</option></select></div>
     <div class="form-2col">
       <div class="form-row"><label>Développé</label><select id="ei-dev"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
       <div class="form-row"><label>Livré Preprod</label><select id="ei-preprod"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
@@ -526,7 +551,6 @@
 <div class="page" id="page-jira">
   <div class="jira-toolbar">
     <span class="nav-logo" style="font-size:14px;font-weight:700;color:#0052CC">◈ JIRA</span>
-    <button class="btn btn-secondary btn-sm" onclick="openJiraConfig()">⚙ Configurer</button>
     <button id="jira-sync-btn" class="btn btn-primary btn-sm" onclick="syncJira()">⟳ Synchroniser</button>
     <span id="jira-sync-info" class="jira-sync-info">Jamais synchronisé</span>
   </div>
@@ -534,25 +558,6 @@
   <div id="jira-epics-container" class="jira-epics-list"></div>
 </div>
 
-<!-- JIRA CONFIG MODAL -->
-<div class="modal-overlay" id="modal-jira-config">
-  <div class="modal" style="width:460px">
-    <h3>Configuration JIRA</h3>
-    <p style="color:var(--text-muted);font-size:12px;margin-bottom:16px">Connexion à votre instance Atlassian Cloud. Le token API est stocké dans le fichier projet (.wmsplan).</p>
-    <div class="form-group"><label>URL Atlassian <span style="color:var(--text-muted);font-size:11px">(ex: https://monentreprise.atlassian.net)</span></label>
-      <input id="jira-cfg-url" type="url" placeholder="https://monentreprise.atlassian.net" style="width:100%"></div>
-    <div class="form-group"><label>Clé de projet JIRA <span style="color:var(--text-muted);font-size:11px">(ex: WMS, DEV…)</span></label>
-      <input id="jira-cfg-key" type="text" placeholder="WMS" style="width:100%"></div>
-    <div class="form-group"><label>Email du compte JIRA</label>
-      <input id="jira-cfg-email" type="email" placeholder="prenom.nom@entreprise.com" style="width:100%"></div>
-    <div class="form-group"><label>Token API <span style="color:var(--text-muted);font-size:11px">(<a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank" style="color:#0052CC">Générer sur id.atlassian.com</a>)</span></label>
-      <input id="jira-cfg-token" type="password" placeholder="Token API Atlassian" style="width:100%"></div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('modal-jira-config')">Annuler</button>
-      <button class="btn btn-primary" onclick="saveJiraConfig()">Enregistrer</button>
-    </div>
-  </div>
-</div>
 
 <div class="modal-overlay" id="modal-export-html">
   <div class="modal">

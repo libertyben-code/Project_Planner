@@ -7,15 +7,15 @@ setWindowTitle('WMS Project Planner');
 let recent = [];       // [{ name, client, pm, path, updatedAt, installStatus, installProgress, dryRunProgress }]
 let filteredRecent = [];
 let pendingConfirm = null;  // fn to call when user clicks "Confirmer"
-let appSettings = { saveFolder: '', companyName: '', lightMode: false, templatePath: '' };
+let appSettings = { saveFolder: '', companyName: '', lightMode: false, templatePath: '', jiraConfig: { url: '', email: '', token: '' } };
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 async function init() {
   try {
     const rawSettings = await invoke('read_settings');
     const loaded = typeof rawSettings === 'string' ? JSON.parse(rawSettings) : (rawSettings || {});
-    appSettings = { ...appSettings, ...loaded };
-  } catch { appSettings = { saveFolder: '', companyName: '', lightMode: false, templatePath: '' }; }
+    appSettings = { ...appSettings, ...loaded, jiraConfig: { ...appSettings.jiraConfig, ...(loaded.jiraConfig || {}) } };
+  } catch { appSettings = { saveFolder: '', companyName: '', lightMode: false, templatePath: '', jiraConfig: { url: '', email: '', token: '' } }; }
 
   applyTheme();
 
@@ -156,7 +156,20 @@ window.switchTab = function(id) {
 window.filterCards = render;
 
 // ── Open project ──────────────────────────────────────────────────────────────
-window.openProjectCard = function(path) {
+window.openProjectCard = async function(path) {
+  try {
+    const raw = await invoke('read_project', { path });
+    const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    const sourcePath = data.meta?.sourcePath;
+    if (sourcePath && sourcePath !== path) {
+      try {
+        const srcRaw = await invoke('read_project', { path: sourcePath });
+        const srcData = typeof srcRaw === 'string' ? JSON.parse(srcRaw) : srcRaw;
+        srcData.meta = { ...srcData.meta, sourcePath };
+        await invoke('write_project', { path, data: JSON.stringify(srcData) });
+      } catch { /* source unreachable — use local copy */ }
+    }
+  } catch { /* file unreadable — let app.html handle error */ }
   navigateToApp(path);
 };
 
@@ -401,7 +414,22 @@ window.openSettings = function() {
   if (tplDisplay) tplDisplay.textContent = appSettings.templatePath
     ? appSettings.templatePath.split(/[\\/]/).pop()
     : 'Template par défaut';
+  const jc = appSettings.jiraConfig || {};
+  const jiraUrl = document.getElementById('settings-jira-url');
+  if (jiraUrl) jiraUrl.value = jc.url || '';
+  const jiraEmail = document.getElementById('settings-jira-email');
+  if (jiraEmail) jiraEmail.value = jc.email || '';
+  const jiraToken = document.getElementById('settings-jira-token');
+  if (jiraToken) jiraToken.value = jc.token || '';
   document.getElementById('modal-settings').classList.add('open');
+};
+
+window.saveJiraCredentials = async function() {
+  if (!appSettings.jiraConfig) appSettings.jiraConfig = { url: '', email: '', token: '' };
+  appSettings.jiraConfig.url   = (document.getElementById('settings-jira-url')?.value || '').trim().replace(/\/$/, '');
+  appSettings.jiraConfig.email = (document.getElementById('settings-jira-email')?.value || '').trim();
+  appSettings.jiraConfig.token = (document.getElementById('settings-jira-token')?.value || '').trim();
+  await persistSettings();
 };
 
 window.saveCompanyName = async function() {
