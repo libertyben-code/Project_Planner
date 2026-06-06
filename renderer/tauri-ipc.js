@@ -71,11 +71,9 @@ function _stub(cmd, args) {
     }
 
     case 'read_project': {
-      try {
-        const raw = localStorage.getItem(PREFIX + args.path);
-        if (!raw) throw new Error('Project not found: ' + args.path);
-        return raw;
-      } catch (e) { throw e; }
+      const raw = localStorage.getItem(PREFIX + args.path);
+      if (!raw) throw new Error('Project not found: ' + args.path);
+      return raw;
     }
 
     case 'write_project': {

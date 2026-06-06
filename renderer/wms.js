@@ -131,7 +131,8 @@ async function loadProject(path) {
       });
     }
   } catch (e) {
-    document.body.innerHTML = `<div style="padding:40px;color:#dc2626;font-family:sans-serif"><h2>Erreur de chargement</h2><p>${e}</p><button onclick="window.location.href='home.html'">Retour à l'accueil</button></div>`;
+    const msg = String(e).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    document.body.innerHTML = `<div style="padding:40px;color:#dc2626;font-family:sans-serif"><h2>Erreur de chargement</h2><p>${msg}</p><button onclick="window.location.href='home.html'">Retour à l'accueil</button></div>`;
   }
 }
 
@@ -388,13 +389,6 @@ function formatOwner(owner) {
   if (owner === TOKEN_CDP)    return getCDPLabel();
   if (owner === TOKEN_RL)     return getRLLabel();
   return owner || '';
-}
-function normalizeSpecialLabel(value) {
-  if (value === getClientLabel()) return TOKEN_CLIENT;
-  if (value === getPMLabel())     return TOKEN_PM;
-  if (value === getCDPLabel())    return TOKEN_CDP;
-  if (value === getRLLabel())     return TOKEN_RL;
-  return value;
 }
 function getOwnerOptions() {
   return [
@@ -1547,7 +1541,7 @@ function deleteInterfaceFromModal() {
   deleteInterface(_editingInterfaceId);
 }
 
-function itfBadge(v) { return `<span class="${ITF_B[v]||'cell-none'}" style="cursor:pointer">${v}</span>`; }
+function cellBadge(map, v) { return `<span class="${map[v]||'cell-none'}" style="cursor:pointer">${v}</span>`; }
 function renderInterfaces() {
   const tbody = document.getElementById('tbody-interfaces'); tbody.innerHTML = '';
   const cn = _companyName || 'Intégrateur';
@@ -1557,7 +1551,7 @@ function renderInterfaces() {
     tr.innerHTML = `<td>${dh()}</td>
       <td style="font-size:12px">${row.type}</td>
       <td style="font-weight:500">${row.name}</td>
-      <td>${itfBadge(row.dev)}</td><td>${itfBadge(row.preprod)}</td><td>${itfBadge(row.recCompany)}</td><td>${itfBadge(row.recClient)}</td><td>${itfBadge(row.valide)}</td>
+      <td>${cellBadge(ITF_B,row.dev)}</td><td>${cellBadge(ITF_B,row.preprod)}</td><td>${cellBadge(ITF_B,row.recCompany)}</td><td>${cellBadge(ITF_B,row.recClient)}</td><td>${cellBadge(ITF_B,row.valide)}</td>
       <td style="color:var(--text-muted);font-size:12px">${row.comment}</td>
       <td><button class="btn btn-secondary btn-sm" onclick="openEditInterface('${row.id}')">✏</button></td>`;
     ['dev','preprod','recCompany','recClient','valide'].forEach((f,fi) => {
@@ -1624,9 +1618,9 @@ function renderFonctionnel() {
     const tr = tbody.insertRow(); tr.dataset.rowId = row.id;
     tr.innerHTML = `<td>${dh()}</td>
       <td style="font-weight:600;min-width:160px">${row.name}</td>
-      <td>${itfBadge(row.dev)}</td>
+      <td>${cellBadge(ITF_B,row.dev)}</td>
       <td style="text-align:center;cursor:pointer"><span>${row.pct}%</span></td>
-      <td>${itfBadge(row.testCompany)}</td><td>${itfBadge(row.preprod)}</td><td>${itfBadge(row.formKU)}</td><td>${itfBadge(row.testClient)}</td><td>${itfBadge(row.formUsers)}</td>
+      <td>${cellBadge(ITF_B,row.testCompany)}</td><td>${cellBadge(ITF_B,row.preprod)}</td><td>${cellBadge(ITF_B,row.formKU)}</td><td>${cellBadge(ITF_B,row.testClient)}</td><td>${cellBadge(ITF_B,row.formUsers)}</td>
       <td style="color:var(--text-muted);min-width:110px;font-size:12px">${row.comment}</td>
       <td><button class="btn btn-secondary btn-sm" onclick="openEditFonctionnel('${row.id}')">✏</button></td>`;
     ['dev','testCompany','preprod','formKU','testClient','formUsers'].forEach((f,fi) => {
@@ -1669,14 +1663,13 @@ function deleteDryrunFromModal() {
   deleteDryrun(_editingDryrunId);
 }
 
-function drBadge(v) { return `<span class="${DR_B[v]||'cell-none'}" style="cursor:pointer">${v}</span>`; }
 function renderDryrun() {
   const tbody = document.getElementById('tbody-dryrun'); tbody.innerHTML = '';
   dryrunData.forEach(row => {
     const tr = tbody.insertRow(); tr.dataset.rowId = row.id;
     tr.innerHTML = `<td>${dh()}</td>
       <td style="font-weight:500">${formatTemplate(row.name)}</td>
-      <td style="min-width:98px">${drBadge(row.etat)}</td>
+      <td style="min-width:98px">${cellBadge(DR_B,row.etat)}</td>
       <td style="color:var(--text-muted);font-size:12px">${row.comment}</td>
       <td><button class="btn btn-secondary btn-sm" onclick="openEditDryrun('${row.id}')">✏</button></td>`;
     const sp = tr.cells[2].querySelector('span');
@@ -1727,7 +1720,6 @@ function deleteInstallFromModal() {
   deleteInstall(_editingInstallId);
 }
 
-function instBadge(v) { return `<span class="${INST_B[v]||'cell-none'}" style="cursor:pointer">${v}</span>`; }
 function renderInstall() {
   const tbody = document.getElementById('tbody-install'); tbody.innerHTML = '';
   installData.forEach(row => {
@@ -1735,7 +1727,7 @@ function renderInstall() {
     const quiLabel = row.qui === TOKEN_CLIENT ? getClientLabel() : row.qui === 'COMPANY' ? getCompanyLabel() : (row.qui || '—');
     tr.innerHTML = `<td>${dh()}</td>
       <td style="font-weight:500">${row.action}</td>
-      <td style="min-width:88px">${instBadge(row.etat)}</td>
+      <td style="min-width:88px">${cellBadge(INST_B,row.etat)}</td>
       <td style="font-size:12px;cursor:pointer"><span class="qui-label">${quiLabel}</span></td>
       <td style="font-size:12px">${row.deadline||'—'}</td>
       <td style="color:var(--text-muted);font-size:12px">${row.comment}</td>
@@ -1811,11 +1803,9 @@ function saveJalon() {
 function deleteJalonFromModal() {
   if (!_editingJalonId) return;
   closeModal('modal-edit-jalon');
-  if (_editingJalonType === 'projet') del_fact_projet(_editingJalonId);
-  else del_fact_equip(_editingJalonId);
+  _delFactJalon(_editingJalonId, _editingJalonType === 'projet' ? jalonsProjet : jalonsEquip);
 }
 
-function factBadge(v) { return `<span class="${FACT_B[v]||'cell-none'}" style="cursor:pointer">${v}</span>`; }
 function fmtMontant(v) { return (v || 0).toLocaleString('fr-FR') + ' €'; }
 function renderFactRow(tbody, list, type) {
   tbody.innerHTML = '';
@@ -1825,7 +1815,7 @@ function renderFactRow(tbody, list, type) {
       <td style="font-weight:600">${row.jalon}</td>
       <td style="font-size:12px">${row.date||'—'}</td>
       <td style="font-size:12px">${row.echeance||'—'}</td>
-      <td style="min-width:78px">${factBadge(row.etat)}</td>
+      <td style="min-width:78px">${cellBadge(FACT_B,row.etat)}</td>
       <td style="text-align:right;font-size:12px">${row.pct||0}%</td>
       <td style="text-align:right;font-weight:600;font-family:'DM Mono',monospace">${fmtMontant(row.montant)}</td>
       <td><button class="btn btn-secondary btn-sm" onclick="openEditJalon('${row.id}','${type}')">✏</button></td>`;
@@ -1834,17 +1824,11 @@ function renderFactRow(tbody, list, type) {
   });
   makeSortable(tbody, list, renderFacturation);
 }
-function del_fact_projet(id) {
-  const idx = jalonsProjet.findIndex(r => r.id === id); if (idx < 0) return;
-  const deleted = { ...jalonsProjet[idx] };
-  jalonsProjet.splice(idx, 1); renderFacturation(); renderDashboard(); debouncedSave();
-  showUndoToast(`Jalon "${deleted.jalon}" supprimé`, () => { jalonsProjet.splice(idx, 0, deleted); renderFacturation(); renderDashboard(); });
-}
-function del_fact_equip(id) {
-  const idx = jalonsEquip.findIndex(r => r.id === id); if (idx < 0) return;
-  const deleted = { ...jalonsEquip[idx] };
-  jalonsEquip.splice(idx, 1); renderFacturation(); renderDashboard(); debouncedSave();
-  showUndoToast(`Jalon "${deleted.jalon}" supprimé`, () => { jalonsEquip.splice(idx, 0, deleted); renderFacturation(); renderDashboard(); });
+function _delFactJalon(id, list) {
+  const idx = list.findIndex(r => r.id === id); if (idx < 0) return;
+  const deleted = { ...list[idx] };
+  list.splice(idx, 1); renderFacturation(); renderDashboard(); debouncedSave();
+  showUndoToast(`Jalon "${deleted.jalon}" supprimé`, () => { list.splice(idx, 0, deleted); renderFacturation(); renderDashboard(); });
 }
 function addJalon(type) { const list = type === 'projet' ? jalonsProjet : jalonsEquip; list.push({id:uid(),jalon:'Nouveau jalon',date:'',echeance:'',etat:'—',pct:0,montant:0}); renderFacturation(); debouncedSave(); }
 let _addingDeplId = null;
@@ -3105,7 +3089,7 @@ Object.assign(window, {
   openEditDryrun, saveDryrun, deleteDryrunFromModal, addDryrun,
   addInstall, openEditInstall, saveInstall, deleteInstallFromModal, deleteInstall,
   addJalon, openEditJalon, saveJalon, deleteJalonFromModal, autoCalcJalonPct,
-  del_fact_projet, del_fact_equip, renderFacturation,
+  renderFacturation,
   openAddDeplExpense, saveDeplExpense, deleteDeplExpense, toggleDeplHistory,
   addCustomHeuresRow, deleteHeuresRow, deleteHeuresFromModal, openEditHeure, saveHeures, toggleHeuresHistory,
   updateHeures, updateHeuresDesc, updateHeureCat, updateHeureHistNote,
@@ -3117,7 +3101,6 @@ Object.assign(window, {
   renderCtColumns, ctColLabel, ctColType, ctColOptions, ctColRemove,
   renderCustomTabs, renderCustomTabRows, addCustomTabRow, deleteCustomTabRow, deleteCustomTab, ctSetCell,
   openEditCustomTabRow, saveCustomTabRowFromModal, deleteCustomTabRowFromModal,
-  normalizeSpecialLabel, buildState,
 });
 
 initResizableTables();
