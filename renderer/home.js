@@ -252,15 +252,19 @@ window.createProject = async function() {
       const raw = await invoke('read_project', { path: appSettings.templatePath });
       template = typeof raw === 'string' ? JSON.parse(raw) : raw;
     } else {
-      const res = await fetch('./template.json');
+      const lang = getCurrentLang();
+      const templateFile = lang === 'en' ? './template.en.json' : lang === 'es' ? './template.es.json' : './template.json';
+      const res = await fetch(templateFile);
       template = await res.json();
     }
   } catch {
     try {
-      const res = await fetch('./template.json');
+      const lang = getCurrentLang();
+      const templateFile = lang === 'en' ? './template.en.json' : lang === 'es' ? './template.es.json' : './template.json';
+      const res = await fetch(templateFile);
       template = await res.json();
     } catch {
-      showToast('Erreur: template introuvable.');
+      showToast(t('error.template_not_found'));
       return;
     }
   }

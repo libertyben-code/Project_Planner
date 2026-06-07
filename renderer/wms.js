@@ -1174,8 +1174,8 @@ function _addSegRow(list, start = '', end = '') {
   const div = document.createElement('div');
   div.className = 'task-seg-row';
   div.innerHTML = `<div class="form-2col" style="align-items:flex-end;gap:6px">
-    <div class="form-row"><label>Début</label><input type="date" class="seg-start" value="${start}"></div>
-    <div class="form-row"><label>Fin</label><input type="date" class="seg-end" value="${end}"></div>
+    <div class="form-row"><label>${t('form.start')}</label><input type="date" class="seg-start" value="${start}"></div>
+    <div class="form-row"><label>${t('form.end')}</label><input type="date" class="seg-end" value="${end}"></div>
     <button type="button" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost seg-del" onclick="removeTaskSegment(this)" title="${t('seg.delete')}" style="margin-bottom:2px">🗑</button>
   </div>`;
   list.appendChild(div);
@@ -1501,9 +1501,19 @@ function toggleHeuresHistory(id, btn) {
 const ETAT_INT = ['FAIT','EN COURS','À FAIRE','EN ATTENTE','ANNULÉ'];
 const ETAT_B = {'FAIT':'cell-ok','EN COURS':'cell-wip','À FAIRE':'cell-none','EN ATTENTE':'cell-warn','ANNULÉ':'cell-ko'};
 const ETAT_D = {'FAIT':'#059669','EN COURS':'#2563eb','À FAIRE':'#94a3b8','EN ATTENTE':'#d97706','ANNULÉ':'#dc2626'};
-const URG_OPTS = [{label:'— Aucune —',value:0,dot:'#e2e7ed'},{label:'Faible',value:1,dot:'#94a3b8'},{label:'Moyenne',value:2,dot:'#f59e0b'},{label:'Haute',value:3,dot:'#ef4444'}];
-const URG_CHIP = {0:'',1:'<span class="urg-chip urg-faible" style="cursor:pointer">Faible</span>',2:'<span class="urg-chip urg-moyenne" style="cursor:pointer">Moyenne</span>',3:'<span class="urg-chip urg-haute" style="cursor:pointer">Haute</span>'};
-function urgChipHTML(v) { return URG_CHIP[v||0] || '<span style="color:var(--text-muted);cursor:pointer;font-size:11px">—</span>'; }
+const URG_OPTS = [
+  {label: () => t('urg.none'),   value:0, dot:'#e2e7ed'},
+  {label: () => t('urg.low'),    value:1, dot:'#94a3b8'},
+  {label: () => t('urg.medium'), value:2, dot:'#f59e0b'},
+  {label: () => t('urg.high'),   value:3, dot:'#ef4444'},
+];
+function urgChipHTML(v) {
+  const urg = v || 0;
+  if (!urg) return '<span style="color:var(--text-muted);cursor:pointer;font-size:11px">—</span>';
+  const cls = ['','urg-faible','urg-moyenne','urg-haute'][urg] || '';
+  const lbl = ['', t('urg.low'), t('urg.medium'), t('urg.high')][urg] || '';
+  return `<span class="urg-chip ${cls}" style="cursor:pointer">${lbl}</span>`;
+}
 
 let _editingTacheId = null;
 function openEditInternalTask(id) {
@@ -1559,7 +1569,7 @@ function renderTaches() {
     ownerSel.onchange = () => { task.owner = ownerSel.value; debouncedSave(); };
     tr.cells[2].appendChild(ownerSel);
     const etatSp = tr.cells[3].querySelector('span');
-    etatSp.addEventListener('click', e => { e.stopPropagation(); showDropdown(etatSp, ETAT_INT.map(v => ({label:v,value:v,dot:ETAT_D[v]})), val => { task.etat = val; renderTaches(); debouncedSave(); }); });
+    etatSp.addEventListener('click', e => { e.stopPropagation(); showDropdown(etatSp, ETAT_INT.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:ETAT_D[v]})), val => { task.etat = val; renderTaches(); debouncedSave(); }); });
     tr.cells[6].querySelector('span').addEventListener('click', e => { e.stopPropagation(); showDropdown(tr.cells[6].querySelector('span'), URG_OPTS, val => { task.urg = val; renderTaches(); debouncedSave(); }); });
   });
   makeSortable(tbody, internalTasks, renderTaches);
@@ -1614,7 +1624,26 @@ function deleteInterfaceFromModal() {
   deleteInterface(_editingInterfaceId);
 }
 
-function cellBadge(map, v) { return `<span class="${map[v]||'cell-none'}" style="cursor:pointer">${v}</span>`; }
+const CELL_LABEL = {
+  'FAIT':       () => t('etat.fait'),
+  'EN COURS':   () => t('etat.en_cours'),
+  'À FAIRE':    () => t('etat.a_faire'),
+  'EN ATTENTE': () => t('etat.en_attente'),
+  'ANNULÉ':     () => t('etat.annule'),
+  'OUI':        () => t('state.yes'),
+  'NON':        () => t('state.no'),
+  'OK':         () => t('state.ok'),
+  'KO':         () => t('state.ko'),
+  'En cours':   () => t('etat.en_cours'),
+  'Oui':        () => t('state.yes'),
+  'Non':        () => t('state.no'),
+  'Payé':       () => t('chart.fact.paid'),
+  'Retard':     () => t('chart.fact.late'),
+};
+function cellBadge(map, v) {
+  const lbl = CELL_LABEL[v]?.() ?? v;
+  return `<span class="${map[v]||'cell-none'}" style="cursor:pointer">${lbl}</span>`;
+}
 function renderInterfaces() {
   const tbody = document.getElementById('tbody-interfaces'); tbody.innerHTML = '';
   const cn = _companyName || 'Intégrateur';
@@ -1631,8 +1660,8 @@ function renderInterfaces() {
     typeSp.addEventListener('click', e => { e.stopPropagation(); showDropdown(typeSp, ITF_TYPES.map(v => ({label:v,value:v,dot:'#94a3b8'})), val => { row.type = val; typeSp.textContent = val; debouncedSave(); }); });
     ['dev','preprod','recCompany','recClient','valide'].forEach((f,fi) => {
       const sp = tr.cells[fi+3].querySelector('span');
-      sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, ITF_STATES.map(v => ({label:v,value:v,dot:ITF_D[v]})), val => { row[f] = val; sp.className = ITF_B[val]||'cell-none'; sp.textContent = val; renderDashboard(); debouncedSave(); }); });
-    });
+      sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, ITF_STATES.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:ITF_D[v]})), val => { row[f] = val; sp.className = ITF_B[val]||'cell-none'; sp.textContent = CELL_LABEL[val]?.() ?? val; renderDashboard(); debouncedSave(); }); });
+});
   });
   makeSortable(tbody, interfacesData, renderInterfaces);
 }
@@ -1700,7 +1729,7 @@ function renderFonctionnel() {
       <td><button class="btn btn-secondary btn-sm" onclick="openEditFonctionnel('${row.id}')">✏</button></td>`;
     ['dev','testCompany','preprod','formKU','testClient','formUsers'].forEach((f,fi) => {
       const td = tr.cells[[2,4,5,6,7,8][fi]]; const sp = td.querySelector('span');
-      sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, ITF_STATES.map(v => ({label:v,value:v,dot:ITF_D[v]})), val => { row[f] = val; sp.className = ITF_B[val]||'cell-none'; sp.textContent = val; debouncedSave(); }); });
+      sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, ITF_STATES.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:ITF_D[v]})), val => { row[f] = val; sp.className = ITF_B[val]||'cell-none'; sp.textContent = CELL_LABEL[val]?.() ?? val; debouncedSave(); }); });
     });
     tr.cells[3].querySelector('span').addEventListener('click', e => { e.stopPropagation(); showDropdown(tr.cells[3].querySelector('span'), [0,10,20,30,40,50,60,70,80,90,100].map(v=>({label:v+'%',value:v,dot:'#2563eb'})), val => { row.pct = val; renderFonctionnel(); debouncedSave(); }); });
   });
@@ -1748,7 +1777,7 @@ function renderDryrun() {
       <td style="color:var(--text-muted);font-size:12px">${row.comment}</td>
       <td><button class="btn btn-secondary btn-sm" onclick="openEditDryrun('${row.id}')">✏</button></td>`;
     const sp = tr.cells[2].querySelector('span');
-    sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, DR_STATES.map(v => ({label:v,value:v,dot:DR_D[v]})), val => { row.etat = val; sp.className = DR_B[val]||'cell-none'; sp.textContent = val; renderDashboard(); debouncedSave(); }); });
+    sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, DR_STATES.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:DR_D[v]})), val => { row.etat = val; sp.className = DR_B[val]||'cell-none'; sp.textContent = CELL_LABEL[val]?.() ?? val; renderDashboard(); debouncedSave(); }); });
   });
   makeSortable(tbody, dryrunData, renderDryrun);
 }
@@ -1808,7 +1837,7 @@ function renderInstall() {
       <td style="color:var(--text-muted);font-size:12px">${row.comment}</td>
       <td><button class="btn btn-secondary btn-sm" onclick="openEditInstall('${row.id}')">✏</button></td>`;
     const sp = tr.cells[2].querySelector('span');
-    sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, INST_STATES.map(v => ({label:v,value:v,dot:INST_D[v]})), val => { row.etat = val; sp.className = INST_B[val]||'cell-none'; sp.textContent = val; renderDashboard(); debouncedSave(); }); });
+    sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, INST_STATES.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:INST_D[v]})), val => { row.etat = val; sp.className = INST_B[val]||'cell-none'; sp.textContent = CELL_LABEL[val]?.() ?? val; renderDashboard(); debouncedSave(); }); });
     const quiSpan = tr.cells[3].querySelector('.qui-label');
     quiSpan.addEventListener('click', e => {
       e.stopPropagation();
@@ -1895,7 +1924,7 @@ function renderFactRow(tbody, list, type) {
       <td style="text-align:right;font-weight:600;font-family:'DM Mono',monospace">${fmtMontant(row.montant)}</td>
       <td><button class="btn btn-secondary btn-sm" onclick="openEditJalon('${row.id}','${type}')">✏</button></td>`;
     const sp = tr.cells[4].querySelector('span');
-    sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, FACT_STATES.map(v => ({label:v,value:v,dot:FACT_D[v]})), val => { row.etat = val; sp.className = FACT_B[val]||'cell-none'; sp.textContent = val; renderFacturation(); renderDashboard(); debouncedSave(); }); });
+    sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, FACT_STATES.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:FACT_D[v]})), val => { row.etat = val; sp.className = FACT_B[val]||'cell-none'; sp.textContent = CELL_LABEL[val]?.() ?? val; renderFacturation(); renderDashboard(); debouncedSave(); }); });
   });
   makeSortable(tbody, list, renderFacturation);
 }
@@ -3280,6 +3309,6 @@ if (projectPath) {
   if (lastKey) {
     loadProject(lastKey.slice('wmsplan_'.length));
   } else {
-    document.body.innerHTML += `<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;font-family:sans-serif;color:#64748b"><h2>Aucun projet ouvert</h2><p>Retournez à l'accueil pour créer ou ouvrir un projet.</p><button onclick="window.location.href='home.html'" style="margin-top:12px;padding:8px 20px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">Aller à l'accueil</button></div>`;
+    document.body.innerHTML += `<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;font-family:sans-serif;color:#64748b"><h2>${t('error.no_project')}</h2><p>${t('error.no_project_body')}</p><button onclick="window.location.href='home.html'" style="margin-top:12px;padding:8px 20px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">${t('error.go_home')}</button></div>`;
   }
 }
