@@ -3,4 +3,10 @@ dist/
 src-tauri/target/
 .DS_Store
 *.bak
+
+# Claude collaboration files
 .claude/
+
+# Runtime data — not for version control
+renderer/Backup/
+test-projects/
