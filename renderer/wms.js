@@ -255,7 +255,6 @@ function onMetaInput() {
   renderInstallDrift();
   _updateInstallWdBadge();
 }
-function syncNav() { onMetaInput(); }
 
 // ═══ INSTALL DELAY UI ═══
 function _syncInstallDelayUI() {
@@ -3275,7 +3274,7 @@ function resetSourcePath() {
 Object.assign(window, {
   changeZoom, resetZoom,
   goHome, reloadProject, undoDelete, toggleRagDropdown, closeRagDropdown,
-  syncNav, onMetaInput, handleInstallOrigChange, openInstallDelaySection, clearInstallDelay,
+  onMetaInput, handleInstallOrigChange, openInstallDelaySection, clearInstallDelay,
   openAddPhaseModal, openAddTaskModal, openEditTask, openEditPhase,
   closeModal, saveTask, savePhase,
   deleteTask, deleteTaskFromModal, removePhase, removePhaseFromModal, updateTask,
