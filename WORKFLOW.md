@@ -11,22 +11,48 @@ Paste this file (or mention it) at the start of a new conversation to restore co
 3. Reference `FEEDBACK.md` for the pending `[ ]` items backlog
 4. Reference the plan file (`~/.claude/plans/`) for large features in progress
 5. State what you want to accomplish — Claude will ask clarifying questions if needed before starting
+6. **Claude creates a feature branch before touching any code** — no exceptions (see Branch strategy below)
+
+---
+
+## Ending a session
+
+Claude follows this checklist at the end of every working session, in order:
+
+1. **Ask the user to test** — "Can you test the build? (`npx serve renderer -l 8080` or `npx tauri dev`)"
+2. **Wait for approval** — do not proceed until the user confirms ("ok", "good", etc.) or requests fixes
+3. **Update all docs** once approved:
+   - `FEEDBACK.md` — mark completed items `[x]`
+   - `README.md` (French) — any user-visible change
+   - `README.en.md` (English) — same, translated
+   - `MAINTAINER.md` — any architecture / IPC / gotcha change
+   - `WORKFLOW.md` — add dated dev log entry for the session
+4. **Commit everything** on the feature branch (code + docs in one commit, or docs as a follow-up commit)
+5. **Ask the user to merge** — "Ready to merge `feature/xxx` → `main`?"
+6. **After merge confirmed**: bump version (`.\scripts\bump-version.ps1 X.Y.Z`), commit the bump, `git push`
+7. **Push the release tag** — `git tag vX.Y.Z && git push origin vX.Y.Z` (triggers GitHub Actions)
+8. **Write release notes** — add FR + EN entry to `CHANGELOG.md` for the new version, commit + push
 
 ---
 
 ## Branch strategy
 
+> **Rule #1 — enforced at session start**: Claude runs `git checkout -b feature/xxx` as the very first action of every session, before any file edit. If this step is skipped, no code changes are made until it is done.
+
 | Rule | Detail |
 |---|---|
-| Never commit to `main` directly | Always branch first |
+| **Never commit to `main` directly** | Always branch first — no exceptions |
 | Branch naming | `feature/short-description` (e.g. `feature/dashboard-rag-deps-tabs`) |
 | One branch per feature set | Group related changes; don't mix unrelated features |
-| Merge only when complete | Feature done + docs updated + smoke test passed |
+| Merge only when complete | Feature done + docs updated + user smoke test passed |
 
-```bash
+```powershell
+# Start of session — always first
 git checkout -b feature/my-feature
-# ... work ...
-git checkout main && git merge feature/my-feature --no-ff
+
+# End of session — after user approval
+git checkout main
+git merge feature/my-feature --no-ff
 git push
 ```
 
