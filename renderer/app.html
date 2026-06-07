@@ -12,21 +12,22 @@
 <body>
 <nav class="app-nav">
   <div class="nav-logo-group">
-    <span class="nav-logo" onclick="goHome()" style="cursor:pointer" title="Retour accueil">● WMS <span>Planning</span></span>
+    <span class="nav-logo" onclick="goHome()" style="cursor:pointer" data-i18n-title="nav.go_home" title="Retour accueil">● WMS <span>Planning</span></span>
     <span class="nav-app-version" id="nav-app-version"></span>
-    <div class="rag-nav-pill" id="rag-nav-pill" onclick="toggleRagDropdown(event)" title="Statut du projet">
+    <div class="rag-nav-pill" id="rag-nav-pill" onclick="toggleRagDropdown(event)" data-i18n-title="rag.project_status" title="Statut du projet">
       <span class="rag-nav-dot" id="rag-nav-dot"></span>
       <span class="rag-nav-lbl" id="rag-nav-lbl">—</span>
       <span class="rag-nav-arrow">▾</span>
       <div class="rag-nav-dropdown" id="rag-nav-dropdown">
-        <button class="rag-drop-item" onclick="event.stopPropagation();setRag('G');closeRagDropdown()"><span class="rag-dot rag-dot-g" style="width:8px;height:8px"></span>Vert — OK</button>
-        <button class="rag-drop-item" onclick="event.stopPropagation();setRag('A');closeRagDropdown()"><span class="rag-dot rag-dot-a" style="width:8px;height:8px"></span>Orange — Attention</button>
-        <button class="rag-drop-item" onclick="event.stopPropagation();setRag('R');closeRagDropdown()"><span class="rag-dot rag-dot-r" style="width:8px;height:8px"></span>Rouge — Bloqué</button>
-        <button class="rag-drop-item rag-drop-clear" onclick="event.stopPropagation();setRag('');closeRagDropdown()">✕ Effacer</button>
+        <button class="rag-drop-item" onclick="event.stopPropagation();setRag('G');closeRagDropdown()"><span class="rag-dot rag-dot-g" style="width:8px;height:8px"></span><span data-i18n="rag.green">Vert — OK</span></button>
+        <button class="rag-drop-item" onclick="event.stopPropagation();setRag('A');closeRagDropdown()"><span class="rag-dot rag-dot-a" style="width:8px;height:8px"></span><span data-i18n="rag.orange">Orange — Attention</span></button>
+        <button class="rag-drop-item" onclick="event.stopPropagation();setRag('R');closeRagDropdown()"><span class="rag-dot rag-dot-r" style="width:8px;height:8px"></span><span data-i18n="rag.red">Rouge — Bloqué</span></button>
+        <button class="rag-drop-item rag-drop-clear" onclick="event.stopPropagation();setRag('');closeRagDropdown()" data-i18n="rag.clear">✕ Effacer</button>
       </div>
     </div>
   </div>
   <div class="nav-tabs" id="nav-tabs">
+    <!-- Tab labels set dynamically by wms.js via BUILTIN_TABS.getDefaultLabel() -->
     <div class="nav-tab active" data-page="page-dashboard">Tableau de bord</div>
     <div class="nav-tab" data-page="page-planning">Planning</div>
     <div class="nav-tab" data-page="page-heures">Suivi Heures</div>
@@ -41,8 +42,8 @@
     <button class="btn btn-ghost btn-sm nav-tab-add" title="Ajouter un onglet personnalisé" onclick="openAddCustomTabModal()">＋</button>
   </div>
   <div class="nav-right">
-    <button class="btn btn-ghost btn-sm" id="nav-zoom-display" onclick="resetZoom()" title="Réinitialiser le zoom (Ctrl+scroll pour zoomer)">100%</button>
-    <button class="btn btn-ghost btn-sm" onclick="openManageTabsModal()" title="Gérer les onglets">⇄ Onglets</button>
+    <button class="btn btn-ghost btn-sm" id="nav-zoom-display" onclick="resetZoom()" data-i18n-title="nav.zoom_reset" title="Réinitialiser le zoom (Ctrl+scroll pour zoomer)">100%</button>
+    <button class="btn btn-ghost btn-sm" onclick="openManageTabsModal()" title="Gérer les onglets" data-i18n="nav.tabs_btn">⇄ Onglets</button>
     <button class="btn btn-ghost btn-sm btn-icon" onclick="openProjectSettings()" title="Paramètres du projet">⚙</button>
     <span class="save-indicator" id="save-indicator"></span>
     <!-- HTML export temporarily disabled — pending formatting review
@@ -62,77 +63,77 @@
 <!-- PROJECT SETTINGS MODAL -->
 <div class="modal-overlay" id="modal-project-settings" onclick="if(event.target===this)closeProjectSettings()">
   <div class="modal">
-    <h3>⚙ Paramètres du projet</h3>
+    <h3 data-i18n="modal.ps.title">⚙ Paramètres du projet</h3>
     <div class="settings-section">
-      <div class="settings-section-title">Informations du projet</div>
+      <div class="settings-section-title" data-i18n="modal.ps.info">Informations du projet</div>
       <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin-bottom:4px">
-        <div><label style="font-size:11px;color:var(--text-muted)">Nom du projet</label><input type="text" id="ps-meta-name" class="settings-text-input" oninput="saveMetaFromSettings()"></div>
-        <div><label style="font-size:11px;color:var(--text-muted)">Client</label><input type="text" id="ps-meta-client" class="settings-text-input" oninput="saveMetaFromSettings()"></div>
-        <div><label style="font-size:11px;color:var(--text-muted)">Directeur de Projet</label><input type="text" id="ps-meta-pm" class="settings-text-input" oninput="saveMetaFromSettings()"></div>
-        <div><label style="font-size:11px;color:var(--text-muted)">Chef de Projet Tech.</label><input type="text" id="ps-meta-cdptech" class="settings-text-input" oninput="saveMetaFromSettings()"></div>
-        <div><label style="font-size:11px;color:var(--text-muted)">Resp. Logistique Client</label><input type="text" id="ps-meta-resplog" class="settings-text-input" oninput="saveMetaFromSettings()"></div>
-        <div><label style="font-size:11px;color:var(--text-muted)">Consultant ERP</label><input type="text" id="ps-meta-erpconsult" class="settings-text-input" oninput="saveMetaFromSettings()"></div>
+        <div><label style="font-size:11px;color:var(--text-muted)" data-i18n="modal.ps.name">Nom du projet</label><input type="text" id="ps-meta-name" class="settings-text-input" oninput="saveMetaFromSettings()"></div>
+        <div><label style="font-size:11px;color:var(--text-muted)" data-i18n="modal.ps.client">Client</label><input type="text" id="ps-meta-client" class="settings-text-input" oninput="saveMetaFromSettings()"></div>
+        <div><label style="font-size:11px;color:var(--text-muted)" data-i18n="modal.ps.pm">Directeur de Projet</label><input type="text" id="ps-meta-pm" class="settings-text-input" oninput="saveMetaFromSettings()"></div>
+        <div><label style="font-size:11px;color:var(--text-muted)" data-i18n="modal.ps.cdptech">Chef de Projet Tech.</label><input type="text" id="ps-meta-cdptech" class="settings-text-input" oninput="saveMetaFromSettings()"></div>
+        <div><label style="font-size:11px;color:var(--text-muted)" data-i18n="modal.ps.resplog">Resp. Logistique Client</label><input type="text" id="ps-meta-resplog" class="settings-text-input" oninput="saveMetaFromSettings()"></div>
+        <div><label style="font-size:11px;color:var(--text-muted)" data-i18n="modal.ps.erpconsult">Consultant ERP</label><input type="text" id="ps-meta-erpconsult" class="settings-text-input" oninput="saveMetaFromSettings()"></div>
       </div>
     </div>
     <div class="settings-section">
-      <div class="settings-section-title">Dossier de sauvegarde secondaire</div>
-      <p class="settings-hint">Ce projet sera aussi sauvegardé dans ce dossier à l'intervalle défini ci-dessous.</p>
+      <div class="settings-section-title" data-i18n="modal.ps.secondary">Dossier de sauvegarde secondaire</div>
+      <p class="settings-hint" data-i18n="modal.ps.secondary_hint">Ce projet sera aussi sauvegardé dans ce dossier à l'intervalle défini ci-dessous.</p>
       <div class="folder-picker-row">
-        <div class="folder-display" id="ps-folder-display">Aucun</div>
-        <button class="btn btn-secondary btn-sm" onclick="pickAutoSavePath()">Parcourir…</button>
-        <button class="btn btn-ghost btn-sm" onclick="resetAutoSavePath()">Réinitialiser</button>
+        <div class="folder-display" id="ps-folder-display" data-i18n="modal.ps.none">Aucun</div>
+        <button class="btn btn-secondary btn-sm" onclick="pickAutoSavePath()" data-i18n="settings.btn.browse">Parcourir…</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetAutoSavePath()" data-i18n="settings.btn.reset">Réinitialiser</button>
       </div>
       <div class="form-row" style="margin-top:8px;align-items:center;gap:10px;display:flex">
-        <label style="margin:0;white-space:nowrap">Intervalle (min.)</label>
+        <label style="margin:0;white-space:nowrap" data-i18n="modal.ps.interval">Intervalle (min.)</label>
         <input type="number" id="ps-interval" min="1" max="1440" value="5" style="width:70px" onchange="saveAutoSaveInterval()">
       </div>
     </div>
     <div class="settings-section">
-      <div class="settings-section-title">Options Propriétaire</div>
-      <p class="settings-hint">Valeurs personnalisées pour le menu "Propriétaire" de ce projet. Vide = Intégrateur, Autre.</p>
+      <div class="settings-section-title" data-i18n="modal.ps.owner_opts">Options Propriétaire</div>
+      <p class="settings-hint" data-i18n="modal.ps.owner_hint">Valeurs personnalisées pour le menu "Propriétaire" de ce projet. Vide = Intégrateur, Autre.</p>
       <div id="ps-owner-list"></div>
       <div class="folder-picker-row" style="margin-top:8px">
-        <input type="text" id="ps-owner-new" class="settings-text-input" placeholder="Nouvelle valeur…" style="flex:1">
-        <button class="btn btn-secondary btn-sm" onclick="addProjectOwnerOption()">Ajouter</button>
+        <input type="text" id="ps-owner-new" class="settings-text-input" data-i18n-placeholder="modal.ps.owner_new" placeholder="Nouvelle valeur…" style="flex:1">
+        <button class="btn btn-secondary btn-sm" onclick="addProjectOwnerOption()" data-i18n="btn.add">Ajouter</button>
       </div>
     </div>
     <div class="settings-section">
-      <div class="settings-section-title">Clé de projet JIRA</div>
-      <p class="settings-hint">Clé courte identifiant ce projet dans JIRA (ex : WMS, DEV). Les identifiants de connexion se configurent dans les Paramètres de l'application.</p>
+      <div class="settings-section-title" data-i18n="modal.ps.jira_key">Clé de projet JIRA</div>
+      <p class="settings-hint" data-i18n="modal.ps.jira_hint">Clé courte identifiant ce projet dans JIRA (ex : WMS, DEV). Les identifiants de connexion se configurent dans les Paramètres de l'application.</p>
       <input type="text" id="ps-jira-key" class="settings-text-input" placeholder="ex : WMS" style="text-transform:uppercase" oninput="saveJiraProjectKey()">
     </div>
     <div class="settings-section">
-      <div class="settings-section-title">Chemin source (lecture)</div>
-      <p class="settings-hint">Si défini, le projet sera rechargé depuis ce fichier à chaque ouverture (ex : dossier partagé Git). L'enregistrement reste local.</p>
+      <div class="settings-section-title" data-i18n="modal.ps.source">Chemin source (lecture)</div>
+      <p class="settings-hint" data-i18n="modal.ps.source_hint">Si défini, le projet sera rechargé depuis ce fichier à chaque ouverture (ex : dossier partagé Git). L'enregistrement reste local.</p>
       <div class="folder-picker-row">
-        <div class="folder-display" id="ps-source-path-display">Aucun (chemin par défaut)</div>
-        <button class="btn btn-secondary btn-sm" onclick="pickSourcePath()">Choisir…</button>
-        <button class="btn btn-ghost btn-sm" onclick="resetSourcePath()">Réinitialiser</button>
+        <div class="folder-display" id="ps-source-path-display" data-i18n="modal.ps.source_none">Aucun (chemin par défaut)</div>
+        <button class="btn btn-secondary btn-sm" onclick="pickSourcePath()" data-i18n="settings.btn.choose">Choisir…</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetSourcePath()" data-i18n="settings.btn.reset">Réinitialiser</button>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-primary" onclick="closeProjectSettings()">Fermer</button>
+      <button class="btn btn-primary" onclick="closeProjectSettings()" data-i18n="settings.btn.close">Fermer</button>
     </div>
   </div>
 </div>
 
 <!-- RELOAD BANNER (shown when file changed on disk by another user) -->
 <div class="reload-banner" id="reload-banner" style="display:none">
-  <span>⚠ Ce projet a été modifié par un autre utilisateur.</span>
-  <button class="btn btn-secondary btn-sm" onclick="reloadProject()">Recharger</button>
-  <button class="btn btn-ghost btn-sm" onclick="document.getElementById('reload-banner').style.display='none'">Ignorer</button>
+  <span data-i18n="banner.modified">⚠ Ce projet a été modifié par un autre utilisateur.</span>
+  <button class="btn btn-secondary btn-sm" onclick="reloadProject()" data-i18n="banner.reload">Recharger</button>
+  <button class="btn btn-ghost btn-sm" onclick="document.getElementById('reload-banner').style.display='none'" data-i18n="banner.dismiss">Ignorer</button>
 </div>
 
 <!-- UNDO TOAST -->
 <div class="undo-toast" id="undo-toast" style="display:none">
   <span id="undo-toast-msg">Élément supprimé</span>
-  <button class="btn btn-secondary btn-sm" onclick="undoDelete()">Annuler</button>
+  <button class="btn btn-secondary btn-sm" onclick="undoDelete()" data-i18n="undo.btn">Annuler</button>
 </div>
 
 <!-- DASHBOARD -->
 <div class="page active" id="page-dashboard">
   <div class="dash-toolbar">
-    <button class="btn btn-secondary btn-sm" onclick="openDashCustomize()">⚙ Personnaliser</button>
+    <button class="btn btn-secondary btn-sm" onclick="openDashCustomize()" data-i18n="dash.customize">⚙ Personnaliser</button>
   </div>
   <div class="kpi-grid" id="dash-kpi"></div>
   <!-- Install date drift indicator -->
@@ -140,81 +141,81 @@
   <!-- This week panel -->
   <div id="dash-this-week" style="display:none"></div>
   <div class="chart-grid">
-    <div class="chart-card" id="card-phases"><div class="chart-card-title">Avancement par Phase</div><div class="chart-wrap"><canvas id="ch-phases"></canvas></div></div>
-    <div class="chart-card" id="card-statuts"><div class="chart-card-title">Répartition des Statuts</div><div class="chart-wrap"><canvas id="ch-statuts"></canvas></div></div>
+    <div class="chart-card" id="card-phases"><div class="chart-card-title" data-i18n="dash.phases_title">Avancement par Phase</div><div class="chart-wrap"><canvas id="ch-phases"></canvas></div></div>
+    <div class="chart-card" id="card-statuts"><div class="chart-card-title" data-i18n="dash.statuts_title">Répartition des Statuts</div><div class="chart-wrap"><canvas id="ch-statuts"></canvas></div></div>
   </div>
   <div class="chart-grid">
-    <div class="chart-card" id="card-heures"><div class="chart-card-title">Suivi Heures — Vente vs Actuel</div><div class="chart-wrap"><canvas id="ch-heures"></canvas></div></div>
-    <div class="chart-card" id="card-fact"><div class="chart-card-title" id="ch-fact-title">Facturation</div><div class="chart-wrap"><canvas id="ch-fact"></canvas></div></div>
+    <div class="chart-card" id="card-heures"><div class="chart-card-title" data-i18n="dash.heures_title">Suivi Heures — Vente vs Actuel</div><div class="chart-wrap"><canvas id="ch-heures"></canvas></div></div>
+    <div class="chart-card" id="card-fact"><div class="chart-card-title" id="ch-fact-title" data-i18n="dash.fact_title">Facturation</div><div class="chart-wrap"><canvas id="ch-fact"></canvas></div></div>
   </div>
   <div class="chart-grid-3">
-    <div class="chart-card" id="card-itf"><div class="chart-card-title">Interfaces ERP</div><div class="chart-wrap"><canvas id="ch-itf"></canvas></div></div>
-    <div class="chart-card" id="card-install"><div class="chart-card-title">Prérequis Installation</div><div class="chart-wrap"><canvas id="ch-install"></canvas></div></div>
-    <div class="chart-card" id="card-dryrun"><div class="chart-card-title">Prérequis Dry Run</div><div class="chart-wrap"><canvas id="ch-dryrun"></canvas></div></div>
+    <div class="chart-card" id="card-itf"><div class="chart-card-title" data-i18n="dash.itf_title">Interfaces ERP</div><div class="chart-wrap"><canvas id="ch-itf"></canvas></div></div>
+    <div class="chart-card" id="card-install"><div class="chart-card-title" data-i18n="dash.install_title">Prérequis Installation</div><div class="chart-wrap"><canvas id="ch-install"></canvas></div></div>
+    <div class="chart-card" id="card-dryrun"><div class="chart-card-title" data-i18n="dash.dryrun_title">Prérequis Dry Run</div><div class="chart-wrap"><canvas id="ch-dryrun"></canvas></div></div>
   </div>
   <div class="chart-grid">
-    <div class="chart-card" id="card-jira"><div class="chart-card-title">JIRA — Avancement par Épic</div><div class="chart-wrap"><canvas id="ch-jira"></canvas></div></div>
+    <div class="chart-card" id="card-jira"><div class="chart-card-title" data-i18n="dash.jira_title">JIRA — Avancement par Épic</div><div class="chart-wrap"><canvas id="ch-jira"></canvas></div></div>
   </div>
 </div>
 
 <!-- PLANNING -->
 <div class="page" id="page-planning">
   <div class="project-header">
-    <div class="info-item"><label>Projet</label><input id="pi-project" oninput="onMetaInput()"></div>
-    <div class="info-item"><label>Dir. Projet</label><input id="pi-pm" oninput="onMetaInput()"></div>
-    <div class="info-item"><label>Client</label><input id="pi-client" oninput="onMetaInput()" onblur="renderGantt();renderTaches();renderInstall()"></div>
-    <div class="info-item"><label>Chef de Projet Tech.</label><input id="pi-cdptech" oninput="onMetaInput()"></div>
-    <div class="info-item"><label>Resp. Logistique Client</label><input id="pi-resplog" oninput="onMetaInput()"></div>
-    <div class="info-item"><label>Consultant ERP</label><input id="pi-erpconsult" oninput="onMetaInput()"></div>
+    <div class="info-item"><label data-i18n="pi.project">Projet</label><input id="pi-project" oninput="onMetaInput()"></div>
+    <div class="info-item"><label data-i18n="pi.pm">Dir. Projet</label><input id="pi-pm" oninput="onMetaInput()"></div>
+    <div class="info-item"><label data-i18n="pi.client">Client</label><input id="pi-client" oninput="onMetaInput()" onblur="renderGantt();renderTaches();renderInstall()"></div>
+    <div class="info-item"><label data-i18n="pi.cdptech">Chef de Projet Tech.</label><input id="pi-cdptech" oninput="onMetaInput()"></div>
+    <div class="info-item"><label data-i18n="pi.resplog">Resp. Logistique Client</label><input id="pi-resplog" oninput="onMetaInput()"></div>
+    <div class="info-item"><label data-i18n="pi.erpconsult">Consultant ERP</label><input id="pi-erpconsult" oninput="onMetaInput()"></div>
   </div>
   <div class="project-header project-header-dates">
-    <div class="info-item"><label>Date de début</label><input id="pi-start" type="date" onchange="onMetaInput();renderGantt()"></div>
+    <div class="info-item"><label data-i18n="pi.start">Date de début</label><input id="pi-start" type="date" onchange="onMetaInput();renderGantt()"></div>
     <div class="info-item install-date-group">
-      <label>Date d'installation prévue</label>
+      <label data-i18n="pi.install">Date d'installation prévue</label>
       <div class="install-dates">
         <input id="pi-install-orig" type="date" onchange="handleInstallOrigChange(this.value)">
         <div id="install-delay-section" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px">
-          <span class="badge badge-retarde" style="font-size:10px">Reportée</span>
+          <span class="badge badge-retarde" style="font-size:10px" data-i18n="pi.delayed">Reportée</span>
           <input id="pi-install-delayed" type="date" onchange="onMetaInput()">
-          <input id="pi-install-comment" type="text" placeholder="Motif du report…" class="install-comment-input" oninput="onMetaInput()">
+          <input id="pi-install-comment" type="text" data-i18n-placeholder="pi.delay_reason" placeholder="Motif du report…" class="install-comment-input" oninput="onMetaInput()">
           <button class="btn btn-ghost btn-xs" onclick="clearInstallDelay()" title="Annuler le report" style="font-size:11px;padding:1px 6px;color:#111;font-weight:700">✕</button>
         </div>
-        <button id="btn-signal-report" class="btn btn-ghost" style="font-size:10px;padding:2px 8px;margin-top:4px" onclick="openInstallDelaySection()">Signaler un report…</button>
+        <button id="btn-signal-report" class="btn btn-ghost" style="font-size:10px;padding:2px 8px;margin-top:4px" onclick="openInstallDelaySection()" data-i18n="pi.signal_delay">Signaler un report…</button>
         <div id="install-wd-badge" style="font-size:11px;font-weight:600;margin-top:4px"></div>
       </div>
     </div>
     <!-- Hidden fields: in DOM for data model, not shown in UI -->
     <input id="pi-install-actual" type="date" onchange="onMetaInput()" style="display:none">
     <input id="pi-end" type="date" onchange="onMetaInput();renderGantt()" style="display:none">
-    <div class="info-item info-item-notes"><label>Remarques</label><textarea id="pi-notes" rows="2" oninput="onMetaInput()" placeholder="Notes libres sur le projet…"></textarea></div>
+    <div class="info-item info-item-notes"><label data-i18n="pi.notes">Remarques</label><textarea id="pi-notes" rows="2" oninput="onMetaInput()" placeholder="Notes libres sur le projet…"></textarea></div>
   </div>
   <div class="panel" id="planning-panel">
     <div class="planning-toolbar">
-      <button class="btn btn-secondary btn-sm" onclick="scrollToToday()">📍 Aujourd'hui</button>
+      <button class="btn btn-secondary btn-sm" onclick="scrollToToday()" data-i18n="planning.today">📍 Aujourd'hui</button>
       <div class="sep"></div>
-      <div class="toggle-group"><label class="toggle-switch"><input type="checkbox" id="tog-dates" checked onchange="renderGantt()"><span class="toggle-slider"></span></label>Dates & Jours</div>
-      <div class="toggle-group"><label class="toggle-switch"><input type="checkbox" id="tog-owner" checked onchange="renderGantt()"><span class="toggle-slider"></span></label>Propriétaire</div>
-      <div class="toggle-group"><label class="toggle-switch"><input type="checkbox" id="tog-prio" checked onchange="renderGantt()"><span class="toggle-slider"></span></label>Priorité</div>
-      <div class="toggle-group"><label class="toggle-switch"><input type="checkbox" id="tog-avance" checked onchange="renderGantt()"><span class="toggle-slider"></span></label>Avancement</div>
+      <div class="toggle-group"><label class="toggle-switch"><input type="checkbox" id="tog-dates" checked onchange="renderGantt()"><span class="toggle-slider"></span></label><span data-i18n="planning.dates">Dates &amp; Jours</span></div>
+      <div class="toggle-group"><label class="toggle-switch"><input type="checkbox" id="tog-owner" checked onchange="renderGantt()"><span class="toggle-slider"></span></label><span data-i18n="planning.owner">Propriétaire</span></div>
+      <div class="toggle-group"><label class="toggle-switch"><input type="checkbox" id="tog-prio" checked onchange="renderGantt()"><span class="toggle-slider"></span></label><span data-i18n="planning.priority">Priorité</span></div>
+      <div class="toggle-group"><label class="toggle-switch"><input type="checkbox" id="tog-avance" checked onchange="renderGantt()"><span class="toggle-slider"></span></label><span data-i18n="planning.progress">Avancement</span></div>
       <div class="sep"></div>
-      <button class="btn btn-secondary btn-sm" onclick="openAddPhaseModal()">+ Phase</button>
-      <button id="btn-edit-planning" class="btn btn-secondary btn-sm" onclick="toggleGanttEditMode()" title="Activer le mode réorganisation par glisser-déposer">✏ Réorganiser</button>
-      <button class="btn btn-secondary btn-sm" onclick="exportPDF()">Export PDF</button>
+      <button class="btn btn-secondary btn-sm" onclick="openAddPhaseModal()" data-i18n="planning.add_phase">+ Phase</button>
+      <button id="btn-edit-planning" class="btn btn-secondary btn-sm" onclick="toggleGanttEditMode()" title="Activer le mode réorganisation par glisser-déposer" data-i18n="planning.reorder">✏ Réorganiser</button>
+      <button class="btn btn-secondary btn-sm" onclick="exportPDF()" data-i18n="planning.export_pdf">Export PDF</button>
     </div>
     <div class="gantt-wrapper" id="gantt-wrapper"><table class="gantt-table" id="gantt-table"></table></div>
     <div class="legend">
-      <div class="legend-item"><div class="legend-dot" style="background:#2563eb"></div>Planification</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div>Interface ERP</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#0891b2"></div>Développements</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#059669"></div>Formation & UAT</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#ea580c"></div>Installation</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#dc2626"></div>Dry Run</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#4f46e5"></div>HyperCare</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#64748b"></div>Congés</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#f97316;width:2px;height:13px;border-radius:0"></div>Aujourd'hui</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#94a3b8;opacity:.35"></div>100% terminé</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#2563eb"></div><span data-i18n="legend.planning">Planification</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div><span data-i18n="legend.erp">Interface ERP</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#0891b2"></div><span data-i18n="legend.dev">Développements</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#059669"></div><span data-i18n="legend.training">Formation &amp; UAT</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ea580c"></div><span data-i18n="legend.install">Installation</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#dc2626"></div><span data-i18n="legend.dryrun">Dry Run</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#4f46e5"></div><span data-i18n="legend.hypercare">HyperCare</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#64748b"></div><span data-i18n="legend.vacation">Congés</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f97316;width:2px;height:13px;border-radius:0"></div><span data-i18n="legend.today">Aujourd'hui</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#94a3b8;opacity:.35"></div><span data-i18n="legend.done">100% terminé</span></div>
     </div>
-    <div class="scroll-hint">← Défilement horizontal →</div>
+    <div class="scroll-hint" data-i18n="legend.scroll">← Défilement horizontal →</div>
   </div>
 </div>
 
@@ -223,72 +224,72 @@
   <div class="kpi-grid" id="kpi-heures"></div>
   <div class="panel">
     <div class="panel-header">
-      <span class="panel-title">Budget Heures — Vente initiale vs Actuel</span>
+      <span class="panel-title" data-i18n="panel.hours">Budget Heures — Vente initiale vs Actuel</span>
     </div>
     <div style="padding:0"><table class="data-table">
       <thead><tr>
         <th style="width:26px"></th>
-        <th>Catégorie</th>
-        <th style="width:100px">Type</th>
-        <th style="text-align:right;width:90px">Vente (h)</th>
-        <th style="text-align:right;width:90px">Actuel (h)</th>
-        <th style="text-align:right;width:80px">Écart</th>
+        <th data-i18n="th.category">Catégorie</th>
+        <th style="width:100px" data-i18n="th.type">Type</th>
+        <th style="text-align:right;width:90px" data-i18n="th.sold_h">Vente (h)</th>
+        <th style="text-align:right;width:90px" data-i18n="th.actual_h">Actuel (h)</th>
+        <th style="text-align:right;width:80px" data-i18n="th.variance">Écart</th>
         <th style="width:34px" title="Historique"></th>
-        <th>Description</th>
+        <th data-i18n="th.description">Description</th>
         <th style="width:50px"></th>
       </tr></thead>
       <tbody id="tbody-heures"></tbody>
       <tfoot><tr>
         <td colspan="9" style="padding:6px 12px">
-          <button class="btn btn-secondary btn-sm" onclick="addCustomHeuresRow()">＋ Ajouter une catégorie</button>
+          <button class="btn btn-secondary btn-sm" onclick="addCustomHeuresRow()" data-i18n="btn.add_cat">＋ Ajouter une catégorie</button>
         </td>
       </tr></tfoot>
     </table></div>
   </div>
   <div class="kpi-grid" id="kpi-deplacements"></div>
   <div class="panel">
-    <div class="panel-header"><span class="panel-title">Déplacements</span></div>
-    <div style="padding:0"><table class="data-table"><thead><tr><th>Catégorie</th><th style="width:130px;text-align:right">Vendu (€)</th><th style="width:130px;text-align:right">Dépensé (€)</th><th style="width:60px"></th></tr></thead><tbody id="tbody-deplacements"></tbody></table></div>
+    <div class="panel-header"><span class="panel-title" data-i18n="panel.depl">Déplacements</span></div>
+    <div style="padding:0"><table class="data-table"><thead><tr><th data-i18n="th.category">Catégorie</th><th style="width:130px;text-align:right" data-i18n="th.sold_eur">Vendu (€)</th><th style="width:130px;text-align:right" data-i18n="th.spent_eur">Dépensé (€)</th><th style="width:60px"></th></tr></thead><tbody id="tbody-deplacements"></tbody></table></div>
   </div>
 </div>
 
 <!-- TÂCHES INTERNES -->
 <div class="page" id="page-taches">
   <div class="panel">
-    <div class="panel-header"><span class="panel-title">Suivi Tâches Internes</span><button class="btn btn-secondary btn-sm" onclick="addInternalTask()">+ Tâche</button></div>
-    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th>Action</th><th style="width:108px">Propriétaire</th><th style="width:108px">État</th><th style="width:64px">Temps (h)</th><th style="width:108px">Deadline</th><th style="width:50px">Urg.</th><th>Commentaire</th><th style="width:50px"></th></tr></thead><tbody id="tbody-taches"></tbody></table></div>
+    <div class="panel-header"><span class="panel-title" data-i18n="panel.tasks">Suivi Tâches Internes</span><button class="btn btn-secondary btn-sm" onclick="addInternalTask()" data-i18n="btn.add_task">+ Tâche</button></div>
+    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th data-i18n="th.action">Action</th><th style="width:108px" data-i18n="th.owner">Propriétaire</th><th style="width:108px" data-i18n="th.status">État</th><th style="width:64px" data-i18n="th.time_h">Temps (h)</th><th style="width:108px" data-i18n="th.deadline">Deadline</th><th style="width:50px" data-i18n="th.urgency">Urg.</th><th data-i18n="th.comment">Commentaire</th><th style="width:50px"></th></tr></thead><tbody id="tbody-taches"></tbody></table></div>
   </div>
 </div>
 
 <!-- INTERFACES -->
 <div class="page" id="page-interfaces">
   <div class="panel">
-    <div class="panel-header"><span class="panel-title">Suivi Interfaces ERP</span><button class="btn btn-secondary btn-sm" onclick="addInterface()">+ Interface</button></div>
-    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th style="width:115px">Type</th><th>Nom du fichier</th><th style="width:78px">Développé</th><th style="width:82px">Livré Preprod</th><th style="width:98px" id="th-rec-company">Recette</th><th style="width:92px">Recette Client</th><th style="width:68px">Validé</th><th>Commentaires</th><th style="width:34px"></th></tr></thead><tbody id="tbody-interfaces"></tbody></table></div>
+    <div class="panel-header"><span class="panel-title" data-i18n="panel.interfaces">Suivi Interfaces ERP</span><button class="btn btn-secondary btn-sm" onclick="addInterface()" data-i18n="btn.add_itf">+ Interface</button></div>
+    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th style="width:115px" data-i18n="th.type">Type</th><th data-i18n="th.filename">Nom du fichier</th><th style="width:78px" data-i18n="th.dev">Développé</th><th style="width:82px" data-i18n="th.preprod">Livré Preprod</th><th style="width:98px" id="th-rec-company">Recette</th><th style="width:92px" data-i18n="th.rec_client">Recette Client</th><th style="width:68px" data-i18n="th.validated">Validé</th><th data-i18n="th.comments">Commentaires</th><th style="width:34px"></th></tr></thead><tbody id="tbody-interfaces"></tbody></table></div>
   </div>
 </div>
 
 <!-- FONCTIONNEL -->
 <div class="page" id="page-fonctionnel">
   <div class="panel">
-    <div class="panel-header"><span class="panel-title">Suivi Fonctionnel</span><button class="btn btn-secondary btn-sm" onclick="addFonctionnel()">+ Flux</button></div>
-    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th>Flux</th><th style="width:78px">Développé</th><th style="width:68px">% Tâches</th><th style="width:98px" id="th-test-company">Test</th><th style="width:103px">Livraison Preprod</th><th style="width:113px">Formation Key Users</th><th style="width:88px">Test Client</th><th style="width:108px">Formation Users</th><th>Commentaires</th><th style="width:34px"></th></tr></thead><tbody id="tbody-fonctionnel"></tbody></table></div>
+    <div class="panel-header"><span class="panel-title" data-i18n="panel.fonct">Suivi Fonctionnel</span><button class="btn btn-secondary btn-sm" onclick="addFonctionnel()" data-i18n="btn.add_flow">+ Flux</button></div>
+    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th data-i18n="th.flow">Flux</th><th style="width:78px" data-i18n="th.dev">Développé</th><th style="width:68px" data-i18n="th.pct_tasks">% Tâches</th><th style="width:98px" id="th-test-company">Test</th><th style="width:103px" data-i18n="modal.fonct.preprod">Livraison Preprod</th><th style="width:113px" data-i18n="modal.fonct.form_ku">Formation Key Users</th><th style="width:88px" data-i18n="modal.fonct.test_client">Test Client</th><th style="width:108px" data-i18n="modal.fonct.form_users">Formation Users</th><th data-i18n="th.comments">Commentaires</th><th style="width:34px"></th></tr></thead><tbody id="tbody-fonctionnel"></tbody></table></div>
   </div>
 </div>
 
 <!-- DRY RUN -->
 <div class="page" id="page-dryrun">
   <div class="panel">
-    <div class="panel-header"><span class="panel-title">Prérequis DRY RUN</span><button class="btn btn-secondary btn-sm" onclick="addDryrun()">+ Prérequis</button></div>
-    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th>Prérequis</th><th style="width:108px">État</th><th>Commentaires</th><th style="width:34px"></th></tr></thead><tbody id="tbody-dryrun"></tbody></table></div>
+    <div class="panel-header"><span class="panel-title" data-i18n="panel.dryrun">Prérequis DRY RUN</span><button class="btn btn-secondary btn-sm" onclick="addDryrun()" data-i18n="btn.add_prereq">+ Prérequis</button></div>
+    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th data-i18n="th.prereq">Prérequis</th><th style="width:108px" data-i18n="th.status">État</th><th data-i18n="th.comments">Commentaires</th><th style="width:34px"></th></tr></thead><tbody id="tbody-dryrun"></tbody></table></div>
   </div>
 </div>
 
 <!-- INSTALL -->
 <div class="page" id="page-install">
   <div class="panel">
-    <div class="panel-header"><span class="panel-title">Prérequis Installation</span><button class="btn btn-secondary btn-sm" onclick="addInstall()">+ Prérequis</button></div>
-    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th>Action</th><th style="width:98px">État</th><th style="width:88px">Qui ?</th><th style="width:108px">Deadline</th><th>Commentaire</th><th style="width:34px"></th></tr></thead><tbody id="tbody-install"></tbody></table></div>
+    <div class="panel-header"><span class="panel-title" data-i18n="panel.install">Prérequis Installation</span><button class="btn btn-secondary btn-sm" onclick="addInstall()" data-i18n="btn.add_prereq">+ Prérequis</button></div>
+    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th data-i18n="th.action">Action</th><th style="width:98px" data-i18n="th.status">État</th><th style="width:88px" data-i18n="th.who">Qui ?</th><th style="width:108px" data-i18n="th.deadline">Deadline</th><th data-i18n="th.comment">Commentaire</th><th style="width:34px"></th></tr></thead><tbody id="tbody-install"></tbody></table></div>
   </div>
 </div>
 
@@ -296,12 +297,12 @@
 <div class="page" id="page-facturation">
   <div class="kpi-grid" id="kpi-fact"></div>
   <div class="panel">
-    <div class="panel-header"><span class="panel-title">Jalons Projet</span><button class="btn btn-secondary btn-sm" onclick="addJalon('projet')">+ Jalon</button></div>
-    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th>Jalon</th><th style="width:100px">Date</th><th style="width:100px">Échéance</th><th style="width:88px">État</th><th style="width:46px">%</th><th style="width:140px">Montant</th><th style="width:50px"></th></tr></thead><tbody id="tbody-jalons-projet"></tbody></table></div>
+    <div class="panel-header"><span class="panel-title" data-i18n="panel.jalons_proj">Jalons Projet</span><button class="btn btn-secondary btn-sm" onclick="addJalon('projet')" data-i18n="btn.add_jalon">+ Jalon</button></div>
+    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th data-i18n="th.milestone">Jalon</th><th style="width:100px" data-i18n="th.date">Date</th><th style="width:100px" data-i18n="th.due">Échéance</th><th style="width:88px" data-i18n="th.status">État</th><th style="width:46px" data-i18n="th.pct">%</th><th style="width:140px" data-i18n="th.amount">Montant</th><th style="width:50px"></th></tr></thead><tbody id="tbody-jalons-projet"></tbody></table></div>
   </div>
   <div class="panel">
-    <div class="panel-header"><span class="panel-title">Jalons Équipement</span><button class="btn btn-secondary btn-sm" onclick="addJalon('equip')">+ Jalon</button></div>
-    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th>Jalon</th><th style="width:100px">Date</th><th style="width:100px">Échéance</th><th style="width:88px">État</th><th style="width:46px">%</th><th style="width:140px">Montant</th><th style="width:50px"></th></tr></thead><tbody id="tbody-jalons-equip"></tbody></table></div>
+    <div class="panel-header"><span class="panel-title" data-i18n="panel.jalons_equip">Jalons Équipement</span><button class="btn btn-secondary btn-sm" onclick="addJalon('equip')" data-i18n="btn.add_jalon">+ Jalon</button></div>
+    <div style="padding:0"><table class="data-table"><thead><tr><th style="width:26px"></th><th data-i18n="th.milestone">Jalon</th><th style="width:100px" data-i18n="th.date">Date</th><th style="width:100px" data-i18n="th.due">Échéance</th><th style="width:88px" data-i18n="th.status">État</th><th style="width:46px" data-i18n="th.pct">%</th><th style="width:140px" data-i18n="th.amount">Montant</th><th style="width:50px"></th></tr></thead><tbody id="tbody-jalons-equip"></tbody></table></div>
   </div>
 </div>
 
@@ -312,50 +313,50 @@
 <div class="modal-overlay" id="modal-task">
   <div class="modal">
     <h3 id="modal-task-title">Nouvelle Tâche</h3>
-    <div class="form-row"><label>Phase</label><select id="task-phase"></select></div>
-    <div class="form-row"><label>Intitulé *</label><input id="task-name" type="text"></div>
-    <div class="form-row"><label>Propriétaire</label><select id="task-owner"></select></div>
+    <div class="form-row"><label data-i18n="modal.task.phase">Phase</label><select id="task-phase"></select></div>
+    <div class="form-row"><label data-i18n="modal.task.title_field">Intitulé *</label><input id="task-name" type="text"></div>
+    <div class="form-row"><label data-i18n="modal.task.owner">Propriétaire</label><select id="task-owner"></select></div>
     <div id="task-segments-list"></div>
-    <button type="button" class="btn btn-secondary btn-sm" onclick="addTaskSegment()" style="margin-bottom:6px">＋ Ajouter une période</button>
+    <button type="button" class="btn btn-secondary btn-sm" onclick="addTaskSegment()" style="margin-bottom:6px" data-i18n="modal.task.add_period">＋ Ajouter une période</button>
     <div class="form-2col">
-      <div class="form-row"><label>Statut</label><select id="task-status"><option value="">— Aucun —</option><option>Non commencé</option><option>En cours</option><option>Terminé</option><option>En attente</option><option>En retard</option><option>Vérification requise</option><option>Mise à jour requise</option></select></div>
-      <div class="form-row"><label>Priorité</label><select id="task-priority"><option value="">—</option><option>FAIBLE</option><option>MOYENNE</option><option>ÉLEVÉE</option></select></div>
+      <div class="form-row"><label data-i18n="modal.task.status">Statut</label><select id="task-status"><option value="">— Aucun —</option><option>Non commencé</option><option>En cours</option><option>Terminé</option><option>En attente</option><option>En retard</option><option>Vérification requise</option><option>Mise à jour requise</option></select></div>
+      <div class="form-row"><label data-i18n="modal.task.priority">Priorité</label><select id="task-priority"><option value="">—</option><option>FAIBLE</option><option>MOYENNE</option><option>ÉLEVÉE</option></select></div>
     </div>
-    <div class="form-row"><label>% Avancement</label><input id="task-progress" type="number" min="0" max="100" value="0"></div>
-    <div class="form-row"><label>Livrable</label><input id="task-deliverable" type="text"></div>
-    <div class="form-row"><label>Dépendances</label><select id="task-deps" multiple style="height:72px;font-size:12px"></select><div style="font-size:11px;color:var(--text-muted);margin-top:3px">Ctrl+clic pour sélection multiple</div></div>
+    <div class="form-row"><label data-i18n="modal.task.progress">% Avancement</label><input id="task-progress" type="number" min="0" max="100" value="0"></div>
+    <div class="form-row"><label data-i18n="modal.task.deliverable">Livrable</label><input id="task-deliverable" type="text"></div>
+    <div class="form-row"><label data-i18n="modal.task.deps">Dépendances</label><select id="task-deps" multiple style="height:72px;font-size:12px"></select><div style="font-size:11px;color:var(--text-muted);margin-top:3px" data-i18n="modal.task.deps_hint">Ctrl+clic pour sélection multiple</div></div>
     <div class="form-row" style="flex-direction:row;align-items:center;gap:8px">
       <input id="task-unavail" type="checkbox" style="width:auto;margin:0">
-      <label style="margin:0;font-weight:500;cursor:pointer" for="task-unavail">Indisponibilité / congé</label>
+      <label style="margin:0;font-weight:500;cursor:pointer" for="task-unavail" data-i18n="modal.task.unavail">Indisponibilité / congé</label>
     </div>
-    <div class="modal-footer"><button class="btn btn-danger" id="btn-delete-task" onclick="deleteTaskFromModal()" style="display:none">Supprimer</button><button class="btn btn-secondary" onclick="closeModal('modal-task')">Annuler</button><button class="btn btn-primary" id="btn-save-task" onclick="saveTask()">Enregistrer</button></div>
+    <div class="modal-footer"><button class="btn btn-danger" id="btn-delete-task" onclick="deleteTaskFromModal()" style="display:none" data-i18n="btn.delete">Supprimer</button><button class="btn btn-secondary" onclick="closeModal('modal-task')" data-i18n="btn.cancel">Annuler</button><button class="btn btn-primary" id="btn-save-task" onclick="saveTask()" data-i18n="btn.save">Enregistrer</button></div>
   </div>
 </div>
 
 <div class="modal-overlay" id="modal-phase">
   <div class="modal">
     <h3 id="modal-phase-title">Nouvelle Phase</h3>
-    <div class="form-row"><label>Nom *</label><input id="phase-name" type="text"></div>
-    <div class="form-row"><label>Code (1–3 lettres)</label><input id="phase-code" type="text" maxlength="3"></div>
-    <div class="form-row"><label>Couleur</label><input id="phase-color" type="color" value="#1a56db" style="height:34px;padding:2px;cursor:pointer;width:100%"></div>
-    <div class="modal-footer"><button class="btn btn-danger" id="btn-delete-phase" onclick="removePhaseFromModal()" style="display:none">Supprimer</button><button class="btn btn-secondary" onclick="closeModal('modal-phase')">Annuler</button><button class="btn btn-primary" onclick="savePhase()">Enregistrer</button></div>
+    <div class="form-row"><label data-i18n="modal.phase.name">Nom *</label><input id="phase-name" type="text"></div>
+    <div class="form-row"><label data-i18n="modal.phase.code">Code (1–3 lettres)</label><input id="phase-code" type="text" maxlength="3"></div>
+    <div class="form-row"><label data-i18n="modal.phase.color">Couleur</label><input id="phase-color" type="color" value="#1a56db" style="height:34px;padding:2px;cursor:pointer;width:100%"></div>
+    <div class="modal-footer"><button class="btn btn-danger" id="btn-delete-phase" onclick="removePhaseFromModal()" style="display:none" data-i18n="btn.delete">Supprimer</button><button class="btn btn-secondary" onclick="closeModal('modal-phase')" data-i18n="btn.cancel">Annuler</button><button class="btn btn-primary" onclick="savePhase()" data-i18n="btn.save">Enregistrer</button></div>
   </div>
 </div>
 
 <!-- Custom tab creation/edit modal -->
 <div class="modal-overlay" id="modal-custom-tab">
   <div class="modal modal-wide">
-    <h3 id="modal-custom-tab-title">Nouvel Onglet</h3>
+    <h3 id="modal-custom-tab-title" data-i18n="modal.ct.new">Nouvel Onglet</h3>
     <div class="form-2col">
-      <div class="form-row"><label>Nom de l'onglet *</label><input id="ct-name" type="text" placeholder="Ex: Points Ouverts"></div>
-      <div class="form-row"><label>Icône (emoji)</label><input id="ct-icon" type="text" maxlength="4" placeholder="📋" style="width:60px"></div>
+      <div class="form-row"><label data-i18n="modal.ct.tab_name">Nom de l'onglet *</label><input id="ct-name" type="text" placeholder="Ex: Points Ouverts"></div>
+      <div class="form-row"><label data-i18n="modal.ct.icon">Icône (emoji)</label><input id="ct-icon" type="text" maxlength="4" placeholder="📋" style="width:60px"></div>
     </div>
-    <div class="form-row"><label>Colonnes (max 5)</label></div>
+    <div class="form-row"><label data-i18n="modal.ct.columns">Colonnes (max 5)</label></div>
     <div id="ct-columns-list"></div>
-    <button class="btn btn-secondary btn-sm" onclick="addCustomTabColumn()" id="btn-add-col">＋ Ajouter une colonne</button>
+    <button class="btn btn-secondary btn-sm" onclick="addCustomTabColumn()" id="btn-add-col" data-i18n="modal.ct.add_col">＋ Ajouter une colonne</button>
     <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('modal-custom-tab')">Annuler</button>
-      <button class="btn btn-primary" onclick="saveCustomTab()">Enregistrer</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-custom-tab')" data-i18n="btn.cancel">Annuler</button>
+      <button class="btn btn-primary" onclick="saveCustomTab()" data-i18n="btn.save">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -363,23 +364,23 @@
 <!-- Edit Interface ERP modal -->
 <div class="modal-overlay" id="modal-edit-interface">
   <div class="modal">
-    <h3>Modifier l'interface ERP</h3>
-    <div class="form-row"><label>Nom du fichier *</label><input id="ei-name" type="text"></div>
-    <div class="form-row"><label>Type</label><select id="ei-type"><option>Connecteur ERP</option><option>GNA</option><option>Connecteur SAGE</option><option>REST API</option><option>Autre</option></select></div>
+    <h3 data-i18n="modal.itf.edit">Modifier l'interface ERP</h3>
+    <div class="form-row"><label data-i18n="modal.itf.name">Nom du fichier *</label><input id="ei-name" type="text"></div>
+    <div class="form-row"><label data-i18n="modal.itf.type">Type</label><select id="ei-type"><option>Connecteur ERP</option><option>GNA</option><option>Connecteur SAGE</option><option>REST API</option><option>Autre</option></select></div>
     <div class="form-2col">
-      <div class="form-row"><label>Développé</label><select id="ei-dev"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
-      <div class="form-row"><label>Livré Preprod</label><select id="ei-preprod"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+      <div class="form-row"><label data-i18n="modal.itf.dev">Développé</label><select id="ei-dev"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+      <div class="form-row"><label data-i18n="modal.itf.preprod">Livré Preprod</label><select id="ei-preprod"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
     </div>
     <div class="form-2col">
-      <div class="form-row"><label id="lbl-rec-company">Recette</label><select id="ei-recCompany"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
-      <div class="form-row"><label>Recette Client</label><select id="ei-recClient"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+      <div class="form-row"><label id="lbl-rec-company" data-i18n="modal.itf.rec_company">Recette</label><select id="ei-recCompany"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+      <div class="form-row"><label data-i18n="modal.itf.rec_client">Recette Client</label><select id="ei-recClient"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
     </div>
-    <div class="form-row"><label>Validé</label><select id="ei-valide"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
-    <div class="form-row"><label>Commentaires</label><input id="ei-comment" type="text"></div>
+    <div class="form-row"><label data-i18n="modal.itf.validated">Validé</label><select id="ei-valide"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+    <div class="form-row"><label data-i18n="modal.itf.comments">Commentaires</label><input id="ei-comment" type="text"></div>
     <div class="modal-footer">
-      <button class="btn btn-danger" onclick="deleteInterfaceFromModal()">Supprimer</button>
-      <button class="btn btn-secondary" onclick="closeModal('modal-edit-interface')">Annuler</button>
-      <button class="btn btn-primary" onclick="saveInterface()">Enregistrer</button>
+      <button class="btn btn-danger" onclick="deleteInterfaceFromModal()" data-i18n="btn.delete">Supprimer</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-interface')" data-i18n="btn.cancel">Annuler</button>
+      <button class="btn btn-primary" onclick="saveInterface()" data-i18n="btn.save">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -387,52 +388,54 @@
 <!-- Edit Install modal -->
 <div class="modal-overlay" id="modal-edit-install">
   <div class="modal">
-    <h3>Modifier le prérequis Installation</h3>
-    <div class="form-row"><label>Action *</label><input id="einst-action" type="text"></div>
+    <h3 data-i18n="modal.install.edit">Modifier le prérequis Installation</h3>
+    <div class="form-row"><label data-i18n="modal.install.action">Action *</label><input id="einst-action" type="text"></div>
     <div class="form-2col">
-      <div class="form-row"><label>État</label><select id="einst-etat"><option>Non</option><option>En cours</option><option>Oui</option><option>KO</option></select></div>
-      <div class="form-row"><label>Qui ?</label><select id="einst-qui"></select></div>
+      <div class="form-row"><label data-i18n="modal.install.status">État</label><select id="einst-etat"><option>Non</option><option>En cours</option><option>Oui</option><option>KO</option></select></div>
+      <div class="form-row"><label data-i18n="modal.install.who">Qui ?</label><select id="einst-qui"></select></div>
     </div>
-    <div class="form-row"><label>Deadline</label><input id="einst-deadline" type="date"></div>
-    <div class="form-row"><label>Commentaire</label><input id="einst-comment" type="text"></div>
+    <div class="form-row"><label data-i18n="modal.install.deadline">Deadline</label><input id="einst-deadline" type="date"></div>
+    <div class="form-row"><label data-i18n="modal.install.comment">Commentaire</label><input id="einst-comment" type="text"></div>
     <div class="modal-footer">
-      <button class="btn btn-danger" onclick="deleteInstallFromModal()">Supprimer</button>
-      <button class="btn btn-secondary" onclick="closeModal('modal-edit-install')">Annuler</button>
-      <button class="btn btn-primary" onclick="saveInstall()">Enregistrer</button>
+      <button class="btn btn-danger" onclick="deleteInstallFromModal()" data-i18n="btn.delete">Supprimer</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-install')" data-i18n="btn.cancel">Annuler</button>
+      <button class="btn btn-primary" onclick="saveInstall()" data-i18n="btn.save">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Expense modal -->
+<div class="modal-overlay" id="modal-depl-expense">
+  <div class="modal" style="max-width:360px">
+    <h3 data-i18n="modal.expense.add">Ajouter une dépense</h3>
+    <div class="form-row"><label data-i18n="modal.expense.date">Date</label><input id="depl-exp-date" type="date"></div>
+    <div class="form-row"><label data-i18n="modal.expense.amount">Montant (€)</label><input id="depl-exp-montant" type="number" min="0" placeholder="0"></div>
+    <div class="form-row"><label data-i18n="modal.expense.note">Note</label><input id="depl-exp-note" type="text" placeholder="Référence, fournisseur…"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-depl-expense')" data-i18n="btn.cancel">Annuler</button>
+      <button class="btn btn-primary" onclick="saveDeplExpense()" data-i18n="modal.expense.btn_add">Ajouter</button>
     </div>
   </div>
 </div>
 
 <!-- Edit Jalon modal -->
-<div class="modal-overlay" id="modal-depl-expense">
-  <div class="modal" style="max-width:360px">
-    <h3>Ajouter une dépense</h3>
-    <div class="form-row"><label>Date</label><input id="depl-exp-date" type="date"></div>
-    <div class="form-row"><label>Montant (€)</label><input id="depl-exp-montant" type="number" min="0" placeholder="0"></div>
-    <div class="form-row"><label>Note</label><input id="depl-exp-note" type="text" placeholder="Référence, fournisseur…"></div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('modal-depl-expense')">Annuler</button>
-      <button class="btn btn-primary" onclick="saveDeplExpense()">Ajouter</button>
-    </div>
-  </div>
-</div>
 <div class="modal-overlay" id="modal-edit-jalon">
   <div class="modal">
     <h3 id="modal-edit-jalon-title">Modifier le jalon</h3>
-    <div class="form-row"><label>Jalon *</label><input id="ej-jalon" type="text"></div>
+    <div class="form-row"><label data-i18n="modal.jalon.name">Jalon *</label><input id="ej-jalon" type="text"></div>
     <div class="form-2col">
-      <div class="form-row"><label>Date</label><input id="ej-date" type="date"></div>
-      <div class="form-row"><label>Échéance</label><input id="ej-echeance" type="date"></div>
+      <div class="form-row"><label data-i18n="modal.jalon.date">Date</label><input id="ej-date" type="date"></div>
+      <div class="form-row"><label data-i18n="modal.jalon.due">Échéance</label><input id="ej-echeance" type="date"></div>
     </div>
     <div class="form-2col">
-      <div class="form-row"><label>État</label><select id="ej-etat"><option>—</option><option>En cours</option><option>Payé</option><option>Retard</option></select></div>
-      <div class="form-row"><label>%</label><input id="ej-pct" type="number" min="0" max="100" value="0"></div>
+      <div class="form-row"><label data-i18n="modal.jalon.status">État</label><select id="ej-etat"><option>—</option><option>En cours</option><option>Payé</option><option>Retard</option></select></div>
+      <div class="form-row"><label data-i18n="th.pct">%</label><input id="ej-pct" type="number" min="0" max="100" value="0"></div>
     </div>
-    <div class="form-row"><label>Montant (€)</label><input id="ej-montant" type="number" min="0" value="0" oninput="autoCalcJalonPct()"></div>
+    <div class="form-row"><label data-i18n="modal.jalon.amount">Montant (€)</label><input id="ej-montant" type="number" min="0" value="0" oninput="autoCalcJalonPct()"></div>
     <div class="modal-footer">
-      <button class="btn btn-danger" onclick="deleteJalonFromModal()">Supprimer</button>
-      <button class="btn btn-secondary" onclick="closeModal('modal-edit-jalon')">Annuler</button>
-      <button class="btn btn-primary" onclick="saveJalon()">Enregistrer</button>
+      <button class="btn btn-danger" onclick="deleteJalonFromModal()" data-i18n="btn.delete">Supprimer</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-jalon')" data-i18n="btn.cancel">Annuler</button>
+      <button class="btn btn-primary" onclick="saveJalon()" data-i18n="btn.save">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -440,22 +443,22 @@
 <!-- Edit Tâche Interne modal -->
 <div class="modal-overlay" id="modal-edit-tache">
   <div class="modal">
-    <h3>Modifier la tâche interne</h3>
-    <div class="form-row"><label>Action *</label><input id="et-action" type="text"></div>
-    <div class="form-row"><label>Propriétaire</label><select id="et-owner"></select></div>
+    <h3 data-i18n="modal.tache.edit">Modifier la tâche interne</h3>
+    <div class="form-row"><label data-i18n="modal.tache.action">Action *</label><input id="et-action" type="text"></div>
+    <div class="form-row"><label data-i18n="modal.tache.owner">Propriétaire</label><select id="et-owner"></select></div>
     <div class="form-2col">
-      <div class="form-row"><label>État</label><select id="et-etat"><option>À FAIRE</option><option>EN COURS</option><option>FAIT</option><option>EN ATTENTE</option><option>ANNULÉ</option></select></div>
-      <div class="form-row"><label>Urgence</label><select id="et-urg"><option value="0">— Aucune —</option><option value="1">Faible</option><option value="2">Moyenne</option><option value="3">Haute</option></select></div>
+      <div class="form-row"><label data-i18n="modal.tache.status">État</label><select id="et-etat"><option>À FAIRE</option><option>EN COURS</option><option>FAIT</option><option>EN ATTENTE</option><option>ANNULÉ</option></select></div>
+      <div class="form-row"><label data-i18n="modal.tache.urgency">Urgence</label><select id="et-urg"><option value="0">— Aucune —</option><option value="1">Faible</option><option value="2">Moyenne</option><option value="3">Haute</option></select></div>
     </div>
     <div class="form-2col">
-      <div class="form-row"><label>Temps (h)</label><input id="et-temps" type="number" min="0" value="0"></div>
-      <div class="form-row"><label>Deadline</label><input id="et-deadline" type="date"></div>
+      <div class="form-row"><label data-i18n="modal.tache.time">Temps (h)</label><input id="et-temps" type="number" min="0" value="0"></div>
+      <div class="form-row"><label data-i18n="modal.tache.deadline">Deadline</label><input id="et-deadline" type="date"></div>
     </div>
-    <div class="form-row"><label>Commentaire</label><input id="et-comment" type="text"></div>
+    <div class="form-row"><label data-i18n="modal.tache.comment">Commentaire</label><input id="et-comment" type="text"></div>
     <div class="modal-footer">
-      <button class="btn btn-danger" id="btn-delete-tache" onclick="deleteInternalTaskFromModal()">Supprimer</button>
-      <button class="btn btn-secondary" onclick="closeModal('modal-edit-tache')">Annuler</button>
-      <button class="btn btn-primary" onclick="saveInternalTask()">Enregistrer</button>
+      <button class="btn btn-danger" id="btn-delete-tache" onclick="deleteInternalTaskFromModal()" data-i18n="btn.delete">Supprimer</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-tache')" data-i18n="btn.cancel">Annuler</button>
+      <button class="btn btn-primary" onclick="saveInternalTask()" data-i18n="btn.save">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -463,12 +466,12 @@
 <!-- Edit custom-tab row modal (fields populated dynamically) -->
 <div class="modal-overlay" id="modal-edit-ct-row">
   <div class="modal">
-    <h3 id="modal-edit-ct-row-title">Modifier la ligne</h3>
+    <h3 id="modal-edit-ct-row-title" data-i18n="modal.ct_row.edit">Modifier la ligne</h3>
     <div id="modal-edit-ct-row-fields"></div>
     <div class="modal-footer">
-      <button class="btn btn-danger" onclick="deleteCustomTabRowFromModal()">Supprimer</button>
-      <button class="btn btn-secondary" onclick="closeModal('modal-edit-ct-row')">Annuler</button>
-      <button class="btn btn-primary" onclick="saveCustomTabRowFromModal()">Enregistrer</button>
+      <button class="btn btn-danger" onclick="deleteCustomTabRowFromModal()" data-i18n="btn.delete">Supprimer</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-ct-row')" data-i18n="btn.cancel">Annuler</button>
+      <button class="btn btn-primary" onclick="saveCustomTabRowFromModal()" data-i18n="btn.save">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -476,26 +479,26 @@
 <!-- Edit Fonctionnel modal -->
 <div class="modal-overlay" id="modal-edit-fonctionnel">
   <div class="modal">
-    <h3>Modifier le flux fonctionnel</h3>
-    <div class="form-row"><label>Flux *</label><input id="ef-name" type="text"></div>
-    <div class="form-row"><label>% Tâches terminées</label><input id="ef-pct" type="number" min="0" max="100" value="0"></div>
+    <h3 data-i18n="modal.fonct.edit">Modifier le flux fonctionnel</h3>
+    <div class="form-row"><label data-i18n="modal.fonct.name">Flux *</label><input id="ef-name" type="text"></div>
+    <div class="form-row"><label data-i18n="modal.fonct.pct">% Tâches terminées</label><input id="ef-pct" type="number" min="0" max="100" value="0"></div>
     <div class="form-2col">
-      <div class="form-row"><label>Développé</label><select id="ef-dev"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
-      <div class="form-row"><label id="lbl-test-company">Test</label><select id="ef-testCompany"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+      <div class="form-row"><label data-i18n="modal.fonct.dev">Développé</label><select id="ef-dev"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+      <div class="form-row"><label id="lbl-test-company" data-i18n="modal.fonct.test_company">Test</label><select id="ef-testCompany"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
     </div>
     <div class="form-2col">
-      <div class="form-row"><label>Livraison Preprod</label><select id="ef-preprod"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
-      <div class="form-row"><label>Formation Key Users</label><select id="ef-formKU"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+      <div class="form-row"><label data-i18n="modal.fonct.preprod">Livraison Preprod</label><select id="ef-preprod"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+      <div class="form-row"><label data-i18n="modal.fonct.form_ku">Formation Key Users</label><select id="ef-formKU"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
     </div>
     <div class="form-2col">
-      <div class="form-row"><label>Test Client</label><select id="ef-testClient"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
-      <div class="form-row"><label>Formation Users</label><select id="ef-formUsers"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+      <div class="form-row"><label data-i18n="modal.fonct.test_client">Test Client</label><select id="ef-testClient"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
+      <div class="form-row"><label data-i18n="modal.fonct.form_users">Formation Users</label><select id="ef-formUsers"><option>NON</option><option>EN COURS</option><option>OUI</option><option>KO</option></select></div>
     </div>
-    <div class="form-row"><label>Commentaires</label><input id="ef-comment" type="text"></div>
+    <div class="form-row"><label data-i18n="modal.fonct.comments">Commentaires</label><input id="ef-comment" type="text"></div>
     <div class="modal-footer">
-      <button class="btn btn-danger" onclick="deleteFonctionnelFromModal()">Supprimer</button>
-      <button class="btn btn-secondary" onclick="closeModal('modal-edit-fonctionnel')">Annuler</button>
-      <button class="btn btn-primary" onclick="saveFonctionnel()">Enregistrer</button>
+      <button class="btn btn-danger" onclick="deleteFonctionnelFromModal()" data-i18n="btn.delete">Supprimer</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-fonctionnel')" data-i18n="btn.cancel">Annuler</button>
+      <button class="btn btn-primary" onclick="saveFonctionnel()" data-i18n="btn.save">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -503,14 +506,14 @@
 <!-- Edit Dry Run modal -->
 <div class="modal-overlay" id="modal-edit-dryrun">
   <div class="modal">
-    <h3>Modifier le prérequis Dry Run</h3>
-    <div class="form-row"><label>Prérequis *</label><input id="edr-name" type="text"></div>
-    <div class="form-row"><label>État</label><select id="edr-etat"><option>NON</option><option>En cours</option><option>OK</option><option>KO</option></select></div>
-    <div class="form-row"><label>Commentaires</label><input id="edr-comment" type="text"></div>
+    <h3 data-i18n="modal.dryrun.edit">Modifier le prérequis Dry Run</h3>
+    <div class="form-row"><label data-i18n="modal.dryrun.prereq">Prérequis *</label><input id="edr-name" type="text"></div>
+    <div class="form-row"><label data-i18n="modal.dryrun.status">État</label><select id="edr-etat"><option>NON</option><option>En cours</option><option>OK</option><option>KO</option></select></div>
+    <div class="form-row"><label data-i18n="modal.dryrun.comments">Commentaires</label><input id="edr-comment" type="text"></div>
     <div class="modal-footer">
-      <button class="btn btn-danger" onclick="deleteDryrunFromModal()">Supprimer</button>
-      <button class="btn btn-secondary" onclick="closeModal('modal-edit-dryrun')">Annuler</button>
-      <button class="btn btn-primary" onclick="saveDryrun()">Enregistrer</button>
+      <button class="btn btn-danger" onclick="deleteDryrunFromModal()" data-i18n="btn.delete">Supprimer</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-dryrun')" data-i18n="btn.cancel">Annuler</button>
+      <button class="btn btn-primary" onclick="saveDryrun()" data-i18n="btn.save">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -518,32 +521,31 @@
 <!-- Edit Heure modal -->
 <div class="modal-overlay" id="modal-edit-heure">
   <div class="modal">
-    <h3>Modifier la catégorie</h3>
-    <div class="form-row"><label>Catégorie *</label><input id="eh-cat" type="text"></div>
-    <div class="form-row"><label>Type</label><select id="eh-type"><option>Standard</option><option>Custom</option><option>Offre Comp</option></select></div>
+    <h3 data-i18n="modal.heure.edit">Modifier la catégorie</h3>
+    <div class="form-row"><label data-i18n="modal.heure.cat">Catégorie *</label><input id="eh-cat" type="text"></div>
+    <div class="form-row"><label data-i18n="modal.heure.type">Type</label><select id="eh-type"><option>Standard</option><option>Custom</option><option>Offre Comp</option></select></div>
     <div class="form-2col">
-      <div class="form-row"><label>Vente (h)</label><input id="eh-vente" type="number" min="0" value="0"></div>
-      <div class="form-row"><label>Actuel (h)</label><input id="eh-actuel" type="number" min="0" value="0"></div>
+      <div class="form-row"><label data-i18n="modal.heure.sold">Vente (h)</label><input id="eh-vente" type="number" min="0" value="0"></div>
+      <div class="form-row"><label data-i18n="modal.heure.actual">Actuel (h)</label><input id="eh-actuel" type="number" min="0" value="0"></div>
     </div>
-    <div class="form-row"><label>Description</label><input id="eh-desc" type="text"></div>
+    <div class="form-row"><label data-i18n="modal.heure.desc">Description</label><input id="eh-desc" type="text"></div>
     <div class="modal-footer">
-      <button class="btn btn-danger" onclick="deleteHeuresFromModal()">Supprimer</button>
-      <button class="btn btn-secondary" onclick="closeModal('modal-edit-heure')">Annuler</button>
-      <button class="btn btn-primary" onclick="saveHeures()">Enregistrer</button>
+      <button class="btn btn-danger" onclick="deleteHeuresFromModal()" data-i18n="btn.delete">Supprimer</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-heure')" data-i18n="btn.cancel">Annuler</button>
+      <button class="btn btn-primary" onclick="saveHeures()" data-i18n="btn.save">Enregistrer</button>
     </div>
   </div>
 </div>
 
-<!-- HTML Export modal -->
 <!-- ── DASHBOARD CUSTOMIZE MODAL ── -->
 <div class="modal-overlay" id="modal-dash-customize">
   <div class="modal" style="max-width:320px">
-    <h3>Personnaliser le tableau de bord</h3>
-    <p style="color:var(--text-muted);font-size:13px;margin-bottom:12px">Sélectionnez les graphiques à afficher :</p>
+    <h3 data-i18n="modal.dash.title">Personnaliser le tableau de bord</h3>
+    <p style="color:var(--text-muted);font-size:13px;margin-bottom:12px" data-i18n="modal.dash.hint">Sélectionnez les graphiques à afficher :</p>
     <div id="dash-customize-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
     <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('modal-dash-customize')">Annuler</button>
-      <button class="btn btn-primary" onclick="saveDashCustomize()">Appliquer</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-dash-customize')" data-i18n="btn.cancel">Annuler</button>
+      <button class="btn btn-primary" onclick="saveDashCustomize()" data-i18n="btn.apply">Appliquer</button>
     </div>
   </div>
 </div>
@@ -552,8 +554,8 @@
 <div class="page" id="page-jira">
   <div class="jira-toolbar">
     <span class="nav-logo" style="font-size:14px;font-weight:700;color:#0052CC">◈ JIRA</span>
-    <button id="jira-sync-btn" class="btn btn-primary btn-sm" onclick="syncJira()">⟳ Synchroniser</button>
-    <span id="jira-sync-info" class="jira-sync-info">Jamais synchronisé</span>
+    <button id="jira-sync-btn" class="btn btn-primary btn-sm" onclick="syncJira()" data-i18n="jira.sync">⟳ Synchroniser</button>
+    <span id="jira-sync-info" class="jira-sync-info" data-i18n="jira.never">Jamais synchronisé</span>
   </div>
   <div id="kpi-jira" class="kpi-grid" style="padding:0 20px 12px"></div>
   <div id="jira-epics-container" class="jira-epics-list"></div>
@@ -562,16 +564,16 @@
 
 <div class="modal-overlay" id="modal-export-html">
   <div class="modal">
-    <h3>Exporter en HTML (lecture seule)</h3>
-    <p style="color:var(--text-muted);font-size:13px;margin-bottom:12px">Sélectionnez les onglets à inclure dans le document partageable :</p>
+    <h3 data-i18n="modal.html.title">Exporter en HTML (lecture seule)</h3>
+    <p style="color:var(--text-muted);font-size:13px;margin-bottom:12px" data-i18n="modal.html.hint">Sélectionnez les onglets à inclure dans le document partageable :</p>
     <div id="export-tab-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px"></div>
     <div style="display:flex;gap:8px;margin-bottom:12px">
-      <button class="btn btn-ghost btn-sm" onclick="exportSelectAll(true)">Tout sélectionner</button>
-      <button class="btn btn-ghost btn-sm" onclick="exportSelectAll(false)">Tout déselectionner</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportSelectAll(true)" data-i18n="modal.html.select_all">Tout sélectionner</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportSelectAll(false)" data-i18n="modal.html.deselect_all">Tout déselectionner</button>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('modal-export-html')">Annuler</button>
-      <button class="btn btn-primary" onclick="doExportHTML()">Exporter</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-export-html')" data-i18n="btn.cancel">Annuler</button>
+      <button class="btn btn-primary" onclick="doExportHTML()" data-i18n="btn.export">Exporter</button>
     </div>
   </div>
 </div>
@@ -579,13 +581,13 @@
 <!-- Manage tabs modal -->
 <div class="modal-overlay" id="modal-manage-tabs">
   <div class="modal">
-    <h3>Gérer les onglets</h3>
-    <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Glissez pour réordonner · double-cliquez sur un nom pour le renommer · décochez pour masquer</p>
+    <h3 data-i18n="modal.tabs.title">Gérer les onglets</h3>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px" data-i18n="modal.tabs.hint">Glissez pour réordonner · double-cliquez sur un nom pour le renommer · décochez pour masquer</p>
     <div id="manage-tabs-list" style="display:flex;flex-direction:column;gap:6px;max-height:380px;overflow-y:auto"></div>
     <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="resetTabOrder()">Réinitialiser</button>
-      <button class="btn btn-secondary" onclick="closeModal('modal-manage-tabs')">Annuler</button>
-      <button class="btn btn-primary" onclick="saveManageTabs()">Appliquer</button>
+      <button class="btn btn-secondary" onclick="resetTabOrder()" data-i18n="modal.tabs.reset">Réinitialiser</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-manage-tabs')" data-i18n="btn.cancel">Annuler</button>
+      <button class="btn btn-primary" onclick="saveManageTabs()" data-i18n="btn.apply">Appliquer</button>
     </div>
   </div>
 </div>
