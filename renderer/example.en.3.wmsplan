@@ -1,0 +1,229 @@
+{
+  "meta": {
+    "schemaVersion": 1,
+    "id": "_example_en3",
+    "name": "SwiftFulfil Ltd — WMS",
+    "client": "SwiftFulfil Ltd",
+    "pm": "Daniel Moore",
+    "cdptech": "Hannah Clarke",
+    "respLog": "Tom Griffiths",
+    "erpConsult": "Laura Simmons",
+    "notes": "High-volume e-commerce fulfillment centre. 3,000+ orders/day at peak. Shopify + SAP integration. DHL, Royal Mail, Evri APIs. Go-live confirmed 30/06.",
+    "startDate": "2025-10-15",
+    "installDateOriginal": "2026-06-30",
+    "installDateDelayed": "",
+    "installDateActual": "",
+    "installDateComment": "",
+    "endDate": "",
+    "createdAt": "2025-10-15T09:00:00.000Z",
+    "updatedAt": "2026-06-05T15:00:00.000Z",
+    "jiraProjectKey": "SWF"
+  },
+  "phases": [
+    { "id": "INDISPO", "name": "UNAVAILABILITIES / LEAVE",  "code": "I", "color": "#64748b" },
+    { "id": "PLAN",    "name": "PROJECT PLANNING",          "code": "P", "color": "#2563eb" },
+    { "id": "ERP",     "name": "ERP INTERFACE",             "code": "E", "color": "#7c3aed" },
+    { "id": "DEV",     "name": "DEVELOPMENT",               "code": "D", "color": "#0891b2" },
+    { "id": "FORM",    "name": "TRAINING & UAT",            "code": "F", "color": "#059669" }
+  ],
+  "tasks": [
+    { "id": "task_indispo_dp",  "phaseId": "INDISPO", "name": "Project Director - Daniel Moore",     "owner": "COMPANY",       "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
+    { "id": "task_indispo_cdp", "phaseId": "INDISPO", "name": "Technical PM - Hannah Clarke",        "owner": "COMPANY",       "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
+    { "id": "task_indispo_rl",  "phaseId": "INDISPO", "name": "Logistics Manager - Tom Griffiths",  "owner": "SwiftFulfil Ltd","start": "2026-07-06", "end": "2026-07-17", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
+    { "id": "task_indispo_rd",  "phaseId": "INDISPO", "name": "Warehouse Manager (Client)",         "owner": "SwiftFulfil Ltd","start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
+    { "id": "task_indispo_adv", "phaseId": "INDISPO", "name": "Sales Admin Manager (Client)",       "owner": "SwiftFulfil Ltd","start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
+    { "id": "task_plan_1", "phaseId": "PLAN", "name": "Functional Analysis Visit",                   "owner": "TOUS",    "start": "2025-10-15", "end": "2025-10-22", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "Visit report" },
+    { "id": "task_plan_2", "phaseId": "PLAN", "name": "Workshops & Functional Analysis Drafting",    "owner": "TOUS",    "start": "2025-10-24", "end": "2025-11-22", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "FA v1.0" },
+    { "id": "task_plan_3", "phaseId": "PLAN", "name": "Functional Analysis Validation",              "owner": "TOUS",    "start": "2025-11-24", "end": "2025-12-03", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "Signed FA" },
+    { "id": "task_plan_4", "phaseId": "PLAN", "name": "ERP Mapping Workshops",                       "owner": "TOUS",    "start": "2025-11-10", "end": "2025-12-03", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_plan_5", "phaseId": "PLAN", "name": "Technical Analysis & Dev Task Drafting",      "owner": "COMPANY", "start": "2025-12-04", "end": "2025-12-17", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "JIRA tasks" },
+    { "id": "task_erp_spec",  "phaseId": "ERP", "name": "Interface Specification Drafting",          "owner": "COMPANY", "start": "2025-12-04", "end": "2025-12-20", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "ITF specs" },
+    { "id": "task_erp_itm",   "phaseId": "ERP", "name": "Item Master - ITM",                         "owner": "COMPANY", "start": "2025-12-15", "end": "2026-01-20", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "" },
+    { "id": "task_erp_sup",   "phaseId": "ERP", "name": "Supplier Master - SUP",                     "owner": "COMPANY", "start": "2025-12-15", "end": "2026-01-20", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_erp_ror",   "phaseId": "ERP", "name": "Advance Ship Notice - ROR/ASN",             "owner": "COMPANY", "start": "2026-01-12", "end": "2026-02-22", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "" },
+    { "id": "task_erp_cust",  "phaseId": "ERP", "name": "Unloading Confirmation - Custom File",      "owner": "COMPANY", "start": "2026-01-19", "end": "2026-03-01", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_erp_rof",   "phaseId": "ERP", "name": "Purchase Order Close - ROF/ASO/ASK",        "owner": "COMPANY", "start": "2026-02-09", "end": "2026-03-22", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_erp_ref",   "phaseId": "ERP", "name": "Receipt Confirmation - REF",                "owner": "COMPANY", "start": "2026-02-23", "end": "2026-03-29", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_erp_sor",   "phaseId": "ERP", "name": "Sales Order - SOR",                         "owner": "COMPANY", "start": "2026-03-09", "end": "2026-04-19", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "" },
+    { "id": "task_erp_soc",   "phaseId": "ERP", "name": "Order Status Change - SOC",                 "owner": "COMPANY", "start": "2026-04-06", "end": "2026-05-03", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_erp_sof",   "phaseId": "ERP", "name": "Sales Order Close - SOF",                   "owner": "COMPANY", "start": "2026-04-06", "end": "2026-05-03", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_erp_stc",   "phaseId": "ERP", "name": "Stock Status Change - STC",                 "owner": "COMPANY", "start": "2026-04-20", "end": "2026-05-17", "status": "En cours", "priority": "normale", "progress": 80,  "deliverable": "" },
+    { "id": "task_erp_stv",   "phaseId": "ERP", "name": "Stock Variation - STV",                     "owner": "COMPANY", "start": "2026-04-20", "end": "2026-05-17", "status": "En cours", "priority": "normale", "progress": 70,  "deliverable": "" },
+    { "id": "task_erp_scr",   "phaseId": "ERP", "name": "Stock Status Request - SCR",                "owner": "COMPANY", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
+    { "id": "task_erp_wsc",   "phaseId": "ERP", "name": "Stock Image - WSC",                         "owner": "COMPANY", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
+    { "id": "task_erp_trsp",  "phaseId": "ERP", "name": "Carrier APIs (DHL + Royal Mail + Evri)",    "owner": "COMPANY", "start": "2026-03-23", "end": "2026-05-31", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "" },
+    { "id": "task_erp_err",   "phaseId": "ERP", "name": "Integration Error - ERR",                   "owner": "COMPANY", "start": "2026-05-04", "end": "2026-05-24", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_dev_1", "phaseId": "DEV", "name": "Warehouse Modelling / Configuration",            "owner": "COMPANY",       "start": "2025-11-24", "end": "2026-01-25", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "" },
+    { "id": "task_dev_2", "phaseId": "DEV", "name": "Functional Developments",                       "owner": "COMPANY",       "start": "2026-01-26", "end": "2026-04-30", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "" },
+    { "id": "task_dev_3", "phaseId": "DEV", "name": "Dev Testing & Validation",                      "owner": "COMPANY",       "start": "2026-04-20", "end": "2026-05-22", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "" },
+    { "id": "task_dev_4", "phaseId": "DEV", "name": "Client Environment Configuration",              "owner": "COMPANY",       "start": "2026-05-18", "end": "2026-06-05", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_dev_5", "phaseId": "DEV", "name": "Warehouse Labelling",                           "owner": "SwiftFulfil Ltd","start": "2026-05-11", "end": "2026-06-07", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_dev_6", "phaseId": "DEV", "name": "RF Terminal / Printer Configuration",           "owner": "COMPANY",       "start": "2026-05-25", "end": "2026-06-07", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_form_1", "phaseId": "FORM", "name": "Key User Training",                            "owner": "COMPANY",       "start": "2026-06-08", "end": "2026-06-12", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "" },
+    { "id": "task_form_2", "phaseId": "FORM", "name": "Development Testing & Validation",            "owner": "SwiftFulfil Ltd","start": "2026-06-13", "end": "2026-06-18", "status": "En cours", "priority": "haute",   "progress": 55,  "deliverable": "" },
+    { "id": "task_form_3", "phaseId": "FORM", "name": "Operator Training",                           "owner": "SwiftFulfil Ltd","start": "2026-06-18", "end": "2026-06-21", "status": "À faire",  "priority": "haute",   "progress": 0,   "deliverable": "" },
+    { "id": "task_form_4", "phaseId": "FORM", "name": "Located Stock Inventory - Dry Run WMS",       "owner": "SwiftFulfil Ltd","start": "2026-06-22", "end": "2026-06-24", "status": "À faire",  "priority": "normale", "progress": 0,   "deliverable": "" },
+    { "id": "task_form_5", "phaseId": "FORM", "name": "DRY RUN & GO/NO GO",                          "owner": "TOUS",    "start": "2026-06-25", "end": "2026-06-26", "status": "À faire",  "priority": "haute",   "progress": 0,   "deliverable": "", "barColor": "#dc2626" },
+    { "id": "task_form_6", "phaseId": "FORM", "name": "Full Stock Inventory for GO LIVE",            "owner": "SwiftFulfil Ltd","start": "2026-06-28", "end": "2026-06-29", "status": "À faire",  "priority": "haute",   "progress": 0,   "deliverable": "" },
+    { "id": "task_form_7", "phaseId": "FORM", "name": "INSTALLATION",                                "owner": "TOUS",    "start": "2026-06-30", "end": "2026-06-30", "status": "À faire",  "priority": "haute",   "progress": 0,   "deliverable": "", "barColor": "#ea580c" },
+    { "id": "task_form_8", "phaseId": "FORM", "name": "HyperCare",                                   "owner": "COMPANY", "start": "2026-07-01", "end": "2026-07-31", "status": "À faire",  "priority": "normale", "progress": 0,   "deliverable": "", "barColor": "#4f46e5" }
+  ],
+  "heuresData": [
+    { "id": "h_std",   "cat": "Standard Hours",             "vente": 155, "actuel": 145, "desc": "Implementation, project management, training, testing", "bold": true,  "totalType": "Standard",   "sep": false, "custom": false, "history": [] },
+    { "id": "h_cust",  "cat": "Custom Hours",               "vente": 55,  "actuel": 52,  "desc": "E-commerce specific developments",                       "bold": true,  "totalType": "Custom",     "sep": false, "custom": false, "history": [] },
+    { "id": "h_comp",  "cat": "Comp. Hours",                "vente": 8,   "actuel": 7,   "desc": "Post-UAT corrections",                                   "bold": true,  "totalType": "Offre Comp", "sep": false, "custom": false, "history": [] },
+    { "id": "h_sep1",  "sep": true },
+    { "id": "h_impl",  "cat": "Standard Implementation",    "vente": 52,  "actuel": 52,  "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard",
+      "history": [
+        { "date": "2026-01-31", "value": 24, "note": "Warehouse configuration" },
+        { "date": "2026-04-30", "value": 52, "note": "Full configuration validated" }
+      ]
+    },
+    { "id": "h_gp",    "cat": "Project Management",         "vente": 33,  "actuel": 32,  "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard",
+      "history": [
+        { "date": "2026-03-31", "value": 18, "note": "Steering Q1" },
+        { "date": "2026-05-31", "value": 32, "note": "Steering Q2 + go-live prep" }
+      ]
+    },
+    { "id": "h_af",    "cat": "Functional Analysis",        "vente": 26,  "actuel": 26,  "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard",
+      "history": [
+        { "date": "2025-12-03", "value": 26, "note": "FA completed and signed" }
+      ]
+    },
+    { "id": "h_itf",   "cat": "ERP Interfaces",             "vente": 20,  "actuel": 20,  "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard",
+      "history": [
+        { "date": "2026-05-31", "value": 20, "note": "All interfaces developed and tested" }
+      ]
+    },
+    { "id": "h_form",  "cat": "Training",                   "vente": 12,  "actuel": 6,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard",
+      "history": [
+        { "date": "2026-06-12", "value": 6, "note": "Key User training completed" }
+      ]
+    },
+    { "id": "h_tests", "cat": "Tests & Dry Run",            "vente": 12,  "actuel": 9,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard",
+      "history": [
+        { "date": "2026-05-22", "value": 9, "note": "Integration tests completed" }
+      ]
+    },
+    { "id": "h_site",  "cat": "On-Site (2 res, 5d)",        "vente": 0,   "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_hc",    "cat": "Remote HyperCare",           "vente": 0,   "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_trsp",  "cat": "Carriers",                   "vente": 0,   "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_dir",   "cat": "Directives",                 "vente": 0,   "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_srv",   "cat": "Server Configuration",       "vente": 0,   "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_env",   "cat": "Custom Envelope",            "vente": 55,  "actuel": 52,  "desc": "", "bold": false, "sep": false, "custom": false, "type": "Custom",
+      "history": [
+        { "date": "2026-03-31", "value": 22, "note": "Wave picking + unit flow" },
+        { "date": "2026-05-31", "value": 52, "note": "DHL + Royal Mail + Evri APIs + labels" }
+      ]
+    }
+  ],
+  "internalTasks": [
+    { "id": "it_01", "action": "Functional test plan",                      "etat": "FAIT",     "temps": 10, "deadline": "2026-03-01", "urg": 2, "comment": "Sent and validated" },
+    { "id": "it_02", "action": "User guide",                                 "etat": "FAIT",     "temps": 14, "deadline": "2026-05-31", "urg": 2, "comment": "v2.0 validated by client" },
+    { "id": "it_03", "action": "EasyMonitor Checks",                         "etat": "FAIT",     "temps": 4,  "deadline": "2026-04-30", "urg": 3, "comment": "" },
+    { "id": "it_04", "action": "Project Validator",                           "etat": "FAIT",     "temps": 2,  "deadline": "2026-04-30", "urg": 3, "comment": "" },
+    { "id": "it_05", "action": "EasyS Configuration",                        "etat": "FAIT",     "temps": 5,  "deadline": "2026-05-15", "urg": 2, "comment": "" },
+    { "id": "it_06", "action": "Delivery module documentation (API)",        "etat": "FAIT",     "temps": 8,  "deadline": "2026-05-31", "urg": 2, "comment": "" },
+    { "id": "it_07", "action": "Continued developments",                     "etat": "FAIT",     "temps": 32, "deadline": "2026-04-30", "urg": 1, "comment": "" },
+    { "id": "it_08", "action": "Dev + regression testing",                   "etat": "FAIT",     "temps": 12, "deadline": "2026-05-22", "urg": 1, "comment": "" },
+    { "id": "it_09", "action": "Carrier module (DHL + Royal Mail + Evri)",   "etat": "FAIT",     "temps": 16, "deadline": "2026-05-31", "urg": 2, "comment": "" },
+    { "id": "it_10", "action": "ERP Dry Run",                                 "etat": "FAIT",     "temps": 6,  "deadline": "2026-06-07", "urg": 2, "comment": "Validated 06/06" },
+    { "id": "it_11", "action": "Corrective developments after ERP Dry Run",  "etat": "EN COURS", "temps": 3,  "deadline": "2026-06-13", "urg": 2, "comment": "2 minor fixes" },
+    { "id": "it_12", "action": "Key User testing",                            "etat": "EN COURS", "temps": 5,  "deadline": "2026-06-18", "urg": 2, "comment": "In progress — no blockers" },
+    { "id": "it_13", "action": "Cutover plan",                                "etat": "FAIT",     "temps": 4,  "deadline": "2026-06-05", "urg": 2, "comment": "Validated" },
+    { "id": "it_14", "action": "Set up and configure production WMS",        "etat": "FAIT",     "temps": 5,  "deadline": "2026-06-10", "urg": 2, "comment": "" },
+    { "id": "it_15", "action": "Optimised picking path",                     "etat": "FAIT",     "temps": 6,  "deadline": "2026-05-18", "urg": 3, "comment": "A/B zone optimisation validated" },
+    { "id": "it_16", "action": "WiFi + RF terminal config validated",         "etat": "FAIT",     "temps": 3,  "deadline": "2026-06-05", "urg": 2, "comment": "" },
+    { "id": "it_17", "action": "Stock transfer from old system D-1",         "etat": "À FAIRE",  "temps": 0,  "deadline": "2026-06-29", "urg": 3, "comment": "" },
+    { "id": "it_18", "action": "Post-installation check D+1",                "etat": "À FAIRE",  "temps": 0,  "deadline": "2026-07-01", "urg": 3, "comment": "" }
+  ],
+  "interfaces": [
+    { "id": "itf_01", "type": "ERP Connector", "name": "Item Master - ITM",                       "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_02", "type": "ERP Connector", "name": "Supplier Master - SUP",                   "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_03", "type": "ERP Connector", "name": "Advance Ship Notice - ROR/ASN",           "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_04", "type": "Flat File",     "name": "Unloading Confirmation - Custom File",    "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_05", "type": "ERP Connector", "name": "Purchase Order Close - ROF",              "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_06", "type": "ERP Connector", "name": "Purchase Order Close - ASO",              "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_07", "type": "ERP Connector", "name": "Purchase Order Close - ASK",              "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_08", "type": "ERP Connector", "name": "Receipt Confirmation - REF",              "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_09", "type": "ERP Connector", "name": "Sales Order - SOR",                       "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_10", "type": "ERP Connector", "name": "Order Status Change - SOC",               "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_11", "type": "ERP Connector", "name": "Sales Order Close - SOF",                 "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_12", "type": "ERP Connector", "name": "Stock Status Change - STC",               "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "NON", "valide": "NON", "comment": "Client UAT in progress" },
+    { "id": "itf_13", "type": "ERP Connector", "name": "Stock Variation - STV",                   "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "NON", "valide": "NON", "comment": "Client UAT in progress" },
+    { "id": "itf_14", "type": "ERP Connector", "name": "Stock Status Request - SCR",              "dev": "NON", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "Out of scope" },
+    { "id": "itf_15", "type": "ERP Connector", "name": "Stock Image - WSC",                       "dev": "NON", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "Out of scope" },
+    { "id": "itf_16", "type": "REST API",      "name": "Carrier APIs (DHL + Royal Mail + Evri)",  "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_17", "type": "ERP Connector", "name": "Integration Error - ERR",                 "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" }
+  ],
+  "functional": [
+    { "id": "fn_01", "name": "RECEIVING / RETURNS",      "dev": "OUI", "pct": 100, "testCompany": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "OUI", "formUsers": "NON", "comment": "" },
+    { "id": "fn_02", "name": "PUTAWAY",                  "dev": "OUI", "pct": 100, "testCompany": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "OUI", "formUsers": "NON", "comment": "" },
+    { "id": "fn_03", "name": "REPLENISHMENT",            "dev": "OUI", "pct": 100, "testCompany": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "OUI", "formUsers": "NON", "comment": "" },
+    { "id": "fn_04", "name": "INVENTORY",                "dev": "OUI", "pct": 100, "testCompany": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "OUI", "formUsers": "NON", "comment": "" },
+    { "id": "fn_05", "name": "WAVE PICKING / PREP",      "dev": "OUI", "pct": 100, "testCompany": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "EN COURS", "formUsers": "NON", "comment": "" },
+    { "id": "fn_06", "name": "UNIT PICKING",             "dev": "OUI", "pct": 100, "testCompany": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "EN COURS", "formUsers": "NON", "comment": "" },
+    { "id": "fn_07", "name": "PACKING / QUALITY CHECK",  "dev": "OUI", "pct": 95,  "testCompany": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "EN COURS", "formUsers": "NON", "comment": "1 minor fix pending" },
+    { "id": "fn_08", "name": "DOCUMENTATION",            "dev": "OUI", "pct": 100, "testCompany": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "OUI",      "formUsers": "NON", "comment": "" },
+    { "id": "fn_09", "name": "SHIPPING + CARRIER",       "dev": "OUI", "pct": 100, "testCompany": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "OUI",      "formUsers": "NON", "comment": "" }
+  ],
+  "dryRun": [
+    { "id": "dr_01", "name": "Warehouse floor plan available",    "etat": "OK",  "comment": "" },
+    { "id": "dr_02", "name": "Warehouse created in WMS",          "etat": "OK",  "comment": "" },
+    { "id": "dr_03", "name": "WiFi validation",                   "etat": "OK",  "comment": "" },
+    { "id": "dr_04", "name": "Warehouse labelling",               "etat": "OK",  "comment": "" },
+    { "id": "dr_05", "name": "Test plans validated",              "etat": "OK",  "comment": "" },
+    { "id": "dr_06", "name": "ERP Dry Run validated",             "etat": "OK",  "comment": "Validated 06/06" },
+    { "id": "dr_07", "name": "Printers configured",               "etat": "OK",  "comment": "" },
+    { "id": "dr_08", "name": "RF terminals configured",           "etat": "OK",  "comment": "" },
+    { "id": "dr_09", "name": "Developments validated",            "etat": "NON", "comment": "2 minor fixes in progress" },
+    { "id": "dr_10", "name": "Users trained (by SwiftFulfil)",   "etat": "NON", "comment": "Operator training scheduled 18/06" },
+    { "id": "dr_11", "name": "Stock inventory",                   "etat": "NON", "comment": "Scheduled 28-29/06" }
+  ],
+  "install": [
+    { "id": "in_01", "action": "Up-to-date floor plan – authorisations verified",  "etat": "Oui", "qui": "SwiftFulfil Ltd", "deadline": "2026-05-01", "comment": "" },
+    { "id": "in_02", "action": "Warehouse covered by WiFi",                        "etat": "Oui", "qui": "SwiftFulfil Ltd", "deadline": "2026-05-01", "comment": "" },
+    { "id": "in_03", "action": "Server installed and WMS accessible without VPN",  "etat": "Oui", "qui": "COMPANY",         "deadline": "2026-05-15", "comment": "" },
+    { "id": "in_04", "action": "RF terminals available and correctly configured",   "etat": "Oui", "qui": "SwiftFulfil Ltd", "deadline": "2026-06-07", "comment": "" },
+    { "id": "in_05", "action": "Racks installed and correctly labelled",            "etat": "Oui", "qui": "SwiftFulfil Ltd", "deadline": "2026-06-07", "comment": "" },
+    { "id": "in_06", "action": "Printers available, powered and connected",         "etat": "Oui", "qui": "SwiftFulfil Ltd", "deadline": "2026-06-07", "comment": "" },
+    { "id": "in_07", "action": "WMS computers available and connected",             "etat": "Oui", "qui": "SwiftFulfil Ltd", "deadline": "2026-06-07", "comment": "" },
+    { "id": "in_08", "action": "WMS ↔ ERP communications operational",              "etat": "Oui", "qui": "COMPANY",         "deadline": "2026-06-10", "comment": "" },
+    { "id": "in_09", "action": "FA processes in pre-production",                    "etat": "Oui", "qui": "COMPANY",         "deadline": "2026-06-05", "comment": "" },
+    { "id": "in_10", "action": "Processes tested and understood by Key Users",      "etat": "Oui", "qui": "TOUS",            "deadline": "2026-06-14", "comment": "" },
+    { "id": "in_11", "action": "Functional test plan drafted and sent",             "etat": "Oui", "qui": "COMPANY",         "deadline": "2026-03-01", "comment": "" },
+    { "id": "in_12", "action": "WMS test plans validated by client",                "etat": "Non", "qui": "SwiftFulfil Ltd", "deadline": "2026-06-20", "comment": "In progress" }
+  ],
+  "billing": {
+    "jalonsProjet": [
+      { "id": "jp_01", "jalon": "SIGNED CONTRACT OFFER",         "date": "2025-10-05", "echeance": "2025-10-15", "etat": "Payé", "pct": 35, "montant": 36750 },
+      { "id": "jp_02", "jalon": "FUNCTIONAL ANALYSIS DELIVERED", "date": "2025-12-03", "echeance": "2025-12-10", "etat": "Payé", "pct": 25, "montant": 26250 },
+      { "id": "jp_03", "jalon": "DEVELOPMENT DELIVERY",          "date": "2026-05-22", "echeance": "2026-05-22", "etat": "Payé", "pct": 30, "montant": 31500 },
+      { "id": "jp_04", "jalon": "FINAL ACCEPTANCE",              "date": "",           "echeance": "2026-07-31", "etat": "—",    "pct": 10, "montant": 10500 }
+    ],
+    "jalonsEquipement": [
+      { "id": "je_01", "jalon": "EQUIPMENT ORDER",    "date": "2025-12-05", "echeance": "2025-12-15", "etat": "Payé", "pct": 50, "montant": 8500 },
+      { "id": "je_02", "jalon": "EQUIPMENT DELIVERY", "date": "2026-03-20", "echeance": "2026-03-25", "etat": "Payé", "pct": 50, "montant": 8500 }
+    ]
+  },
+  "customTabs": [
+    {
+      "id": "ct_en3_01",
+      "name": "Go-Live Checklist",
+      "icon": "✅",
+      "columns": [
+        { "key": "action",  "label": "Action",  "type": "text",   "editable": true },
+        { "key": "status",  "label": "Status",  "type": "select", "options": ["To Do", "In Progress", "Done"], "editable": true },
+        { "key": "owner",   "label": "Owner",   "type": "text",   "editable": true }
+      ],
+      "rows": [
+        { "id": "r_001", "action": "UAT fixes merged to production",              "status": "In Progress", "owner": "Hannah C." },
+        { "id": "r_002", "action": "Night shift operator training (18 people)",   "status": "To Do",       "owner": "Daniel M." },
+        { "id": "r_003", "action": "Full stock inventory before cutover",         "status": "To Do",       "owner": "Tom G." },
+        { "id": "r_004", "action": "Internal go-live communication sent",         "status": "Done",        "owner": "SwiftFulfil" },
+        { "id": "r_005", "action": "On-call confirmed D+1 (2 resources)",        "status": "Done",        "owner": "COMPANY" }
+      ]
+    }
+  ],
+  "jiraData": { "lastSync": "", "epics": [], "tasks": [] }
+}

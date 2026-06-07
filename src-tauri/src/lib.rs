@@ -438,6 +438,16 @@ async fn install_update(app: AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+// ── App data directory (used by JS to compute example paths) ─────────────────
+
+#[tauri::command]
+fn get_app_data_dir(app: AppHandle) -> Result<String, String> {
+    app.path()
+        .app_data_dir()
+        .map(|p| p.to_string_lossy().to_string())
+        .map_err(|e| e.to_string())
+}
+
 // ── App entry point ──────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -478,6 +488,7 @@ pub fn run() {
             save_md_dialog,
             pick_folder,
             get_version,
+            get_app_data_dir,
             jira_fetch,
             check_update,
             install_update,

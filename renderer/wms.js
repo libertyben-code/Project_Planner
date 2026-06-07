@@ -3,6 +3,7 @@
 //  ES module — loaded via <script type="module">
 // =====================================================
 import { invoke, listenFileChanged, setWindowTitle, getAppVersion } from './tauri-ipc.js';
+import { t, getCurrentLang, setLanguage, applyStaticI18n } from './i18n.js';
 
 // ── Schema migration ────────────────────────────────���────────────────────────
 const CURRENT_SCHEMA_VERSION = 1;
@@ -116,10 +117,10 @@ function showSaveIndicator(state) {
   const el = document.getElementById('save-indicator');
   if (!el) return;
   if (state === 'saved') {
-    el.textContent = 'Sauvegardé ✓'; el.className = 'save-indicator saved';
+    el.textContent = t('save.saved'); el.className = 'save-indicator saved';
     setTimeout(() => { el.textContent = ''; el.className = 'save-indicator'; }, 2000);
   } else {
-    el.textContent = 'Erreur de sauvegarde'; el.className = 'save-indicator error';
+    el.textContent = t('save.error'); el.className = 'save-indicator error';
   }
 }
 
@@ -130,12 +131,14 @@ async function loadProject(path) {
       const s = typeof rawSettings === 'string' ? JSON.parse(rawSettings) : (rawSettings || {});
       if (s.companyName) _companyName = s.companyName;
       _userSettings = s;
+      if (s.language) setLanguage(s.language);
     } catch {}
     const raw = await invoke('read_project', { path });
     const state = migrateProjectData(JSON.parse(raw));
     currentPath = path;
     applyState(state);
     renderAll();
+    applyStaticI18n(document);
     _syncZoomDisplay('page-dashboard');
     if (!_fileWatcherRegistered) {
       _fileWatcherRegistered = true;
@@ -146,7 +149,7 @@ async function loadProject(path) {
     }
   } catch (e) {
     const msg = String(e).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    document.body.innerHTML = `<div style="padding:40px;color:#dc2626;font-family:sans-serif"><h2>Erreur de chargement</h2><p>${msg}</p><button onclick="window.location.href='home.html'">Retour à l'accueil</button></div>`;
+    document.body.innerHTML = `<div style="padding:40px;color:#dc2626;font-family:sans-serif"><h2>${t('error.load')}</h2><p>${msg}</p><button onclick="window.location.href='home.html'">${t('error.home')}</button></div>`;
   }
 }
 
@@ -205,7 +208,7 @@ function applyState(state) {
   _syncInstallDelayUI();
   _updateInstallWdBadge();
 
-  const title = 'WMS Planning — ' + (m.name || 'Sans titre');
+  const title = 'WMS Planning — ' + (m.name || t('untitled'));
   setWindowTitle(title); document.title = title;
   _applyTabConfig();
 }
@@ -245,7 +248,7 @@ function onMetaInput() {
   m.installDateDelayed  = document.getElementById('pi-install-delayed').value;
   m.installDateActual   = document.getElementById('pi-install-actual').value;
   m.installDateComment  = document.getElementById('pi-install-comment').value;
-  const title = 'WMS Planning — ' + (m.name || 'Sans titre');
+  const title = 'WMS Planning — ' + (m.name || t('untitled'));
   setWindowTitle(title); document.title = title;
   debouncedSave();
   renderInstallDrift();
@@ -262,9 +265,7 @@ function _syncInstallDelayUI() {
 function handleInstallOrigChange(newVal) {
   const prev = projectMeta.installDateOriginal;
   if (prev && prev !== newVal) {
-    const isRetard = confirm(
-      'La date d\'installation a changé.\n\nClic OK = Retard : la date originale est conservée, la nouvelle date devient "Reportée".\nClic Annuler = Ajustement : la date originale est simplement mise à jour.'
-    );
+    const isRetard = confirm(t('pi.install_changed'));
     if (isRetard) {
       document.getElementById('pi-install-orig').value = prev; // restore original
       document.getElementById('pi-install-delayed').value = newVal;
@@ -294,14 +295,17 @@ function _updateInstallWdBadge() {
   const activeDate = m.installDateActual || m.installDateDelayed || m.installDateOriginal;
   const wd = workingDaysLeft(activeDate);
   if (wd !== null) {
-    badge.textContent = `🗓 ${wd} jour${wd > 1 ? 's' : ''} ouvré${wd > 1 ? 's' : ''} restant${wd > 1 ? 's' : ''}`;
+    badge.textContent = `🗓 ${fmtWorkingDays(wd)}`;
     badge.style.color = wd <= 30 ? '#dc2626' : wd <= 60 ? '#d97706' : '#059669';
   } else if (activeDate) {
-    badge.textContent = 'Date d\'installation dépassée';
+    badge.textContent = t('drift.overdue');
     badge.style.color = '#dc2626';
   } else {
     badge.textContent = '';
   }
+}
+function fmtWorkingDays(wd) {
+  return `${wd} ${wd <= 1 ? t('wd.remaining') : t('wd.remaining_p')}`;
 }
 function workingDaysLeft(dateStr) {
   if (!dateStr) return null;
@@ -325,24 +329,24 @@ function renderInstallDrift() {
   block.style.display = 'block';
   const fmt = d => { if (!d) return '—'; const p = d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; };
   const diff = (a, b) => Math.round((new Date(a) - new Date(b)) / 86400000);
-  let html = `<div class="drift-title">📅 Date d'installation</div><div class="drift-timeline">`;
-  html += `<div class="drift-point"><span class="drift-label">Originale</span><span class="drift-date">${fmt(orig)}</span></div>`;
+  let html = `<div class="drift-title">${t('drift.title')}</div><div class="drift-timeline">`;
+  html += `<div class="drift-point"><span class="drift-label">${t('drift.original')}</span><span class="drift-date">${fmt(orig)}</span></div>`;
   if (delayed) {
     const d = diff(delayed, orig);
     html += `<span class="drift-arrow ${d > 0 ? 'drift-late' : ''}">→</span>`;
-    html += `<div class="drift-point"><span class="drift-label drift-label-delayed">Reportée${d !== 0 ? ' ('+(d>0?'+':'')+d+'j)' : ''}</span><span class="drift-date drift-delayed">${fmt(delayed)}</span></div>`;
+    html += `<div class="drift-point"><span class="drift-label drift-label-delayed">${t('drift.delayed')}${d !== 0 ? ' ('+(d>0?'+':'')+d+'j)' : ''}</span><span class="drift-date drift-delayed">${fmt(delayed)}</span></div>`;
   }
   if (actual) {
     const base = delayed || orig;
     const d = diff(actual, base);
     html += `<span class="drift-arrow">→</span>`;
-    html += `<div class="drift-point"><span class="drift-label drift-label-actual">Réelle${d !== 0 ? ' ('+(d>0?'+':'')+d+'j)' : ''}</span><span class="drift-date drift-actual">${fmt(actual)}</span></div>`;
+    html += `<div class="drift-point"><span class="drift-label drift-label-actual">${t('drift.actual')}${d !== 0 ? ' ('+(d>0?'+':'')+d+'j)' : ''}</span><span class="drift-date drift-actual">${fmt(actual)}</span></div>`;
   }
   html += `</div>`;
   const activeDate = m.installDateActual || m.installDateDelayed || orig;
   const wdLeft = workingDaysLeft(activeDate);
-  if (wdLeft !== null) html += `<div class="drift-comment" style="font-weight:600">🗓 ${wdLeft} jour${wdLeft > 1 ? 's' : ''} ouvré${wdLeft > 1 ? 's' : ''} restant${wdLeft > 1 ? 's' : ''}</div>`;
-  else if (activeDate) html += `<div class="drift-comment" style="color:var(--danger)">Date d'installation dépassée</div>`;
+  if (wdLeft !== null) html += `<div class="drift-comment" style="font-weight:600">🗓 ${fmtWorkingDays(wdLeft)}</div>`;
+  else if (activeDate) html += `<div class="drift-comment" style="color:var(--danger)">${t('drift.overdue')}</div>`;
   if (m.installDateComment) html += `<div class="drift-comment">💬 ${m.installDateComment}</div>`;
   block.innerHTML = html;
 }
@@ -454,7 +458,8 @@ function showDropdown(anchorEl, options, onSelect) {
   options.forEach(opt => {
     const el = document.createElement('div'); el.className = 'fl-opt';
     const dot = document.createElement('span'); dot.className = 'fl-opt-dot'; dot.style.background = opt.dot || '#cbd5e1'; el.appendChild(dot);
-    el.appendChild(document.createTextNode(opt.label !== undefined ? opt.label : opt));
+    const labelText = typeof opt.label === 'function' ? opt.label() : (opt.label !== undefined ? opt.label : opt);
+    el.appendChild(document.createTextNode(labelText));
     el.onmousedown = e => { e.preventDefault(); e.stopPropagation(); onSelect(opt.value !== undefined ? opt.value : opt); closeAllDD(); };
     dd.appendChild(el);
   });
@@ -489,12 +494,15 @@ function makeSortable(tbody, arr, renderFn) {
     }
   });
 }
-function dh() { return `<span class="drag-handle" title="Déplacer">⠿</span>`; }
+function dh() { return `<span class="drag-handle" title="${t('drag.move')}">⠿</span>`; }
 
 // ═══ GANTT ENGINE ═══
 function mondayOf(d) { const day = new Date(d); day.setHours(0,0,0,0); const dow = day.getDay(); day.setDate(day.getDate() + (dow === 0 ? -6 : 1 - dow)); return day; }
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
-const MONTHS_FR = ['JANVIER','FÉVRIER','MARS','AVRIL','MAI','JUIN','JUILLET','AOÛT','SEPTEMBRE','OCTOBRE','NOVEMBRE','DÉCEMBRE'];
+function getMonths() {
+  return [t('month.jan'),t('month.feb'),t('month.mar'),t('month.apr'),t('month.may'),t('month.jun'),
+          t('month.jul'),t('month.aug'),t('month.sep'),t('month.oct'),t('month.nov'),t('month.dec')];
+}
 
 function getGanttBounds() {
   const startEl = document.getElementById('pi-start').value, endEl = document.getElementById('pi-end').value;
@@ -516,20 +524,39 @@ function fmtDateShort(d) { return d.toLocaleDateString('fr-FR',{day:'2-digit',mo
 function fmtDDMMYY(iso) { const [y,m,d] = iso.split('-'); return `${d}/${m}/${y.slice(2)}`; }
 function isInWeek(s, e, w) { if (!s || !e) return false; const sd = new Date(s), ed = new Date(e), ws = new Date(w), we = new Date(w); ed.setHours(23,59,59); we.setDate(we.getDate()+6); we.setHours(23,59,59); return sd <= we && ed >= ws; }
 function isToday(w) { const ws = new Date(w), we = new Date(w); we.setDate(we.getDate()+6); we.setHours(23,59,59); return TODAY >= ws && TODAY <= we; }
-function monthGroups(weeks) { const g = []; let c = null; weeks.forEach((w,i) => { const m = w.getMonth(); if (!c || c.month !== m) { c = {month:m,label:MONTHS_FR[m],start:i,span:1}; g.push(c); } else c.span++; }); return g; }
+function monthGroups(weeks) { const MONTHS = getMonths(); const g = []; let c = null; weeks.forEach((w,i) => { const m = w.getMonth(); if (!c || c.month !== m) { c = {month:m,label:MONTHS[m],start:i,span:1}; g.push(c); } else c.span++; }); return g; }
 function getPhaseColor(task) { if (task.barColor) return task.barColor; const ph = phases.find(p => p.id === task.phaseId); return ph ? ph.color : '#94a3b8'; }
 
 const STATUS_OPTS = [
-  {label:'— Aucun —',value:'',dot:'#e2e7ed'},{label:'Non commencé',value:'Non commencé',dot:'#94a3b8'},
-  {label:'En cours',value:'En cours',dot:'#2563eb'},{label:'Terminé',value:'Terminé',dot:'#059669'},
-  {label:'En attente',value:'En attente',dot:'#d97706'},{label:'En retard',value:'En retard',dot:'#dc2626'},
-  {label:'Vérification requise',value:'Vérification requise',dot:'#7c3aed'},{label:'Mise à jour requise',value:'Mise à jour requise',dot:'#0891b2'},
+  {label: () => t('status.none'),        value:'',                    dot:'#e2e7ed'},
+  {label: () => t('status.not_started'), value:'Non commencé',        dot:'#94a3b8'},
+  {label: () => t('status.in_progress'), value:'En cours',            dot:'#2563eb'},
+  {label: () => t('status.done'),        value:'Terminé',             dot:'#059669'},
+  {label: () => t('status.on_hold'),     value:'En attente',          dot:'#d97706'},
+  {label: () => t('status.late'),        value:'En retard',           dot:'#dc2626'},
+  {label: () => t('status.review'),      value:'Vérification requise',dot:'#7c3aed'},
+  {label: () => t('status.update'),      value:'Mise à jour requise', dot:'#0891b2'},
 ];
 const PRIO_OPTS = [
-  {label:'— Aucune —',value:'',dot:'#e2e7ed'},{label:'FAIBLE',value:'FAIBLE',dot:'#10b981'},
-  {label:'MOYENNE',value:'MOYENNE',dot:'#f59e0b'},{label:'ÉLEVÉE',value:'ÉLEVÉE',dot:'#ef4444'},
+  {label: () => t('prio.none'),   value:'',       dot:'#e2e7ed'},
+  {label: () => t('prio.low'),    value:'FAIBLE',  dot:'#10b981'},
+  {label: () => t('prio.medium'), value:'MOYENNE', dot:'#f59e0b'},
+  {label: () => t('prio.high'),   value:'ÉLEVÉE',  dot:'#ef4444'},
 ];
-function statusBadgeHTML(s) { const cls = s ? 'badge-'+s.replace(/\s+/g,'-') : 'badge-empty'; return `<span class="badge ${cls}">${s||'—'}</span>`; }
+const STATUS_LABEL = {
+  'Non commencé':        () => t('status.not_started'),
+  'En cours':            () => t('status.in_progress'),
+  'Terminé':             () => t('status.done'),
+  'En attente':          () => t('status.on_hold'),
+  'En retard':           () => t('status.late'),
+  'Vérification requise':() => t('status.review'),
+  'Mise à jour requise': () => t('status.update'),
+};
+function statusBadgeHTML(s) {
+  const cls = s ? 'badge-'+s.replace(/\s+/g,'-') : 'badge-empty';
+  const label = STATUS_LABEL[s] ? STATUS_LABEL[s]() : (s || '—');
+  return `<span class="badge ${cls}">${label}</span>`;
+}
 function prioHTML(p) { if (!p) return `<span style="color:var(--text-muted);font-size:11px;cursor:pointer">—</span>`; return `<span class="prio-${p}" style="cursor:pointer">${p}</span>`; }
 
 let _editingTaskId = null;
@@ -537,8 +564,8 @@ function openEditTask(taskId) {
   _editingTaskId = taskId;
   const task = tasks.find(t => t.id === taskId);
   if (!task) return;
-  document.getElementById('modal-task-title').textContent = 'Modifier la tâche';
-  document.getElementById('btn-save-task').textContent = 'Mettre à jour';
+  document.getElementById('modal-task-title').textContent = t('modal.task.edit');
+  document.getElementById('btn-save-task').textContent = t('btn.update');
   const sel = document.getElementById('task-phase'); sel.innerHTML = '';
   phases.forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = p.name; if (p.id === task.phaseId) o.selected = true; sel.appendChild(o); });
   document.getElementById('task-name').value = task.name;
@@ -594,6 +621,16 @@ function renderGantt() {
   });
   const table = document.getElementById('gantt-table'); table.innerHTML = '';
   const mGroups = monthGroups(WEEKS);
+  const COL_LABEL = {
+    'STATUT':       () => t('col.status'),
+    'PRIORITÉ':     () => t('col.priority'),
+    'INTITULÉ':     () => t('col.title'),
+    'PROPRIÉTAIRE': () => t('col.owner'),
+    'DÉBUT':        () => t('col.start'),
+    'FIN':          () => t('col.end'),
+    'J':            () => t('col.days'),
+    '% AVA.':       () => t('col.progress'),
+  };
   const showDates = document.getElementById('tog-dates').checked;
   const showOwner = document.getElementById('tog-owner').checked;
   const showPrio  = document.getElementById('tog-prio').checked;
@@ -613,7 +650,7 @@ function renderGantt() {
   mGroups.forEach(mg => { const th = document.createElement('th'); th.colSpan = mg.span; th.className = 'th-month'; th.textContent = mg.label; r1.appendChild(th); });
 
   const r2 = table.insertRow(); r2.className = 'gantt-hrow';
-  visFC.forEach(([lbl,cls]) => { const th = document.createElement('th'); th.className = 'th-fixed '+cls; th.textContent = lbl; r2.appendChild(th); });
+  visFC.forEach(([lbl,cls]) => { const th = document.createElement('th'); th.className = 'th-fixed '+cls; th.textContent = COL_LABEL[lbl] ? COL_LABEL[lbl]() : lbl; r2.appendChild(th); });
   WEEKS.forEach((w, wi) => { const th = document.createElement('th'); th.className = 'th-week col-week'; th.textContent = weekLabel(w); if (isToday(w)) th.style.borderLeft = '2px solid #f97316'; if (WEEK_HOLIDAYS[wi].length) { th.classList.add('holiday-week'); th.title = WEEK_HOLIDAYS[wi].join(', '); } r2.appendChild(th); });
 
   phases.forEach(phase => {
@@ -624,13 +661,13 @@ function renderGantt() {
     const phStarts = phaseTasks.map(t => t.start).filter(Boolean).map(d => new Date(d).getTime());
     const phEnds   = phaseTasks.map(t => t.end).filter(Boolean).map(d => new Date(d).getTime());
     const phDurStr = phStarts.length && phEnds.length ? ` <span style="opacity:.75;font-size:10px;font-weight:400">(${Math.round((Math.max(...phEnds) - Math.min(...phStarts)) / 86400000) + 1}j)</span>` : '';
-    const collapseBtn = `<button data-phase-id="${phase.id}" onclick="togglePhaseCollapse('${phase.id}')" title="${isCollapsed ? 'Développer la phase' : 'Réduire la phase'}" style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:4px;padding:1px 7px;cursor:pointer;font-size:11px;font-family:inherit;line-height:1.4">${isCollapsed ? '▶' : '▼'}</button>`;
+    const collapseBtn = `<button data-phase-id="${phase.id}" onclick="togglePhaseCollapse('${phase.id}')" title="${isCollapsed ? t('gantt.expand') : t('gantt.collapse')}" style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:4px;padding:1px 7px;cursor:pointer;font-size:11px;font-family:inherit;line-height:1.4">${isCollapsed ? '▶' : '▼'}</button>`;
     if (_ganttEditMode) {
       tdPh.innerHTML = `<span class="drag-handle gantt-drag-handle" style="color:rgba(255,255,255,.85);margin-right:8px;font-size:15px;vertical-align:middle">⠿</span>${phase.name}${phDurStr}`;
     } else {
-      tdPh.innerHTML = `${collapseBtn}<span style="cursor:pointer;margin-left:6px" title="Modifier la phase" onclick="openEditPhase('${phase.id}')">${phase.name}${phDurStr}</span>
+      tdPh.innerHTML = `${collapseBtn}<span style="cursor:pointer;margin-left:6px" title="${t('modal.phase.edit')}" onclick="openEditPhase('${phase.id}')">${phase.name}${phDurStr}</span>
         <span style="float:right;display:flex;gap:6px;align-items:center">
-          <button onclick="openAddTaskModal('${phase.id}')" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;font-family:inherit">+ Tâche</button>
+          <button onclick="openAddTaskModal('${phase.id}')" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;font-family:inherit">${t('btn.add_task')}</button>
         </span>`;
     }
     rp.appendChild(tdPh);
@@ -640,7 +677,7 @@ function renderGantt() {
 
     if (phaseTasks.length === 0) {
       const re = table.insertRow(); re.className = 'tr-task';
-      visFC.forEach(([lbl,cls]) => { const td = document.createElement('td'); td.className = cls; if (lbl === 'INTITULÉ') { td.style.padding = '4px 8px'; td.style.color = 'var(--text-muted)'; td.style.fontStyle = 'italic'; td.textContent = 'Aucune tâche — cliquer "+ Tâche" pour en ajouter'; } re.appendChild(td); });
+      visFC.forEach(([lbl,cls]) => { const td = document.createElement('td'); td.className = cls; if (lbl === 'INTITULÉ') { td.style.padding = '4px 8px'; td.style.color = 'var(--text-muted)'; td.style.fontStyle = 'italic'; td.textContent = t('gantt.no_tasks'); } re.appendChild(td); });
       WEEKS.forEach((w, wi) => { const td = document.createElement('td'); td.className = 'gantt-cell'; if (isToday(w)) td.classList.add('today-col'); if (WEEK_HOLIDAYS[wi].length) td.classList.add('holiday-col'); re.appendChild(td); });
       return;
     }
@@ -662,7 +699,7 @@ function renderGantt() {
 
         if (lbl === 'STATUT') {
           if (_ganttEditMode) {
-            td.innerHTML = `<span class="drag-handle gantt-drag-handle" title="Déplacer la tâche" style="display:block;text-align:center">⠿</span>`;
+            td.innerHTML = `<span class="drag-handle gantt-drag-handle" title="${t('drag.move_task')}" style="display:block;text-align:center">⠿</span>`;
           } else if (!task.isUnavail) {
             td.className += ' status-cell'; td.innerHTML = statusBadgeHTML(task.status); td.style.cursor = 'pointer';
             td.addEventListener('click', e => { e.stopPropagation(); showDropdown(td.querySelector('.badge'), STATUS_OPTS, val => { updateTask(task.id,'status',val); renderGantt(); renderDashboard(); }); });
@@ -714,11 +751,11 @@ function renderGantt() {
             td.style.padding = '2px 6px'; td.style.cursor = 'pointer';
             const pct = task.progress || 0; const color = getPhaseColor(task);
             td.innerHTML = `<div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div><span class="progress-pct">${pct}%</span></div>`;
-            td.onclick = () => { const v = prompt("% d'avancement :", pct); if (v !== null && !isNaN(+v)) { const newPct = Math.min(100,Math.max(0,+v)); updateTask(task.id,'progress',newPct); if (newPct === 100) { updateTask(task.id,'status','Terminé'); } else if (newPct > 0 && (task.status === '' || task.status === 'Non commencé' || task.status === 'Terminé')) { updateTask(task.id,'status','En cours'); } renderGantt(); renderDashboard(); debouncedSave(); } };
+            td.onclick = () => { const v = prompt(t('gantt.progress_prompt'), pct); if (v !== null && !isNaN(+v)) { const newPct = Math.min(100,Math.max(0,+v)); updateTask(task.id,'progress',newPct); if (newPct === 100) { updateTask(task.id,'status','Terminé'); } else if (newPct > 0 && (task.status === '' || task.status === 'Non commencé' || task.status === 'Terminé')) { updateTask(task.id,'status','En cours'); } renderGantt(); renderDashboard(); debouncedSave(); } };
           }
         } else if (lbl === '') {
           td.style.padding = '1px 4px'; td.style.textAlign = 'center'; td.style.whiteSpace = 'nowrap';
-          td.innerHTML = `<button title="Modifier" onclick="openEditTask('${task.id}')" style="background:var(--accent-light);border:none;color:var(--accent);border-radius:4px;padding:2px 7px;cursor:pointer;font-size:10px;font-family:inherit">✏</button>`;
+          td.innerHTML = `<button title="${t('btn.edit')}" onclick="openEditTask('${task.id}')" style="background:var(--accent-light);border:none;color:var(--accent);border-radius:4px;padding:2px 7px;cursor:pointer;font-size:10px;font-family:inherit">✏</button>`;
         }
         rt.appendChild(td);
       });
@@ -750,9 +787,9 @@ function renderGantt() {
     const jiraCollapsed = _collapsedPhases.has('__jira__');
     const rpJ = table.insertRow(); rpJ.className = 'tr-phase jira-main-row';
     const tdPhJ = document.createElement('td'); tdPhJ.colSpan = fixedCount; tdPhJ.style.background = JIRA_COLOR;
-    const jiraCollapseBtn = `<button data-phase-id="__jira__" onclick="togglePhaseCollapse('__jira__')" title="${jiraCollapsed ? 'Développer' : 'Réduire'}" style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:4px;padding:1px 7px;cursor:pointer;font-size:11px;font-family:inherit;line-height:1.4">${jiraCollapsed ? '▶' : '▼'}</button>`;
+    const jiraCollapseBtn = `<button data-phase-id="__jira__" onclick="togglePhaseCollapse('__jira__')" title="${jiraCollapsed ? t('gantt.expand') : t('gantt.collapse')}" style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:4px;padding:1px 7px;cursor:pointer;font-size:11px;font-family:inherit;line-height:1.4">${jiraCollapsed ? '▶' : '▼'}</button>`;
     tdPhJ.innerHTML = `${jiraCollapseBtn}<span style="font-weight:700;letter-spacing:.5px;margin-left:6px">◈ JIRA</span>
-      <span style="opacity:.7;font-size:10px;margin-left:8px">${jiraData.tasks.length} tâches · ${jiraData.epics.length} epics</span>
+      <span style="opacity:.7;font-size:10px;margin-left:8px">${jiraData.tasks.length} ${t('jira.tasks_count')} · ${jiraData.epics.length} ${t('jira.epics_count')}</span>
       <span style="float:right"><button onclick="syncJira()" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;font-family:inherit">⟳ Sync</button></span>`;
     rpJ.appendChild(tdPhJ);
     WEEKS.forEach(w => { const td = document.createElement('td'); td.className = 'gantt-cell'; td.style.background = JIRA_COLOR; td.style.opacity = '.2'; if (isToday(w)) td.style.borderLeft = '2px solid #f97316'; rpJ.appendChild(td); });
@@ -766,7 +803,7 @@ function renderGantt() {
         const repic = table.insertRow(); repic.className = 'tr-phase'; repic.dataset.jiraEpicId = epic.id;
         const tdEpic = document.createElement('td'); tdEpic.colSpan = fixedCount;
         tdEpic.style.cssText = `background:${epic.color}18;border-left:3px solid ${epic.color};padding-left:8px;font-size:11px`;
-        const epicCollapseBtn = `<button onclick="togglePhaseCollapse('__epic_${epic.id}')" title="${epicCollapsed ? 'Développer' : 'Réduire'}" style="background:rgba(0,0,0,.08);border:none;color:${epic.color};border-radius:4px;padding:1px 7px;cursor:pointer;font-size:11px;font-family:inherit;line-height:1.4;margin-right:4px">${epicCollapsed ? '▶' : '▼'}</button>`;
+        const epicCollapseBtn = `<button onclick="togglePhaseCollapse('__epic_${epic.id}')" title="${epicCollapsed ? t('gantt.expand') : t('gantt.collapse')}" style="background:rgba(0,0,0,.08);border:none;color:${epic.color};border-radius:4px;padding:1px 7px;cursor:pointer;font-size:11px;font-family:inherit;line-height:1.4;margin-right:4px">${epicCollapsed ? '▶' : '▼'}</button>`;
         if (_ganttEditMode) {
           tdEpic.innerHTML = `<span class="drag-handle gantt-drag-handle" style="color:${epic.color};margin-right:6px;font-size:13px;vertical-align:middle">⠿</span><span style="font-weight:700;color:${epic.color};font-family:monospace;margin-right:6px">${epic.key}</span>${epic.summary}`;
         } else {
@@ -782,7 +819,7 @@ function renderGantt() {
               const td = document.createElement('td'); td.className = cls;
               if (lbl === 'STATUT') {
                 if (_ganttEditMode) {
-                  td.innerHTML = `<span class="drag-handle gantt-drag-handle" title="Déplacer la tâche" style="display:block;text-align:center">⠿</span>`;
+                  td.innerHTML = `<span class="drag-handle gantt-drag-handle" title="${t('drag.move_task')}" style="display:block;text-align:center">⠿</span>`;
                 } else {
                   td.className += ' status-cell';
                   td.innerHTML = `<span class="badge badge-${jiraStatusBadgeClass(jTask.status)}">${jiraStatusLabel(jTask.status)}</span>`;
@@ -868,7 +905,7 @@ function makeGanttResizable(table) {
 function toggleGanttEditMode() {
   _ganttEditMode = !_ganttEditMode;
   const btn = document.getElementById('btn-edit-planning');
-  btn.textContent = _ganttEditMode ? '✓ Terminer' : '✏ Réorganiser';
+  btn.textContent = _ganttEditMode ? t('gantt.edit.exit') : t('gantt.edit.enter');
   btn.style.cssText = _ganttEditMode
     ? 'background:var(--accent);color:#fff;border-color:var(--accent)'
     : '';
@@ -955,7 +992,14 @@ function initGanttSort(tbody) {
 
 // ═══ JIRA ═══
 function jiraStatusLabel(s) {
-  return { TO_DO:'Non commencé', IN_PROGRESS:'En cours', DONE:'Terminé', IN_REVIEW:'En révision', BLOCKED:'Bloqué' }[s] || (s || '—');
+  const map = {
+    TO_DO: () => t('jira.status.todo'),
+    IN_PROGRESS: () => t('jira.status.inprogress'),
+    DONE: () => t('jira.status.done'),
+    IN_REVIEW: () => t('status.review'),
+    BLOCKED: () => t('jira.status.blocked'),
+  };
+  return map[s] ? map[s]() : (s || '—');
 }
 function jiraStatusBadgeClass(s) {
   return { TO_DO:'Non-commencé', IN_PROGRESS:'En-cours', DONE:'Terminé', IN_REVIEW:'Vérification-requise', BLOCKED:'En-attente' }[s] || 'empty';
@@ -994,15 +1038,15 @@ async function syncJira() {
   if (!cfg?.token || !cfg?.url || !projectKey) {
     const info = document.getElementById('jira-sync-info');
     if (!cfg?.url || !cfg?.token) {
-      if (info) info.textContent = 'Configurez vos identifiants JIRA dans les Paramètres de l\'application (écran d\'accueil).';
+      if (info) info.textContent = t('jira.no_config');
     } else {
-      if (info) info.textContent = 'Clé de projet JIRA manquante — configurez-la dans ⚙ Paramètres du projet.';
+      if (info) info.textContent = t('jira.no_key');
       openProjectSettings();
     }
     return;
   }
   const syncBtn = document.getElementById('jira-sync-btn');
-  if (syncBtn) { syncBtn.disabled = true; syncBtn.textContent = '⟳ Synchro…'; }
+  if (syncBtn) { syncBtn.disabled = true; syncBtn.textContent = t('jira.syncing'); }
   try {
     const jiraUrl = `${cfg.url}/rest/api/3/search/jql`;
     const [erText, trText] = await Promise.all([
@@ -1012,13 +1056,13 @@ async function syncJira() {
     jiraData = transformJiraIssues(JSON.parse(erText), JSON.parse(trText));
     jiraData.lastSync = new Date().toLocaleString('fr-FR');
     renderJira(); renderGantt(); debouncedSave();
-    document.getElementById('jira-sync-info').textContent = `Dernière synchro : ${jiraData.lastSync} — ${jiraData.tasks.length} tâches importées`;
+    document.getElementById('jira-sync-info').textContent = `${t('jira.last_sync')} ${jiraData.lastSync} — ${jiraData.tasks.length} ${t('jira.imported')}`;
   } catch (e) {
     console.error('JIRA sync:', e);
     const info = document.getElementById('jira-sync-info');
-    if (info) info.textContent = 'Erreur : ' + (e.message ?? e);
+    if (info) info.textContent = t('error.prefix') + (e.message ?? e);
   } finally {
-    if (syncBtn) { syncBtn.disabled = false; syncBtn.textContent = '⟳ Synchroniser'; }
+    if (syncBtn) { syncBtn.disabled = false; syncBtn.textContent = t('jira.sync'); }
   }
 }
 function renderJira() {
@@ -1026,21 +1070,21 @@ function renderJira() {
   if (!container) return;
   const { epics = [], tasks = [], lastSync = '' } = jiraData;
   const syncInfo = document.getElementById('jira-sync-info');
-  if (syncInfo) syncInfo.textContent = lastSync ? `Dernière synchro : ${lastSync}` : 'Jamais synchronisé — données de démonstration affichées';
-  const done = tasks.filter(t => t.status === 'DONE').length;
-  const inProg = tasks.filter(t => t.status === 'IN_PROGRESS').length;
+  if (syncInfo) syncInfo.textContent = lastSync ? `${t('jira.last_sync')} ${lastSync}` : t('jira.demo');
+  const done = tasks.filter(tk => tk.status === 'DONE').length;
+  const inProg = tasks.filter(tk => tk.status === 'IN_PROGRESS').length;
   const kpi = document.getElementById('kpi-jira');
   if (kpi) kpi.innerHTML = `
-    <div class="kpi-card"><div class="kpi-label">Total Tâches</div><div class="kpi-value">${tasks.length}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Terminées</div><div class="kpi-value" style="color:#059669">${done}</div><div class="kpi-sub">${tasks.length ? Math.round(done/tasks.length*100) : 0}%</div></div>
-    <div class="kpi-card"><div class="kpi-label">En cours</div><div class="kpi-value" style="color:#2563eb">${inProg}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Epics</div><div class="kpi-value">${epics.length}</div></div>`;
+    <div class="kpi-card"><div class="kpi-label">${t('kpi.j_total')}</div><div class="kpi-value">${tasks.length}</div></div>
+    <div class="kpi-card"><div class="kpi-label">${t('kpi.j_done')}</div><div class="kpi-value" style="color:#059669">${done}</div><div class="kpi-sub">${tasks.length ? Math.round(done/tasks.length*100) : 0}%</div></div>
+    <div class="kpi-card"><div class="kpi-label">${t('kpi.j_progress')}</div><div class="kpi-value" style="color:#2563eb">${inProg}</div></div>
+    <div class="kpi-card"><div class="kpi-label">${t('kpi.j_epics')}</div><div class="kpi-value">${epics.length}</div></div>`;
   container.innerHTML = '';
   if (!tasks.length && !epics.length) {
-    container.innerHTML = `<div class="jira-empty"><p style="font-size:15px;font-weight:600;margin-bottom:6px">Aucune donnée JIRA</p><p>Configurez la connexion et synchronisez pour importer les tâches.</p></div>`;
+    container.innerHTML = `<div class="jira-empty"><p style="font-size:15px;font-weight:600;margin-bottom:6px">${t('jira.no_data')}</p><p>${t('jira.no_data_hint')}</p></div>`;
     return;
   }
-  [...epics, { id: '__orphan__', key: '', summary: 'Sans Epic', color: '#94a3b8', status: '' }].forEach(epic => {
+  [...epics, { id: '__orphan__', key: '', summary: t('jira.no_epic'), color: '#94a3b8', status: '' }].forEach(epic => {
     const epicTasks = epic.id === '__orphan__'
       ? tasks.filter(t => !t.epicId || !epics.find(e => e.id === t.epicId))
       : tasks.filter(t => t.epicId === epic.id);
@@ -1063,7 +1107,7 @@ function renderJira() {
         </div>
       </div>
       <div class="jira-epic-tasks">
-        <div class="jira-tasks-header"><span>Clé</span><span>Intitulé</span><span>Statut</span><span>Responsable</span><span>Pts</span><span>Début</span><span>Échéance</span><span>J</span><span>Avancement</span></div>
+        <div class="jira-tasks-header"><span>${t('jira.col.key')}</span><span>${t('jira.col.title')}</span><span>${t('jira.col.status')}</span><span>${t('jira.col.owner')}</span><span>${t('jira.col.pts')}</span><span>${t('jira.col.start')}</span><span>${t('jira.col.due')}</span><span>${t('jira.col.days')}</span><span>${t('jira.col.progress')}</span></div>
         ${epicTasks.map(t => {
           const days = (t.startDate && t.dueDate) ? Math.round((new Date(t.dueDate) - new Date(t.startDate)) / 86400000) + 1 : null;
           return `<div class="jira-task-row">
@@ -1088,7 +1132,7 @@ function deleteTask(id) {
   const idx = tasks.findIndex(t => t.id === id); if (idx < 0) return;
   const deleted = { ...tasks[idx] };
   tasks.splice(idx, 1); renderGantt(); renderDashboard(); debouncedSave();
-  showUndoToast(`Tâche "${formatTemplate(deleted.name)}" supprimée`, () => {
+  showUndoToast(t('msg.task_deleted'), () => {
     tasks.splice(idx, 0, deleted); renderGantt(); renderDashboard();
   });
 }
@@ -1104,7 +1148,7 @@ function removePhase(id) {
   const deletedTasks = tasks.filter(t => t.phaseId === id);
   phases = phases.filter(p => p.id !== id); tasks = tasks.filter(t => t.phaseId !== id);
   renderGantt(); debouncedSave();
-  showUndoToast(`Phase "${deletedPhase.name}" supprimée`, () => {
+  showUndoToast(t('msg.phase_deleted'), () => {
     phases.push(deletedPhase); tasks.push(...deletedTasks); renderGantt();
   });
 }
@@ -1130,9 +1174,9 @@ function _addSegRow(list, start = '', end = '') {
   const div = document.createElement('div');
   div.className = 'task-seg-row';
   div.innerHTML = `<div class="form-2col" style="align-items:flex-end;gap:6px">
-    <div class="form-row"><label>Début</label><input type="date" class="seg-start" value="${start}"></div>
-    <div class="form-row"><label>Fin</label><input type="date" class="seg-end" value="${end}"></div>
-    <button type="button" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost seg-del" onclick="removeTaskSegment(this)" title="Supprimer cette période" style="margin-bottom:2px">🗑</button>
+    <div class="form-row"><label>${t('form.start')}</label><input type="date" class="seg-start" value="${start}"></div>
+    <div class="form-row"><label>${t('form.end')}</label><input type="date" class="seg-end" value="${end}"></div>
+    <button type="button" class="btn btn-ghost btn-icon btn-sm btn-danger-ghost seg-del" onclick="removeTaskSegment(this)" title="${t('seg.delete')}" style="margin-bottom:2px">🗑</button>
   </div>`;
   list.appendChild(div);
 }
@@ -1162,8 +1206,8 @@ function removeTaskSegment(btn) {
 
 function openAddTaskModal(phaseId) {
   _editingTaskId = null;
-  document.getElementById('modal-task-title').textContent = 'Nouvelle Tâche';
-  document.getElementById('btn-save-task').textContent = 'Enregistrer';
+  document.getElementById('modal-task-title').textContent = t('modal.task.new');
+  document.getElementById('btn-save-task').textContent = t('btn.save');
   const sel = document.getElementById('task-phase'); sel.innerHTML = '';
   phases.forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = p.name; if (p.id === phaseId) o.selected = true; sel.appendChild(o); });
   document.getElementById('task-name').value = '';
@@ -1181,7 +1225,7 @@ function openAddTaskModal(phaseId) {
 }
 function openAddPhaseModal() {
   _editingPhaseId = null;
-  document.getElementById('modal-phase-title').textContent = 'Nouvelle Phase';
+  document.getElementById('modal-phase-title').textContent = t('modal.phase.new');
   ['phase-name','phase-code'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('phase-color').value = '#1a56db';
   document.getElementById('btn-delete-phase').style.display = 'none';
@@ -1190,7 +1234,7 @@ function openAddPhaseModal() {
 function openEditPhase(phaseId) {
   _editingPhaseId = phaseId;
   const ph = phases.find(p => p.id === phaseId);
-  document.getElementById('modal-phase-title').textContent = 'Modifier la Phase';
+  document.getElementById('modal-phase-title').textContent = t('modal.phase.edit');
   document.getElementById('phase-name').value = ph.name; document.getElementById('phase-code').value = ph.code; document.getElementById('phase-color').value = ph.color;
   document.getElementById('btn-delete-phase').style.display = '';
   document.getElementById('modal-phase').classList.add('open');
@@ -1198,7 +1242,7 @@ function openEditPhase(phaseId) {
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 function saveTask() {
   const name = document.getElementById('task-name').value.trim();
-  if (!name) { alert('Veuillez saisir un intitulé.'); return; }
+  if (!name) { alert(t('msg.enter_title')); return; }
   const segs = Array.from(document.querySelectorAll('#task-segments-list .task-seg-row'))
     .map(r => ({ start: r.querySelector('.seg-start').value, end: r.querySelector('.seg-end').value }))
     .filter(s => s.start || s.end);
@@ -1228,7 +1272,7 @@ function saveTask() {
   closeModal('modal-task'); renderGantt(); renderDashboard(); debouncedSave();
 }
 function savePhase() {
-  const name = document.getElementById('phase-name').value.trim(); if (!name) { alert('Veuillez saisir un nom.'); return; }
+  const name = document.getElementById('phase-name').value.trim(); if (!name) { alert(t('msg.enter_name')); return; }
   const code = document.getElementById('phase-code').value.trim().toUpperCase() || name.slice(0,2).toUpperCase();
   const color = document.getElementById('phase-color').value;
   if (_editingPhaseId) { const ph = phases.find(p => p.id === _editingPhaseId); ph.name = name.toUpperCase(); ph.code = code; ph.color = color; }
@@ -1239,7 +1283,7 @@ document.querySelectorAll('.modal-overlay').forEach(el => el.addEventListener('c
 
 // ═══ PDF ═══
 async function exportPDF() {
-  const btn = document.querySelector('.btn-primary'); const orig = btn.innerHTML; btn.innerHTML = 'Génération…'; btn.disabled = true;
+  const btn = document.querySelector('.btn-primary'); const orig = btn.innerHTML; btn.innerHTML = t('pdf.generating'); btn.disabled = true;
   try {
     const { jsPDF } = window.jspdf; const panel = document.getElementById('planning-panel');
     const wr = document.getElementById('gantt-wrapper'); const prev = wr.style.overflow; wr.style.overflow = 'visible';
@@ -1255,13 +1299,13 @@ async function exportPDF() {
     pdf.setFont('helvetica','bold'); pdf.setFontSize(11); pdf.setTextColor(255,255,255); pdf.text(`PLANNING — ${proj.toUpperCase()}`, m+4, m+6.5);
     pdf.setFont('helvetica','normal'); pdf.setFontSize(9); pdf.text(`Client: ${cli}  |  Directeur de Projet: ${pm}  |  ${today}`, pageW-m-4, m+6.5, {align:'right'});
     pdf.addImage(imgData,'PNG',m,m+12,dw,dh);
-    pdf.setFontSize(8); pdf.setTextColor(150,150,150); pdf.text(`Document confidentiel — ${proj}`, m, pageH-4); pdf.text('Page 1', pageW-m, pageH-4, {align:'right'});
+    pdf.setFontSize(8); pdf.setTextColor(150,150,150); pdf.text(`${t('pdf.confidential')} — ${proj}`, m, pageH-4); pdf.text('Page 1', pageW-m, pageH-4, {align:'right'});
     const fileName = `Planning_${proj.replace(/\s+/g,'_')}_${today.replace(/\//g,'-')}.pdf`;
     const savePath = await invoke('save_pdf_dialog', { name: fileName });
     if (!savePath) { btn.innerHTML = orig; btn.disabled = false; return; }
     const arrayBuf = pdf.output('arraybuffer');
     await invoke('write_file_bytes', { path: savePath, bytes: Array.from(new Uint8Array(arrayBuf)) });
-  } catch (e) { console.error(e); alert('Erreur PDF : ' + e); }
+  } catch (e) { console.error(e); alert(t('pdf.error') + e); }
   btn.innerHTML = orig; btn.disabled = false;
 }
 
@@ -1273,7 +1317,7 @@ async function exportCurrentTabPDF() {
     : document.getElementById(pageId);
   if (!panel) return;
   const btn = document.getElementById('btn-nav-pdf');
-  const orig = btn?.innerHTML; if (btn) { btn.innerHTML = 'Génération…'; btn.disabled = true; }
+  const orig = btn?.innerHTML; if (btn) { btn.innerHTML = t('pdf.generating'); btn.disabled = true; }
   try {
     const { jsPDF } = window.jspdf;
     const wr = pageId === 'page-planning' ? document.getElementById('gantt-wrapper') : null;
@@ -1291,13 +1335,13 @@ async function exportCurrentTabPDF() {
     pdf.setFont('helvetica','bold'); pdf.setFontSize(11); pdf.setTextColor(255,255,255); pdf.text(`${tabName.toUpperCase()} — ${proj.toUpperCase()}`, m+4, m+6.5);
     pdf.setFont('helvetica','normal'); pdf.setFontSize(9); pdf.text(`Client: ${cli}  |  ${today}`, pageW-m-4, m+6.5, {align:'right'});
     pdf.addImage(imgData,'PNG', m+(aw-dw)/2, m+12, dw, dh);
-    pdf.setFontSize(8); pdf.setTextColor(150,150,150); pdf.text(`Document confidentiel — ${proj}`, m, pageH-4); pdf.text('Page 1', pageW-m, pageH-4, {align:'right'});
+    pdf.setFontSize(8); pdf.setTextColor(150,150,150); pdf.text(`${t('pdf.confidential')} — ${proj}`, m, pageH-4); pdf.text('Page 1', pageW-m, pageH-4, {align:'right'});
     const fileName = `${tabName.replace(/\s+/g,'_')}_${proj.replace(/\s+/g,'_')}_${today.replace(/\//g,'-')}.pdf`;
     const savePath = await invoke('save_pdf_dialog', { name: fileName });
     if (!savePath) { if (btn) { btn.innerHTML = orig; btn.disabled = false; } return; }
     const arrayBuf = pdf.output('arraybuffer');
     await invoke('write_file_bytes', { path: savePath, bytes: Array.from(new Uint8Array(arrayBuf)) });
-  } catch (e) { console.error(e); alert('Erreur PDF : ' + e); }
+  } catch (e) { console.error(e); alert(t('pdf.error') + e); }
   if (btn) { btn.innerHTML = orig; btn.disabled = false; }
 }
 
@@ -1395,13 +1439,13 @@ function renderHeures() {
         <td style="text-align:right"><input class="h-input" type="number" value="${row.vente!=null?row.vente:''}" placeholder="0" min="0" onchange="updateHeures('${row.id}','vente',this.value===''?null:+this.value)"></td>
         <td style="text-align:right"><input class="h-input" type="number" value="${row.actuel!=null?row.actuel:''}" placeholder="—" min="0" onchange="updateHeures('${row.id}','actuel',this.value===''?null:+this.value)"></td>
         <td style="text-align:right">${ecartHtml}</td>
-        <td style="text-align:center">${(row.history||[]).length > 0 ? `<span title="Voir l'historique" style="cursor:pointer;color:var(--text-muted);font-size:14px" onclick="toggleHeuresHistory('${row.id}',this)">🕐</span>` : ''}</td>
+        <td style="text-align:center">${(row.history||[]).length > 0 ? `<span title="${t('heures.view_history')}" style="cursor:pointer;color:var(--text-muted);font-size:14px" onclick="toggleHeuresHistory('${row.id}',this)">🕐</span>` : ''}</td>
         <td contenteditable="true" style="color:var(--text-muted)" onblur="updateHeuresDesc('${row.id}',this.textContent.trim())">${row.desc||''}</td>
-        <td style="text-align:center"><button class="btn btn-secondary btn-sm" onclick="openEditHeure('${row.id}')" title="Modifier">✏</button></td>`;
+        <td style="text-align:center"><button class="btn btn-secondary btn-sm" onclick="openEditHeure('${row.id}')" title="${t('btn.edit')}">✏</button></td>`;
       // Inline type select
       const typeSel = document.createElement('select');
       typeSel.className = 'gantt-select'; typeSel.style.width = '100%';
-      HEURE_TYPES.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; if (t === rowType) o.selected = true; typeSel.appendChild(o); });
+      HEURE_TYPES.forEach(ht => { const o = document.createElement('option'); o.value = ht; o.textContent = ht; if (ht === rowType) o.selected = true; typeSel.appendChild(o); });
       typeSel.onchange = () => { row.type = typeSel.value; renderHeures(); renderDashboard(); debouncedSave(); };
       tr.cells[2].appendChild(typeSel);
     }
@@ -1412,22 +1456,22 @@ function renderHeures() {
   const vCust = heuresVenteByType('Custom'),    aCust = heuresActuelByType('Custom');
   const vComp = heuresVenteByType('Offre Comp'),aComp = heuresActuelByType('Offre Comp');
   document.getElementById('kpi-heures').innerHTML = `
-    <div class="kpi-card"><div class="kpi-label">Total Vente</div><div class="kpi-value">${vente} h</div><div class="kpi-sub">Std: ${vStd}h · Custom: ${vCust}h · Comp: ${vComp}h</div></div>
-    <div class="kpi-card"><div class="kpi-label">Total Actuel</div><div class="kpi-value">${actuel} h</div><div class="kpi-sub">${vente>0?Math.round(actuel/vente*100):0}% du budget</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:${vente>0?Math.min(100,actuel/vente*100):0}%;background:${actuel>vente?'#dc2626':'var(--accent)'}"></div></div></div>
-    <div class="kpi-card"><div class="kpi-label">Écart</div><div class="kpi-value" style="color:${actuel>vente?'#dc2626':actuel<vente?'#059669':'var(--text)'}">${actuel>vente?'+':''}${actuel-vente} h</div></div>
-    <div class="kpi-card"><div class="kpi-label">Jours Restants (vente)</div><div class="kpi-value">${Math.round((vente-actuel)/7)}</div><div class="kpi-sub">Base 7h/jour</div></div>`;
+    <div class="kpi-card"><div class="kpi-label">${t('kpi.h_sold')}</div><div class="kpi-value">${vente} h</div><div class="kpi-sub">Std: ${vStd}h · Custom: ${vCust}h · Comp: ${vComp}h</div></div>
+    <div class="kpi-card"><div class="kpi-label">${t('kpi.h_actual')}</div><div class="kpi-value">${actuel} h</div><div class="kpi-sub">${vente>0?Math.round(actuel/vente*100):0}% ${t('kpi.h_budget_pct')}</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:${vente>0?Math.min(100,actuel/vente*100):0}%;background:${actuel>vente?'#dc2626':'var(--accent)'}"></div></div></div>
+    <div class="kpi-card"><div class="kpi-label">${t('kpi.h_variance')}</div><div class="kpi-value" style="color:${actuel>vente?'#dc2626':actuel<vente?'#059669':'var(--text)'}">${actuel>vente?'+':''}${actuel-vente} h</div></div>
+    <div class="kpi-card"><div class="kpi-label">${t('kpi.h_days_left')}</div><div class="kpi-value">${Math.round((vente-actuel)/7)}</div><div class="kpi-sub">${t('kpi.h_base')}</div></div>`;
   renderDeplRow(document.getElementById('tbody-deplacements'));
 }
 
 function addCustomHeuresRow() {
-  heuresData.push({ id: uid(), cat: 'Nouvelle catégorie', vente: 0, actuel: 0, desc: '', bold: false, sep: false, custom: true, type: 'Custom', history: [] });
+  heuresData.push({ id: uid(), cat: t('new.cat'), vente: 0, actuel: 0, desc: '', bold: false, sep: false, custom: true, type: 'Custom', history: [] });
   renderHeures(); debouncedSave();
 }
 function deleteHeuresRow(id) {
   const idx = heuresData.findIndex(r => r.id === id); if (idx < 0) return;
   const deleted = { ...heuresData[idx] };
   heuresData.splice(idx, 1); renderHeures(); debouncedSave();
-  showUndoToast(`Catégorie "${deleted.cat}" supprimée`, () => { heuresData.splice(idx, 0, deleted); renderHeures(); });
+  showUndoToast(t('msg.cat_deleted'), () => { heuresData.splice(idx, 0, deleted); renderHeures(); });
 }
 function toggleHeuresHistory(id, btn) {
   const existingRow = btn.closest('tr').nextElementSibling;
@@ -1457,9 +1501,19 @@ function toggleHeuresHistory(id, btn) {
 const ETAT_INT = ['FAIT','EN COURS','À FAIRE','EN ATTENTE','ANNULÉ'];
 const ETAT_B = {'FAIT':'cell-ok','EN COURS':'cell-wip','À FAIRE':'cell-none','EN ATTENTE':'cell-warn','ANNULÉ':'cell-ko'};
 const ETAT_D = {'FAIT':'#059669','EN COURS':'#2563eb','À FAIRE':'#94a3b8','EN ATTENTE':'#d97706','ANNULÉ':'#dc2626'};
-const URG_OPTS = [{label:'— Aucune —',value:0,dot:'#e2e7ed'},{label:'Faible',value:1,dot:'#94a3b8'},{label:'Moyenne',value:2,dot:'#f59e0b'},{label:'Haute',value:3,dot:'#ef4444'}];
-const URG_CHIP = {0:'',1:'<span class="urg-chip urg-faible" style="cursor:pointer">Faible</span>',2:'<span class="urg-chip urg-moyenne" style="cursor:pointer">Moyenne</span>',3:'<span class="urg-chip urg-haute" style="cursor:pointer">Haute</span>'};
-function urgChipHTML(v) { return URG_CHIP[v||0] || '<span style="color:var(--text-muted);cursor:pointer;font-size:11px">—</span>'; }
+const URG_OPTS = [
+  {label: () => t('urg.none'),   value:0, dot:'#e2e7ed'},
+  {label: () => t('urg.low'),    value:1, dot:'#94a3b8'},
+  {label: () => t('urg.medium'), value:2, dot:'#f59e0b'},
+  {label: () => t('urg.high'),   value:3, dot:'#ef4444'},
+];
+function urgChipHTML(v) {
+  const urg = v || 0;
+  if (!urg) return '<span style="color:var(--text-muted);cursor:pointer;font-size:11px">—</span>';
+  const cls = ['','urg-faible','urg-moyenne','urg-haute'][urg] || '';
+  const lbl = ['', t('urg.low'), t('urg.medium'), t('urg.high')][urg] || '';
+  return `<span class="urg-chip ${cls}" style="cursor:pointer">${lbl}</span>`;
+}
 
 let _editingTacheId = null;
 function openEditInternalTask(id) {
@@ -1478,7 +1532,7 @@ function saveInternalTask() {
   if (!_editingTacheId) return;
   const t = internalTasks.find(t => t.id === _editingTacheId); if (!t) return;
   const action = document.getElementById('et-action').value.trim();
-  if (!action) { alert('Veuillez saisir une action.'); return; }
+  if (!action) { alert(t('msg.enter_action')); return; }
   t.action   = action;
   t.owner    = document.getElementById('et-owner').value;
   t.etat     = document.getElementById('et-etat').value;
@@ -1515,17 +1569,17 @@ function renderTaches() {
     ownerSel.onchange = () => { task.owner = ownerSel.value; debouncedSave(); };
     tr.cells[2].appendChild(ownerSel);
     const etatSp = tr.cells[3].querySelector('span');
-    etatSp.addEventListener('click', e => { e.stopPropagation(); showDropdown(etatSp, ETAT_INT.map(v => ({label:v,value:v,dot:ETAT_D[v]})), val => { task.etat = val; renderTaches(); debouncedSave(); }); });
+    etatSp.addEventListener('click', e => { e.stopPropagation(); showDropdown(etatSp, ETAT_INT.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:ETAT_D[v]})), val => { task.etat = val; renderTaches(); debouncedSave(); }); });
     tr.cells[6].querySelector('span').addEventListener('click', e => { e.stopPropagation(); showDropdown(tr.cells[6].querySelector('span'), URG_OPTS, val => { task.urg = val; renderTaches(); debouncedSave(); }); });
   });
   makeSortable(tbody, internalTasks, renderTaches);
 }
-function addInternalTask() { internalTasks.push({id:uid(),action:'Nouvelle tâche',owner:'',etat:'À FAIRE',temps:0,deadline:'',urg:1,comment:''}); renderTaches(); debouncedSave(); }
+function addInternalTask() { internalTasks.push({id:uid(),action:t('new.task'),owner:'',etat:'À FAIRE',temps:0,deadline:'',urg:1,comment:''}); renderTaches(); debouncedSave(); }
 function deleteInternalTask(id) {
   const idx = internalTasks.findIndex(t => t.id === id); if (idx < 0) return;
   const deleted = { ...internalTasks[idx] };
   internalTasks.splice(idx, 1); renderTaches(); debouncedSave();
-  showUndoToast(`Tâche interne "${deleted.action}" supprimée`, () => { internalTasks.splice(idx, 0, deleted); renderTaches(); });
+  showUndoToast(t('msg.task_deleted'), () => { internalTasks.splice(idx, 0, deleted); renderTaches(); });
 }
 
 // ═══ INTERFACES ═══
@@ -1553,7 +1607,7 @@ function saveInterface() {
   if (!_editingInterfaceId) return;
   const r = interfacesData.find(r => r.id === _editingInterfaceId); if (!r) return;
   const name = document.getElementById('ei-name').value.trim();
-  if (!name) { alert('Veuillez saisir un nom.'); return; }
+  if (!name) { alert(t('msg.enter_name')); return; }
   r.name       = name;
   r.type       = document.getElementById('ei-type').value;
   r.dev        = document.getElementById('ei-dev').value;
@@ -1570,11 +1624,30 @@ function deleteInterfaceFromModal() {
   deleteInterface(_editingInterfaceId);
 }
 
-function cellBadge(map, v) { return `<span class="${map[v]||'cell-none'}" style="cursor:pointer">${v}</span>`; }
+const CELL_LABEL = {
+  'FAIT':       () => t('etat.fait'),
+  'EN COURS':   () => t('etat.en_cours'),
+  'À FAIRE':    () => t('etat.a_faire'),
+  'EN ATTENTE': () => t('etat.en_attente'),
+  'ANNULÉ':     () => t('etat.annule'),
+  'OUI':        () => t('state.yes'),
+  'NON':        () => t('state.no'),
+  'OK':         () => t('state.ok'),
+  'KO':         () => t('state.ko'),
+  'En cours':   () => t('etat.en_cours'),
+  'Oui':        () => t('state.yes'),
+  'Non':        () => t('state.no'),
+  'Payé':       () => t('chart.fact.paid'),
+  'Retard':     () => t('chart.fact.late'),
+};
+function cellBadge(map, v) {
+  const lbl = CELL_LABEL[v]?.() ?? v;
+  return `<span class="${map[v]||'cell-none'}" style="cursor:pointer">${lbl}</span>`;
+}
 function renderInterfaces() {
   const tbody = document.getElementById('tbody-interfaces'); tbody.innerHTML = '';
   const cn = _companyName || 'Intégrateur';
-  ['th-rec-company','lbl-rec-company'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = 'Recette ' + cn; });
+  ['th-rec-company','lbl-rec-company'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = t('modal.itf.rec_company') + ' ' + cn; });
   interfacesData.forEach(row => {
     const tr = tbody.insertRow(); tr.dataset.rowId = row.id;
     tr.innerHTML = `<td>${dh()}</td>
@@ -1587,8 +1660,8 @@ function renderInterfaces() {
     typeSp.addEventListener('click', e => { e.stopPropagation(); showDropdown(typeSp, ITF_TYPES.map(v => ({label:v,value:v,dot:'#94a3b8'})), val => { row.type = val; typeSp.textContent = val; debouncedSave(); }); });
     ['dev','preprod','recCompany','recClient','valide'].forEach((f,fi) => {
       const sp = tr.cells[fi+3].querySelector('span');
-      sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, ITF_STATES.map(v => ({label:v,value:v,dot:ITF_D[v]})), val => { row[f] = val; sp.className = ITF_B[val]||'cell-none'; sp.textContent = val; renderDashboard(); debouncedSave(); }); });
-    });
+      sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, ITF_STATES.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:ITF_D[v]})), val => { row[f] = val; sp.className = ITF_B[val]||'cell-none'; sp.textContent = CELL_LABEL[val]?.() ?? val; renderDashboard(); debouncedSave(); }); });
+});
   });
   makeSortable(tbody, interfacesData, renderInterfaces);
 }
@@ -1597,7 +1670,7 @@ function deleteInterface(id) {
   const idx = interfacesData.findIndex(r => r.id === id); if (idx < 0) return;
   const deleted = { ...interfacesData[idx] };
   interfacesData.splice(idx, 1); renderInterfaces(); renderDashboard(); debouncedSave();
-  showUndoToast(`Interface "${deleted.name}" supprimée`, () => { interfacesData.splice(idx, 0, deleted); renderInterfaces(); renderDashboard(); });
+  showUndoToast(t('msg.prereq_deleted'), () => { interfacesData.splice(idx, 0, deleted); renderInterfaces(); renderDashboard(); });
 }
 
 // ═══ FONCTIONNEL ═══
@@ -1620,7 +1693,7 @@ function saveFonctionnel() {
   if (!_editingFonctionnelId) return;
   const r = fonctionnelData.find(r => r.id === _editingFonctionnelId); if (!r) return;
   const name = document.getElementById('ef-name').value.trim();
-  if (!name) { alert('Veuillez saisir un nom de flux.'); return; }
+  if (!name) { alert(t('msg.enter_flux')); return; }
   r.name       = name;
   r.pct        = Math.min(100, Math.max(0, +document.getElementById('ef-pct').value || 0));
   r.dev        = document.getElementById('ef-dev').value;
@@ -1639,12 +1712,12 @@ function deleteFonctionnelFromModal() {
   const idx = fonctionnelData.findIndex(r => r.id === id); if (idx < 0) return;
   const deleted = { ...fonctionnelData[idx] };
   fonctionnelData.splice(idx, 1); renderFonctionnel(); debouncedSave();
-  showUndoToast(`Flux "${deleted.name}" supprimé`, () => { fonctionnelData.splice(idx, 0, deleted); renderFonctionnel(); });
+  showUndoToast(t('msg.prereq_deleted'), () => { fonctionnelData.splice(idx, 0, deleted); renderFonctionnel(); });
 }
 
 function renderFonctionnel() {
   const tbody = document.getElementById('tbody-fonctionnel'); tbody.innerHTML = '';
-  ['th-test-company','lbl-test-company'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = 'Test ' + (_companyName || 'Intégrateur'); });
+  ['th-test-company','lbl-test-company'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = t('modal.fonct.test_company') + ' ' + (_companyName || 'Intégrateur'); });
   fonctionnelData.forEach(row => {
     const tr = tbody.insertRow(); tr.dataset.rowId = row.id;
     tr.innerHTML = `<td>${dh()}</td>
@@ -1656,7 +1729,7 @@ function renderFonctionnel() {
       <td><button class="btn btn-secondary btn-sm" onclick="openEditFonctionnel('${row.id}')">✏</button></td>`;
     ['dev','testCompany','preprod','formKU','testClient','formUsers'].forEach((f,fi) => {
       const td = tr.cells[[2,4,5,6,7,8][fi]]; const sp = td.querySelector('span');
-      sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, ITF_STATES.map(v => ({label:v,value:v,dot:ITF_D[v]})), val => { row[f] = val; sp.className = ITF_B[val]||'cell-none'; sp.textContent = val; debouncedSave(); }); });
+      sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, ITF_STATES.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:ITF_D[v]})), val => { row[f] = val; sp.className = ITF_B[val]||'cell-none'; sp.textContent = CELL_LABEL[val]?.() ?? val; debouncedSave(); }); });
     });
     tr.cells[3].querySelector('span').addEventListener('click', e => { e.stopPropagation(); showDropdown(tr.cells[3].querySelector('span'), [0,10,20,30,40,50,60,70,80,90,100].map(v=>({label:v+'%',value:v,dot:'#2563eb'})), val => { row.pct = val; renderFonctionnel(); debouncedSave(); }); });
   });
@@ -1682,7 +1755,7 @@ function saveDryrun() {
   if (!_editingDryrunId) return;
   const r = dryrunData.find(r => r.id === _editingDryrunId); if (!r) return;
   const name = document.getElementById('edr-name').value.trim();
-  if (!name) { alert('Veuillez saisir un nom.'); return; }
+  if (!name) { alert(t('msg.enter_name')); return; }
   r.name    = name;
   r.etat    = document.getElementById('edr-etat').value;
   r.comment = document.getElementById('edr-comment').value.trim();
@@ -1704,16 +1777,16 @@ function renderDryrun() {
       <td style="color:var(--text-muted);font-size:12px">${row.comment}</td>
       <td><button class="btn btn-secondary btn-sm" onclick="openEditDryrun('${row.id}')">✏</button></td>`;
     const sp = tr.cells[2].querySelector('span');
-    sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, DR_STATES.map(v => ({label:v,value:v,dot:DR_D[v]})), val => { row.etat = val; sp.className = DR_B[val]||'cell-none'; sp.textContent = val; renderDashboard(); debouncedSave(); }); });
+    sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, DR_STATES.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:DR_D[v]})), val => { row.etat = val; sp.className = DR_B[val]||'cell-none'; sp.textContent = CELL_LABEL[val]?.() ?? val; renderDashboard(); debouncedSave(); }); });
   });
   makeSortable(tbody, dryrunData, renderDryrun);
 }
-function addDryrun() { dryrunData.push({id:uid(),name:'Nouveau prérequis',etat:'NON',comment:''}); renderDryrun(); debouncedSave(); }
+function addDryrun() { dryrunData.push({id:uid(),name:t('new.prereq'),etat:'NON',comment:''}); renderDryrun(); debouncedSave(); }
 function deleteDryrun(id) {
   const idx = dryrunData.findIndex(r => r.id === id); if (idx < 0) return;
   const deleted = { ...dryrunData[idx] };
   dryrunData.splice(idx, 1); renderDryrun(); renderDashboard(); debouncedSave();
-  showUndoToast(`Prérequis "${deleted.name}" supprimé`, () => { dryrunData.splice(idx, 0, deleted); renderDryrun(); renderDashboard(); });
+  showUndoToast(t('msg.prereq_deleted'), () => { dryrunData.splice(idx, 0, deleted); renderDryrun(); renderDashboard(); });
 }
 
 // ═══ INSTALL ═══
@@ -1737,7 +1810,7 @@ function saveInstall() {
   if (!_editingInstallId) return;
   const r = installData.find(r => r.id === _editingInstallId); if (!r) return;
   const action = document.getElementById('einst-action').value.trim();
-  if (!action) { alert('Veuillez saisir une action.'); return; }
+  if (!action) { alert(t('msg.enter_action')); return; }
   r.action   = action;
   r.etat     = document.getElementById('einst-etat').value;
   r.qui      = document.getElementById('einst-qui').value;
@@ -1764,7 +1837,7 @@ function renderInstall() {
       <td style="color:var(--text-muted);font-size:12px">${row.comment}</td>
       <td><button class="btn btn-secondary btn-sm" onclick="openEditInstall('${row.id}')">✏</button></td>`;
     const sp = tr.cells[2].querySelector('span');
-    sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, INST_STATES.map(v => ({label:v,value:v,dot:INST_D[v]})), val => { row.etat = val; sp.className = INST_B[val]||'cell-none'; sp.textContent = val; renderDashboard(); debouncedSave(); }); });
+    sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, INST_STATES.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:INST_D[v]})), val => { row.etat = val; sp.className = INST_B[val]||'cell-none'; sp.textContent = CELL_LABEL[val]?.() ?? val; renderDashboard(); debouncedSave(); }); });
     const quiSpan = tr.cells[3].querySelector('.qui-label');
     quiSpan.addEventListener('click', e => {
       e.stopPropagation();
@@ -1777,12 +1850,12 @@ function renderInstall() {
   });
   makeSortable(tbody, installData, renderInstall);
 }
-function addInstall() { installData.push({id:uid(),action:'Nouveau prérequis',etat:'Non',qui:'COMPANY',deadline:'',comment:''}); renderInstall(); debouncedSave(); }
+function addInstall() { installData.push({id:uid(),action:t('new.prereq'),etat:'Non',qui:'COMPANY',deadline:'',comment:''}); renderInstall(); debouncedSave(); }
 function deleteInstall(id) {
   const idx = installData.findIndex(r => r.id === id); if (idx < 0) return;
   const deleted = { ...installData[idx] };
   installData.splice(idx, 1); renderInstall(); renderDashboard(); debouncedSave();
-  showUndoToast(`Prérequis install "${deleted.action}" supprimé`, () => { installData.splice(idx, 0, deleted); renderInstall(); renderDashboard(); });
+  showUndoToast(t('msg.prereq_install_deleted'), () => { installData.splice(idx, 0, deleted); renderInstall(); renderDashboard(); });
 }
 
 // ═══ FACTURATION ═══
@@ -1807,7 +1880,7 @@ function openEditJalon(id, type) {
   _editingJalonId = id; _editingJalonType = type;
   const list = type === 'projet' ? jalonsProjet : jalonsEquip;
   const r = list.find(r => r.id === id); if (!r) return;
-  document.getElementById('modal-edit-jalon-title').textContent = type === 'projet' ? 'Modifier le jalon Projet' : 'Modifier le jalon Équipement';
+  document.getElementById('modal-edit-jalon-title').textContent = type === 'projet' ? t('modal.jalon.edit_projet') : t('modal.jalon.edit_equip');
   document.getElementById('ej-jalon').value   = r.jalon || '';
   document.getElementById('ej-date').value    = r.date || '';
   document.getElementById('ej-echeance').value = r.echeance || '';
@@ -1822,7 +1895,7 @@ function saveJalon() {
   const list = _editingJalonType === 'projet' ? jalonsProjet : jalonsEquip;
   const r = list.find(r => r.id === _editingJalonId); if (!r) return;
   const jalon = document.getElementById('ej-jalon').value.trim();
-  if (!jalon) { alert('Veuillez saisir un nom de jalon.'); return; }
+  if (!jalon) { alert(t('msg.enter_jalon')); return; }
   r.jalon    = jalon;
   r.date     = document.getElementById('ej-date').value;
   r.echeance = document.getElementById('ej-echeance').value;
@@ -1851,7 +1924,7 @@ function renderFactRow(tbody, list, type) {
       <td style="text-align:right;font-weight:600;font-family:'DM Mono',monospace">${fmtMontant(row.montant)}</td>
       <td><button class="btn btn-secondary btn-sm" onclick="openEditJalon('${row.id}','${type}')">✏</button></td>`;
     const sp = tr.cells[4].querySelector('span');
-    sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, FACT_STATES.map(v => ({label:v,value:v,dot:FACT_D[v]})), val => { row.etat = val; sp.className = FACT_B[val]||'cell-none'; sp.textContent = val; renderFacturation(); renderDashboard(); debouncedSave(); }); });
+    sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, FACT_STATES.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:FACT_D[v]})), val => { row.etat = val; sp.className = FACT_B[val]||'cell-none'; sp.textContent = CELL_LABEL[val]?.() ?? val; renderFacturation(); renderDashboard(); debouncedSave(); }); });
   });
   makeSortable(tbody, list, renderFacturation);
 }
@@ -1859,9 +1932,9 @@ function _delFactJalon(id, list) {
   const idx = list.findIndex(r => r.id === id); if (idx < 0) return;
   const deleted = { ...list[idx] };
   list.splice(idx, 1); renderFacturation(); renderDashboard(); debouncedSave();
-  showUndoToast(`Jalon "${deleted.jalon}" supprimé`, () => { list.splice(idx, 0, deleted); renderFacturation(); renderDashboard(); });
+  showUndoToast(t('msg.jalon_deleted'), () => { list.splice(idx, 0, deleted); renderFacturation(); renderDashboard(); });
 }
-function addJalon(type) { const list = type === 'projet' ? jalonsProjet : jalonsEquip; list.push({id:uid(),jalon:'Nouveau jalon',date:'',echeance:'',etat:'—',pct:0,montant:0}); renderFacturation(); debouncedSave(); }
+function addJalon(type) { const list = type === 'projet' ? jalonsProjet : jalonsEquip; list.push({id:uid(),jalon:t('new.jalon'),date:'',echeance:'',etat:'—',pct:0,montant:0}); renderFacturation(); debouncedSave(); }
 let _addingDeplId = null;
 function openAddDeplExpense(id) {
   _addingDeplId = id;
@@ -1912,9 +1985,9 @@ function _renderDeplKpi() {
   const ecart = tDDepl - tDVendu;
   const ec = ecart > 0 ? '#dc2626' : ecart < 0 ? '#059669' : 'var(--text-muted)';
   el.innerHTML = `
-    <div class="kpi-card"><div class="kpi-label">Budget Déplacements</div><div class="kpi-value">${tDVendu.toLocaleString('fr-FR')} €</div></div>
-    <div class="kpi-card"><div class="kpi-label">Dépensé</div><div class="kpi-value">${tDDepl.toLocaleString('fr-FR')} €</div>${tDVendu > 0 ? `<div class="kpi-bar"><div class="kpi-bar-fill" style="width:${Math.min(100,Math.round(tDDepl/tDVendu*100))}%;background:${ecart>0?'#dc2626':'var(--accent)'}"></div></div>` : ''}</div>
-    <div class="kpi-card"><div class="kpi-label">Écart</div><div class="kpi-value" style="color:${ec}">${ecart > 0 ? '+' : ''}${ecart.toLocaleString('fr-FR')} €</div></div>`;
+    <div class="kpi-card"><div class="kpi-label">${t('kpi.d_budget')}</div><div class="kpi-value">${tDVendu.toLocaleString('fr-FR')} €</div></div>
+    <div class="kpi-card"><div class="kpi-label">${t('kpi.d_spent')}</div><div class="kpi-value">${tDDepl.toLocaleString('fr-FR')} €</div>${tDVendu > 0 ? `<div class="kpi-bar"><div class="kpi-bar-fill" style="width:${Math.min(100,Math.round(tDDepl/tDVendu*100))}%;background:${ecart>0?'#dc2626':'var(--accent)'}"></div></div>` : ''}</div>
+    <div class="kpi-card"><div class="kpi-label">${t('kpi.d_variance')}</div><div class="kpi-value" style="color:${ec}">${ecart > 0 ? '+' : ''}${ecart.toLocaleString('fr-FR')} €</div></div>`;
 }
 function renderDeplRow(tbody) {
   tbody.innerHTML = '';
@@ -1923,11 +1996,11 @@ function renderDeplRow(tbody) {
     const tr = tbody.insertRow();
     tr.innerHTML = `
       <td style="font-weight:600">${row.label}</td>
-      <td style="text-align:right;cursor:pointer;text-decoration:underline dotted;font-family:'DM Mono',monospace" title="Cliquer pour modifier le budget vendu">${fmtMontant(row.vendu||0)}</td>
+      <td style="text-align:right;cursor:pointer;text-decoration:underline dotted;font-family:'DM Mono',monospace" title="${t('depl.budget_click')}">${fmtMontant(row.vendu||0)}</td>
       <td style="text-align:right;font-family:'DM Mono',monospace;font-weight:600">${fmtMontant(totalDepl)}</td>
       <td style="text-align:center;white-space:nowrap">
-        ${(row.depenses||[]).length ? `<span title="Historique des dépenses" style="cursor:pointer;font-size:14px" onclick="toggleDeplHistory('${row.id}',this)">🕐</span> ` : ''}
-        <span title="Ajouter une dépense" style="cursor:pointer;font-size:16px;color:var(--accent);font-weight:700" onclick="openAddDeplExpense('${row.id}')">+</span>
+        ${(row.depenses||[]).length ? `<span title="${t('depl.history')}" style="cursor:pointer;font-size:14px" onclick="toggleDeplHistory('${row.id}',this)">🕐</span> ` : ''}
+        <span title="${t('depl.add_expense')}" style="cursor:pointer;font-size:16px;color:var(--accent);font-weight:700" onclick="openAddDeplExpense('${row.id}')">+</span>
       </td>`;
     tr.cells[1].addEventListener('click', () => {
       const v = prompt(`Budget vendu — ${row.label} :`, row.vendu || 0);
@@ -1943,28 +2016,28 @@ function renderFacturation() {
   const paye = [...jalonsProjet,...jalonsEquip].filter(r => r.etat === 'Payé').reduce((s,r) => s+r.montant, 0);
   const reste = total - paye, sp = v => total > 0 ? Math.round(v/total*100) : 0;
   document.getElementById('kpi-fact').innerHTML = `
-    <div class="kpi-card"><div class="kpi-label">Total Projet</div><div class="kpi-value">${tP.toLocaleString('fr-FR')} €</div></div>
-    <div class="kpi-card"><div class="kpi-label">Total Équipement</div><div class="kpi-value">${tE.toLocaleString('fr-FR')} €</div></div>
-    <div class="kpi-card"><div class="kpi-label">Total Contrat</div><div class="kpi-value">${total.toLocaleString('fr-FR')} €</div></div>
-    <div class="kpi-card"><div class="kpi-label">Encaissé</div><div class="kpi-value" style="color:#059669">${paye.toLocaleString('fr-FR')} €</div><div class="kpi-sub">${sp(paye)}%</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:${sp(paye)}%;background:#059669"></div></div></div>
-    <div class="kpi-card"><div class="kpi-label">Reste à facturer</div><div class="kpi-value" style="color:#dc2626">${reste.toLocaleString('fr-FR')} €</div><div class="kpi-sub">${sp(reste)}%</div></div>`;
+    <div class="kpi-card"><div class="kpi-label">${t('kpi.f_project')}</div><div class="kpi-value">${tP.toLocaleString('fr-FR')} €</div></div>
+    <div class="kpi-card"><div class="kpi-label">${t('kpi.f_equip')}</div><div class="kpi-value">${tE.toLocaleString('fr-FR')} €</div></div>
+    <div class="kpi-card"><div class="kpi-label">${t('kpi.f_contract')}</div><div class="kpi-value">${total.toLocaleString('fr-FR')} €</div></div>
+    <div class="kpi-card"><div class="kpi-label">${t('kpi.f_paid')}</div><div class="kpi-value" style="color:#059669">${paye.toLocaleString('fr-FR')} €</div><div class="kpi-sub">${sp(paye)}%</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:${sp(paye)}%;background:#059669"></div></div></div>
+    <div class="kpi-card"><div class="kpi-label">${t('kpi.f_remaining')}</div><div class="kpi-value" style="color:#dc2626">${reste.toLocaleString('fr-FR')} €</div><div class="kpi-sub">${sp(reste)}%</div></div>`;
 }
 
 // ═══ DASHBOARD ═══
 const charts = {};
 function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
 const DASH_CHARTS = [
-  { key: 'kpi',      label: 'Cartes KPI (résumé)' },
-  { key: 'drift',    label: 'Indicateur dérive installation' },
-  { key: 'thisweek', label: 'Tâches de la semaine' },
-  { key: 'phases',   label: 'Graphique — Avancement par Phase' },
-  { key: 'statuts',  label: 'Graphique — Répartition des Statuts' },
-  { key: 'heures',   label: 'Graphique — Suivi Heures' },
-  { key: 'fact',     label: 'Graphique — Facturation' },
-  { key: 'itf',      label: 'Graphique — Interfaces ERP' },
-  { key: 'install',  label: 'Graphique — Prérequis Installation' },
-  { key: 'dryrun',   label: 'Graphique — Prérequis Dry Run' },
-  { key: 'jira',     label: 'Graphique — JIRA Épics & Tâches' },
+  { key: 'kpi',      getLabel: () => t('dash.chart.kpi') },
+  { key: 'drift',    getLabel: () => t('dash.chart.drift') },
+  { key: 'thisweek', getLabel: () => t('dash.chart.thisweek') },
+  { key: 'phases',   getLabel: () => t('dash.chart.phases') },
+  { key: 'statuts',  getLabel: () => t('dash.chart.statuts') },
+  { key: 'heures',   getLabel: () => t('dash.chart.heures') },
+  { key: 'fact',     getLabel: () => t('dash.chart.fact') },
+  { key: 'itf',      getLabel: () => t('dash.chart.itf') },
+  { key: 'install',  getLabel: () => t('dash.chart.install') },
+  { key: 'dryrun',   getLabel: () => t('dash.chart.dryrun') },
+  { key: 'jira',     getLabel: () => t('dash.chart.jira') },
 ];
 function isChartVisible(key) {
   const v = projectMeta.dashboardCharts;
@@ -1980,18 +2053,18 @@ function renderDashboard() {
   const kpiEl = document.getElementById('dash-kpi');
   kpiEl.style.display = isChartVisible('kpi') ? '' : 'none';
   kpiEl.innerHTML = `
-    <div class="kpi-card"><div class="kpi-label">Tâches Totales</div><div class="kpi-value">${totalTasks}</div><div class="kpi-sub">${doneTasks} terminées · ${inProgressTasks} en cours</div></div>
-    <div class="kpi-card"><div class="kpi-label">Tâches en Retard</div><div class="kpi-value" style="color:${lateTasks?'#dc2626':'#059669'}">${lateTasks}</div><div class="kpi-sub">${lateTasks?'⚠ Attention requise':'✓ Tout est à jour'}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Avancement Global</div><div class="kpi-value">${totalTasks>0?Math.round(tasks.reduce((s,t)=>s+(t.progress||0),0)/totalTasks):0}%</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:${totalTasks>0?Math.round(tasks.reduce((s,t)=>s+(t.progress||0),0)/totalTasks):0}%"></div></div></div>
-    <div class="kpi-card"><div class="kpi-label">Facturation</div><div class="kpi-value" style="color:#059669">${payeMontant.toLocaleString('fr-FR')} €</div><div class="kpi-sub">/ ${totalMontant.toLocaleString('fr-FR')} € total</div></div>
-    <div class="kpi-card"><div class="kpi-label">Heures Actuel / Vente</div><div class="kpi-value">${actuel} / ${vente} h</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:${vente>0?Math.min(100,actuel/vente*100):0}%;background:${actuel>vente?'#dc2626':'var(--accent)'}"></div></div></div>
-    <div class="kpi-card"><div class="kpi-label">Phases</div><div class="kpi-value">${phases.length}</div><div class="kpi-sub">${tasks.length} tâches réparties</div></div>`;
+    <div class="kpi-card"><div class="kpi-label">${t('kpi.total_tasks')}</div><div class="kpi-value">${totalTasks}</div><div class="kpi-sub">${doneTasks} ${t('kpi.tasks_done')} · ${inProgressTasks} ${t('kpi.tasks_progress')}</div></div>
+    <div class="kpi-card"><div class="kpi-label">${t('kpi.late_tasks')}</div><div class="kpi-value" style="color:${lateTasks?'#dc2626':'#059669'}">${lateTasks}</div><div class="kpi-sub">${lateTasks?t('kpi.attention'):t('kpi.all_ok')}</div></div>
+    <div class="kpi-card"><div class="kpi-label">${t('kpi.global_progress')}</div><div class="kpi-value">${totalTasks>0?Math.round(tasks.reduce((s,tk)=>s+(tk.progress||0),0)/totalTasks):0}%</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:${totalTasks>0?Math.round(tasks.reduce((s,tk)=>s+(tk.progress||0),0)/totalTasks):0}%"></div></div></div>
+    <div class="kpi-card"><div class="kpi-label">${t('kpi.billing')}</div><div class="kpi-value" style="color:#059669">${payeMontant.toLocaleString('fr-FR')} €</div><div class="kpi-sub">/ ${totalMontant.toLocaleString('fr-FR')} € total</div></div>
+    <div class="kpi-card"><div class="kpi-label">${t('kpi.hours_av')}</div><div class="kpi-value">${actuel} / ${vente} h</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:${vente>0?Math.min(100,actuel/vente*100):0}%;background:${actuel>vente?'#dc2626':'var(--accent)'}"></div></div></div>
+    <div class="kpi-card"><div class="kpi-label">${t('kpi.phases')}</div><div class="kpi-value">${phases.length}</div><div class="kpi-sub">${tasks.length} ${t('kpi.tasks_spread')}</div></div>`;
 
   destroyChart('phases');
   if (isChartVisible('phases')) {
     const phaseLabels = phases.map(p => p.name.length>20 ? p.name.slice(0,20)+'…' : p.name);
     const phaseData = phases.map(ph => { const pt = tasks.filter(t => t.phaseId === ph.id); return pt.length ? Math.round(pt.reduce((s,t) => s+(t.progress||0), 0)/pt.length) : 0; });
-    charts['phases'] = new Chart(document.getElementById('ch-phases'), {type:'bar',data:{labels:phaseLabels,datasets:[{label:'Avancement %',data:phaseData,backgroundColor:phases.map(p=>p.color+'cc'),borderColor:phases.map(p=>p.color),borderWidth:2,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{max:100,ticks:{callback:v=>v+'%'},grid:{color:'#f0f2f5'}},y:{grid:{display:false}}}}});
+    charts['phases'] = new Chart(document.getElementById('ch-phases'), {type:'bar',data:{labels:phaseLabels,datasets:[{label:t('chart.progress_label'),data:phaseData,backgroundColor:phases.map(p=>p.color+'cc'),borderColor:phases.map(p=>p.color),borderWidth:2,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{max:100,ticks:{callback:v=>v+'%'},grid:{color:'#f0f2f5'}},y:{grid:{display:false}}}}});
   }
 
   destroyChart('statuts');
@@ -2017,14 +2090,14 @@ function renderDashboard() {
     const resteM = Math.max(0, totM - payeM - coursM - retardM);
     const fmtEur = v => v.toLocaleString('fr-FR') + ' €';
     const factTitle = document.getElementById('ch-fact-title');
-    if (factTitle) factTitle.textContent = `Facturation — ${fmtEur(payeM)} payé / ${fmtEur(totM)} total`;
+    if (factTitle) factTitle.textContent = `${t('chart.fact.title')} — ${fmtEur(payeM)} / ${fmtEur(totM)} total`;
     charts['fact'] = new Chart(document.getElementById('ch-fact'), {
       type:'bar',
       data:{labels:[''],datasets:[
-        {label:'Payé',    data:[payeM],  backgroundColor:'#86efac'},
-        {label:'En cours',data:[coursM], backgroundColor:'#93c5fd'},
-        {label:'Retard',  data:[retardM],backgroundColor:'#fca5a5'},
-        {label:'Restant', data:[resteM], backgroundColor:'#e2e7ed'},
+        {label:t('chart.fact.paid'),        data:[payeM],  backgroundColor:'#86efac'},
+        {label:t('chart.fact.in_progress'), data:[coursM], backgroundColor:'#93c5fd'},
+        {label:t('chart.fact.late'),        data:[retardM],backgroundColor:'#fca5a5'},
+        {label:t('chart.fact.remaining'),   data:[resteM], backgroundColor:'#e2e7ed'},
       ]},
       options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
         plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}},
@@ -2061,9 +2134,9 @@ function renderDashboard() {
       charts['jira'] = new Chart(document.getElementById('ch-jira'), {
         type: 'bar',
         data: { labels: epicLabels, datasets: [
-          { label: 'Terminé',   data: doneData,   backgroundColor: '#86efac', borderRadius: 3 },
-          { label: 'En cours',  data: inProgData, backgroundColor: '#93c5fd', borderRadius: 3 },
-          { label: 'À faire',   data: todoData,   backgroundColor: '#e2e7ed', borderRadius: 3 },
+          { label: t('jira.status.done'),       data: doneData,   backgroundColor: '#86efac', borderRadius: 3 },
+          { label: t('jira.status.inprogress'), data: inProgData, backgroundColor: '#93c5fd', borderRadius: 3 },
+          { label: t('jira.status.todo'),       data: todoData,   backgroundColor: '#e2e7ed', borderRadius: 3 },
         ]},
         options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
           plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10 } } },
@@ -2075,7 +2148,7 @@ function renderDashboard() {
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#94a3b8'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText('Aucune donnée JIRA — synchronisez dans l\'onglet JIRA', canvas.width / 2, 60);
+      ctx.fillText(t('chart.jira.no_data'), canvas.width / 2, 60);
     }
   }
 
@@ -2095,7 +2168,7 @@ function openDashCustomize() {
     const label = document.createElement('label');
     label.style.cssText = 'display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px';
     const cb = document.createElement('input'); cb.type = 'checkbox'; cb.value = c.key; cb.checked = visible.includes(c.key);
-    label.appendChild(cb); label.appendChild(document.createTextNode(c.label));
+    label.appendChild(cb); label.appendChild(document.createTextNode(c.getLabel ? c.getLabel() : c.label));
     list.appendChild(label);
   });
   document.getElementById('modal-dash-customize').classList.add('open');
@@ -2119,7 +2192,7 @@ function _syncRagUI() {
   const dot = document.getElementById('rag-nav-dot');
   const lbl = document.getElementById('rag-nav-lbl');
   if (dot) dot.className = 'rag-nav-dot' + (v ? ' rag-dot-' + v.toLowerCase() : '');
-  if (lbl) lbl.textContent = v === 'G' ? 'OK' : v === 'A' ? 'Attention' : v === 'R' ? 'Bloqué' : '—';
+  if (lbl) lbl.textContent = v === 'G' ? t('rag.ok') : v === 'A' ? t('rag.attention') : v === 'R' ? t('rag.blocked') : '—';
 }
 function toggleRagDropdown(e) {
   e.stopPropagation();
@@ -2154,33 +2227,34 @@ function renderThisWeek() {
   if (!overdue.length && !thisWeek.length) { panel.style.display = 'none'; return; }
   panel.style.display = '';
 
-  const row = t => {
-    const ph = phases.find(p => p.id === t.phaseId);
-    const segs = taskSegments(t);
+  const row = tk => {
+    const ph = phases.find(p => p.id === tk.phaseId);
+    const segs = taskSegments(tk);
     const endStr = segs.length ? (segs[segs.length-1].end || '—') : '—';
-    const depViolation = (t.deps||[]).some(dId => {
+    const depViolation = (tk.deps||[]).some(dId => {
       const dep = tasks.find(x => x.id === dId); if (!dep) return false;
       const depSegs = taskSegments(dep);
       const depEnd = depSegs.length ? depSegs[depSegs.length-1].end : null;
-      return depEnd && t.start && depEnd > t.start;
+      return depEnd && tk.start && depEnd > tk.start;
     });
     return `<tr>
-      <td style="padding:3px 8px;font-size:12px;font-weight:500">${formatTemplate(t.name)}${depViolation ? ' <span style="color:#f97316" title="Dépendance non respectée">⚠</span>' : ''}</td>
+      <td style="padding:3px 8px;font-size:12px;font-weight:500">${formatTemplate(tk.name)}${depViolation ? ` <span style="color:#f97316" title="${t('task.dep_violation')}">⚠</span>` : ''}</td>
       <td style="padding:3px 8px;font-size:11px;color:var(--text-muted)">${ph ? ph.name : ''}</td>
-      <td style="padding:3px 8px;font-size:11px">${t.owner || '—'}</td>
+      <td style="padding:3px 8px;font-size:11px">${tk.owner || '—'}</td>
       <td style="padding:3px 8px;font-size:11px">${endStr}</td>
     </tr>`;
   };
 
   let html = '<div class="this-week-block">';
+  const weekCols = [t('week.col.task'), t('week.col.phase'), t('week.col.owner'), t('week.col.end')];
   if (overdue.length) {
-    html += `<div class="this-week-section"><div class="this-week-title tw-overdue">⚠ En retard (${overdue.length})</div>
-      <table style="width:100%;border-collapse:collapse"><thead><tr>${['Tâche','Phase','Propriétaire','Fin prévue'].map(h=>`<th style="padding:3px 8px;font-size:10px;font-weight:600;color:var(--text-muted);text-align:left;border-bottom:1px solid var(--border)">${h}</th>`).join('')}</tr></thead>
+    html += `<div class="this-week-section"><div class="this-week-title tw-overdue">${t('week.overdue')} (${overdue.length})</div>
+      <table style="width:100%;border-collapse:collapse"><thead><tr>${weekCols.map(h=>`<th style="padding:3px 8px;font-size:10px;font-weight:600;color:var(--text-muted);text-align:left;border-bottom:1px solid var(--border)">${h}</th>`).join('')}</tr></thead>
       <tbody>${overdue.map(row).join('')}</tbody></table></div>`;
   }
   if (thisWeek.length) {
-    html += `<div class="this-week-section"><div class="this-week-title tw-week">📅 Cette semaine (${thisWeek.length})</div>
-      <table style="width:100%;border-collapse:collapse"><thead><tr>${['Tâche','Phase','Propriétaire','Fin prévue'].map(h=>`<th style="padding:3px 8px;font-size:10px;font-weight:600;color:var(--text-muted);text-align:left;border-bottom:1px solid var(--border)">${h}</th>`).join('')}</tr></thead>
+    html += `<div class="this-week-section"><div class="this-week-title tw-week">${t('week.this_week')} (${thisWeek.length})</div>
+      <table style="width:100%;border-collapse:collapse"><thead><tr>${weekCols.map(h=>`<th style="padding:3px 8px;font-size:10px;font-weight:600;color:var(--text-muted);text-align:left;border-bottom:1px solid var(--border)">${h}</th>`).join('')}</tr></thead>
       <tbody>${thisWeek.map(row).join('')}</tbody></table></div>`;
   }
   html += '</div>';
@@ -2208,16 +2282,16 @@ function _readDepsSelect() {
 
 // ═══ TAB MANAGEMENT ═══
 const BUILTIN_TABS = [
-  { id: 'page-dashboard',   defaultLabel: 'Tableau de bord' },
-  { id: 'page-planning',    defaultLabel: 'Planning' },
-  { id: 'page-heures',      defaultLabel: 'Suivi Heures' },
-  { id: 'page-taches',      defaultLabel: 'Tâches Internes' },
-  { id: 'page-interfaces',  defaultLabel: 'Interfaces' },
-  { id: 'page-fonctionnel', defaultLabel: 'Fonctionnel' },
-  { id: 'page-dryrun',      defaultLabel: 'Prérequis Dry Run' },
-  { id: 'page-install',     defaultLabel: 'Prérequis Install' },
-  { id: 'page-facturation', defaultLabel: 'Facturation' },
-  { id: 'page-jira',        defaultLabel: '◈ JIRA' },
+  { id: 'page-dashboard',   getDefaultLabel: () => t('tab.dashboard') },
+  { id: 'page-planning',    getDefaultLabel: () => t('tab.planning') },
+  { id: 'page-heures',      getDefaultLabel: () => t('tab.hours') },
+  { id: 'page-taches',      getDefaultLabel: () => t('tab.tasks') },
+  { id: 'page-interfaces',  getDefaultLabel: () => t('tab.interfaces') },
+  { id: 'page-fonctionnel', getDefaultLabel: () => t('tab.functional') },
+  { id: 'page-dryrun',      getDefaultLabel: () => t('tab.dryrun') },
+  { id: 'page-install',     getDefaultLabel: () => t('tab.install') },
+  { id: 'page-facturation', getDefaultLabel: () => t('tab.billing') },
+  { id: 'page-jira',        getDefaultLabel: () => t('tab.jira') },
 ];
 
 function _applyTabConfig() {
@@ -2228,9 +2302,9 @@ function _applyTabConfig() {
   const addBtn     = navTabs.querySelector('.nav-tab-add');
 
   // Apply labels to built-in tabs
-  BUILTIN_TABS.forEach(({ id, defaultLabel }) => {
+  BUILTIN_TABS.forEach(({ id, getDefaultLabel }) => {
     const el = navTabs.querySelector(`[data-page="${id}"]`);
-    if (el) el.textContent = tabLabels[id] || defaultLabel;
+    if (el) el.textContent = tabLabels[id] || getDefaultLabel();
   });
 
   // Apply labels to custom tabs
@@ -2260,7 +2334,7 @@ function openManageTabsModal() {
   const tabOrder  = projectMeta.tabOrder  || [];
 
   const allTabs = [
-    ...BUILTIN_TABS.map(t => ({ id: t.id, label: tabLabels[t.id] || t.defaultLabel, defaultLabel: t.defaultLabel })),
+    ...BUILTIN_TABS.map(tb => ({ id: tb.id, label: tabLabels[tb.id] || tb.getDefaultLabel(), defaultLabel: tb.getDefaultLabel() })),
     ...customTabs.map(t => ({ id: 'page-ct-' + t.id, label: tabLabels['page-ct-' + t.id] || (t.icon ? t.icon + ' ' + t.name : t.name), defaultLabel: t.name })),
   ];
 
@@ -2322,7 +2396,7 @@ let _editingTabId = null;
 
 function openAddCustomTabModal() {
   _editingTabId = null;
-  document.getElementById('modal-custom-tab-title').textContent = 'Nouvel Onglet';
+  document.getElementById('modal-custom-tab-title').textContent = t('modal.ct.new');
   document.getElementById('ct-name').value = '';
   document.getElementById('ct-icon').value = '📋';
   document.getElementById('ct-columns-list').innerHTML = '';
@@ -2335,7 +2409,7 @@ function openEditCustomTabModal(tabId) {
   const tab = customTabs.find(t => t.id === tabId);
   if (!tab) return;
   _editingTabId = tabId;
-  document.getElementById('modal-custom-tab-title').textContent = 'Modifier l\'Onglet';
+  document.getElementById('modal-custom-tab-title').textContent = t('modal.ct.edit');
   document.getElementById('ct-name').value = tab.name;
   document.getElementById('ct-icon').value = tab.icon || '📋';
   _ctCols = tab.columns.map(c => ({ ...c }));
@@ -2353,7 +2427,7 @@ function renderCtColumns() {
     row.innerHTML = `
       <input type="text" placeholder="Libellé *" value="${col.label||''}" style="flex:1;min-width:120px" oninput="ctColLabel(${i},this.value)">
       <select style="width:110px" onchange="ctColType(${i},this.value)">
-        ${['text','select','date','checkbox'].map(t=>`<option value="${t}"${col.type===t?' selected':''}>${{text:'Texte',select:'Liste',date:'Date',checkbox:'Case'}[t]}</option>`).join('')}
+        ${['text','select','date','checkbox'].map(ct=>`<option value="${ct}"${col.type===ct?' selected':''}>${{text:t('ct.type.text'),select:t('ct.type.select'),date:t('ct.type.date'),checkbox:t('ct.type.checkbox')}[ct]}</option>`).join('')}
       </select>
       ${col.type==='select' ? `<input type="text" placeholder="opt1, opt2…" value="${(col.options||[]).join(', ')}" style="flex:1;min-width:100px" oninput="ctColOptions(${i},this.value)">` : '<span style="flex:1"></span>'}
       <button class="btn btn-ghost btn-sm" onclick="ctColRemove(${i})" ${_ctCols.length<=1?'disabled':''}>✕</button>`;
@@ -2375,9 +2449,9 @@ function addCustomTabColumn() {
 
 function saveCustomTab() {
   const name = document.getElementById('ct-name').value.trim();
-  if (!name) { alert('Veuillez saisir un nom d\'onglet.'); return; }
+  if (!name) { alert(t('msg.enter_tab')); return; }
   const cols = _ctCols.filter(c => c.label.trim());
-  if (!cols.length) { alert('Ajoutez au moins une colonne.'); return; }
+  if (!cols.length) { alert(t('msg.add_column')); return; }
   if (_editingTabId) {
     const tab = customTabs.find(t => t.id === _editingTabId);
     tab.name = name; tab.icon = document.getElementById('ct-icon').value || '📋';
@@ -2433,9 +2507,9 @@ function buildCustomTabHTML(tab) {
       <div class="panel-header">
         <span class="panel-title">${tab.icon||''} ${tab.name}</span>
         <div style="display:flex;gap:6px;align-items:center">
-          <button class="btn btn-secondary btn-sm" onclick="addCustomTabRow('${tab.id}')">＋ Ligne</button>
-          <button class="btn btn-ghost btn-icon btn-sm" onclick="openEditCustomTabModal('${tab.id}')" title="Modifier l'onglet">✏</button>
-          <button class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" onclick="deleteCustomTab('${tab.id}')" title="Supprimer cet onglet">🗑</button>
+          <button class="btn btn-secondary btn-sm" onclick="addCustomTabRow('${tab.id}')">${t('modal.ct.row_label')}</button>
+          <button class="btn btn-ghost btn-icon btn-sm" onclick="openEditCustomTabModal('${tab.id}')" title="${t('modal.ct.edit')}">✏</button>
+          <button class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" onclick="deleteCustomTab('${tab.id}')" title="${t('btn.delete')}">🗑</button>
         </div>
       </div>
       <div style="padding:0"><table class="data-table">
@@ -2498,7 +2572,7 @@ function deleteCustomTabRow(tabId, rowId) {
   const deleted = { ...tab.rows[idx] };
   tab.rows.splice(idx, 1);
   renderCustomTabRows(tabId); debouncedSave();
-  showUndoToast('Ligne supprimée', () => { tab.rows.splice(idx, 0, deleted); renderCustomTabRows(tabId); });
+  showUndoToast(t('msg.row_deleted'), () => { tab.rows.splice(idx, 0, deleted); renderCustomTabRows(tabId); });
 }
 
 let _editingCtTabId = null, _editingCtRowId = null;
@@ -2554,7 +2628,7 @@ function deleteCustomTabRowFromModal() {
 }
 
 function deleteCustomTab(tabId) {
-  if (!confirm('Supprimer cet onglet et toutes ses données ?')) return;
+  if (!confirm(t('msg.delete_tab_confirm'))) return;
   const idx = customTabs.findIndex(t => t.id === tabId); if (idx < 0) return;
   const deleted = { ...customTabs[idx], rows: [...customTabs[idx].rows] };
   customTabs.splice(idx, 1);
@@ -2562,8 +2636,8 @@ function deleteCustomTab(tabId) {
   // Re-render rows for remaining tabs
   customTabs.forEach(t => renderCustomTabRows(t.id));
   debouncedSave();
-  showUndoToast(`Onglet "${deleted.name}" supprimé`, () => {
-    customTabs.splice(idx, 0, deleted); renderCustomTabs(); customTabs.forEach(t => renderCustomTabRows(t.id));
+  showUndoToast(t('msg.tab_deleted'), () => {
+    customTabs.splice(idx, 0, deleted); renderCustomTabs(); customTabs.forEach(tab => renderCustomTabRows(tab.id));
   });
 }
 
@@ -2571,17 +2645,13 @@ function deleteCustomTab(tabId) {
 function openExportHTMLModal() {
   const list = document.getElementById('export-tab-list'); list.innerHTML = '';
   const tabs = [
-    {id:'page-dashboard',label:'Tableau de bord'},{id:'page-planning',label:'Planning'},
-    {id:'page-heures',label:'Suivi Heures'},{id:'page-taches',label:'Tâches Internes'},
-    {id:'page-interfaces',label:'Interfaces'},{id:'page-fonctionnel',label:'Fonctionnel'},
-    {id:'page-dryrun',label:'Prérequis Dry Run'},{id:'page-install',label:'Prérequis Install'},
-    {id:'page-facturation',label:'Facturation'},
+    ...BUILTIN_TABS.filter(tb => tb.id !== 'page-jira').map(tb => ({id: tb.id, label: tb.getDefaultLabel()})),
     ...customTabs.map(ct => ({id:'page-ct-'+ct.id, label: (ct.icon||'')+ ' '+ct.name, custom:true}))
   ];
-  tabs.forEach(t => {
+  tabs.forEach(tab => {
     const label = document.createElement('label'); label.style.cssText = 'display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px';
-    const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = true; cb.dataset.tabId = t.id;
-    label.appendChild(cb); label.appendChild(document.createTextNode(t.label));
+    const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = true; cb.dataset.tabId = tab.id;
+    label.appendChild(cb); label.appendChild(document.createTextNode(tab.label));
     list.appendChild(label);
   });
   document.getElementById('modal-export-html').classList.add('open');
@@ -2626,7 +2696,7 @@ async function doExportHTML() {
   const allJ = [...jalonsProjet,...jalonsEquip];
   const totM = allJ.reduce((s,j)=>s+(j.montant||0),0), payeM = allJ.filter(j=>j.etat==='Payé').reduce((s,j)=>s+(j.montant||0),0);
   const kpi = v => `<div class="kc">${v}</div>`;
-  addSection('page-dashboard', 'Tableau de bord', `
+  addSection('page-dashboard', t('tab.dashboard'), `
     <div class="kpi-grid">
       ${[
         {lbl:'Installation',     val:bdg(installStatus), sub: m.installDateDelayed ? `<s>${dt(m.installDateOriginal)}</s> → ${dt(m.installDateDelayed)}` : dt(m.installDateOriginal)},
@@ -2660,7 +2730,7 @@ async function doExportHTML() {
     });
   });
   planHtml += '</tbody></table>';
-  addSection('page-planning', 'Planning', planHtml);
+  addSection('page-planning', t('tab.planning'), planHtml);
 
   // Hours
   let hHtml = `<table>${tblHead(['Catégorie','Vendu (h)','Actuel (h)','Écart'])}<tbody>`;
@@ -2671,48 +2741,48 @@ async function doExportHTML() {
     hHtml += tblRow([r.bold?`<strong>${e(r.cat)}</strong>`:e(r.cat||''), e(r.vente||0), e(r.actuel||0), ecartStr]);
   });
   hHtml += '</tbody></table>';
-  addSection('page-heures', 'Suivi Heures', hHtml);
+  addSection('page-heures', t('tab.hours'), hHtml);
 
   // Internal tasks
-  addSection('page-taches', 'Tâches Internes', `<table>${tblHead(['Action','État','Temps (j)','Échéance','Commentaire'])}<tbody>
+  addSection('page-taches', t('tab.tasks'), `<table>${tblHead(['Action','État','Temps (j)','Échéance','Commentaire'])}<tbody>
     ${internalTasks.map(t=>tblRow([e(t.action),bdg(t.etat),e(t.temps||'—'),dt(t.deadline),e(t.comment||'')])).join('')}
   </tbody></table>`);
 
   // Interfaces
-  addSection('page-interfaces', 'Interfaces ERP', `<table>${tblHead(['Interface','Type','Dev','Préprod','Rec. '+(_companyName||'Intégrateur'),'Rec. Client','Validé','Commentaire'])}<tbody>
+  addSection('page-interfaces', t('tab.interfaces'), `<table>${tblHead(['Interface','Type','Dev','Préprod','Rec. '+(_companyName||'Intégrateur'),'Rec. Client','Validé','Commentaire'])}<tbody>
     ${interfacesData.map(i=>tblRow([e(i.name),e(i.type),bdg(i.dev),bdg(i.preprod),bdg(i.recCompany),bdg(i.recClient),bdg(i.valide),e(i.comment||'')])).join('')}
   </tbody></table>`);
 
   // Functional
-  addSection('page-fonctionnel', 'Suivi Fonctionnel', `<table>${tblHead(['Processus','Dev','%','Test Mec.','Préprod','Form. KU','Test Client','Form. Users','Commentaire'])}<tbody>
+  addSection('page-fonctionnel', t('tab.functional'), `<table>${tblHead(['Processus','Dev','%','Test Mec.','Préprod','Form. KU','Test Client','Form. Users','Commentaire'])}<tbody>
     ${fonctionnelData.map(f=>tblRow([e(f.name),bdg(f.dev),pct(f.pct),bdg(f.testCompany),bdg(f.preprod),bdg(f.formKU),bdg(f.testClient),bdg(f.formUsers),e(f.comment||'')])).join('')}
   </tbody></table>`);
 
   // Dry Run
-  addSection('page-dryrun', 'Prérequis Dry Run', `<table>${tblHead(['','Prérequis','État','Commentaire'])}<tbody>
+  addSection('page-dryrun', t('tab.dryrun'), `<table>${tblHead(['','Prérequis','État','Commentaire'])}<tbody>
     ${dryrunData.map(r=>tblRow([r.etat==='OK'?'✅':'⬜',e(r.name),bdg(r.etat),e(r.comment||'')])).join('')}
   </tbody></table>`);
 
   // Install
-  addSection('page-install', 'Prérequis Installation', `<table>${tblHead(['','Action','État','Qui ?','Deadline','Commentaire'])}<tbody>
+  addSection('page-install', t('tab.install'), `<table>${tblHead(['','Action','État','Qui ?','Deadline','Commentaire'])}<tbody>
     ${installData.map(r=>{const ql=r.qui===TOKEN_CLIENT?e(getClientLabel()):e(r.qui||'—');return tblRow([r.etat==='Oui'?'✅':'⬜',e(r.action),bdg(r.etat),ql,dt(r.deadline),e(r.comment||'')])}).join('')}
   </tbody></table>`);
 
   // Billing
   let factHtml = '';
   if (jalonsProjet.length) {
-    factHtml += `<h3 style="font-size:13px;font-weight:600;margin:0 0 8px">Jalons Projet</h3>
+    factHtml += `<h3 style="font-size:13px;font-weight:600;margin:0 0 8px">${t('panel.jalons_proj')}</h3>
     <table>${tblHead(['Jalon','%','Montant','Échéance','Date paiement','État'])}<tbody>
     ${jalonsProjet.map(j=>tblRow([e(j.jalon),pct(j.pct),e(fmtMontant(j.montant)),dt(j.echeance),dt(j.date),bdg(j.etat)])).join('')}
     </tbody></table>`;
   }
   if (jalonsEquip.length) {
-    factHtml += `<h3 style="font-size:13px;font-weight:600;margin:16px 0 8px">Jalons Équipement</h3>
+    factHtml += `<h3 style="font-size:13px;font-weight:600;margin:16px 0 8px">${t('panel.jalons_equip')}</h3>
     <table>${tblHead(['Jalon','%','Montant','Échéance','Date paiement','État'])}<tbody>
     ${jalonsEquip.map(j=>tblRow([e(j.jalon),pct(j.pct),e(fmtMontant(j.montant)),dt(j.echeance),dt(j.date),bdg(j.etat)])).join('')}
     </tbody></table>`;
   }
-  addSection('page-facturation', 'Facturation', factHtml);
+  addSection('page-facturation', t('tab.billing'), factHtml);
 
   // Custom tabs
   customTabs.forEach(ct => {
@@ -2725,7 +2795,7 @@ async function doExportHTML() {
     tabDefs.push({id:'page-ct-'+ct.id, label:(ct.icon||'')+' '+ct.name, content: ctHtml});
   });
 
-  if (!tabDefs.length) { alert('Sélectionnez au moins un onglet.'); return; }
+  if (!tabDefs.length) { alert(t('msg.select_tab')); return; }
 
   // ── Assemble HTML ──────────────────────────────────────────────────────────
   const installLine = m.installDateDelayed
@@ -2813,7 +2883,7 @@ ${tabPages}
   } catch (err) {
     showSaveIndicator('error');
     console.error('Export HTML error:', err);
-    alert('Erreur export HTML : ' + err);
+    alert(t('export.error') + err);
   }
 }
 
@@ -2828,7 +2898,7 @@ async function exportMarkdown() {
   const lines = [];
 
   // ── Header ──
-  lines.push(`# ${m.name || 'Projet'}`);
+  lines.push(`# ${m.name || t('untitled')}`);
   lines.push('');
   lines.push(row(['', '']));
   lines.push(sep(2));
@@ -2851,7 +2921,7 @@ async function exportMarkdown() {
   if (m.notes) { lines.push(`> ${m.notes.replace(/\n/g, '\n> ')}`); lines.push(''); }
 
   // ── Gantt ──
-  lines.push('## Planning du projet');
+  lines.push(`## ${t('tab.planning')}`);
   lines.push('');
   phases.forEach(phase => {
     const pt = tasks.filter(t => t.phaseId === phase.id);
@@ -2865,7 +2935,7 @@ async function exportMarkdown() {
   });
 
   // ── Hours ──
-  lines.push('## Suivi des heures');
+  lines.push(`## ${t('tab.hours')}`);
   lines.push('');
   lines.push(row(['Catégorie', 'Vendu', 'Actuel', 'Écart']));
   lines.push(sep(4));
@@ -2879,7 +2949,7 @@ async function exportMarkdown() {
 
   // ── Interfaces ──
   if (interfacesData.length) {
-    lines.push('## Interfaces ERP');
+    lines.push(`## ${t('tab.interfaces')}`);
     lines.push('');
     lines.push(row(['Interface', 'Type', 'Dev', 'Préprod', 'Rec. '+(_companyName||'Intégrateur'), 'Rec. Client', 'Validé', 'Commentaire']));
     lines.push(sep(8));
@@ -2889,7 +2959,7 @@ async function exportMarkdown() {
 
   // ── Functional ──
   if (fonctionnelData.length) {
-    lines.push('## Avancement fonctionnel');
+    lines.push(`## ${t('tab.functional')}`);
     lines.push('');
     lines.push(row(['Processus', 'Dev', '%', 'Test Mec.', 'Préprod', 'Form. KU', 'Test Client', 'Form. Users', 'Commentaire']));
     lines.push(sep(9));
@@ -2899,7 +2969,7 @@ async function exportMarkdown() {
 
   // ── Internal tasks ──
   if (internalTasks.length) {
-    lines.push('## Tâches internes');
+    lines.push(`## ${t('tab.tasks')}`);
     lines.push('');
     lines.push(row(['Action', 'État', 'Temps (j)', 'Échéance', 'Commentaire']));
     lines.push(sep(5));
@@ -2909,7 +2979,7 @@ async function exportMarkdown() {
 
   // ── Dry Run ──
   if (dryrunData.length) {
-    lines.push('## Checklist Dry Run');
+    lines.push(`## ${t('tab.dryrun')}`);
     lines.push('');
     dryrunData.forEach(dr => {
       lines.push(`- [${dr.etat === 'OK' ? 'x' : ' '}] ${dr.name}${dr.comment ? ` *(${dr.comment})*` : ''}`);
@@ -2919,7 +2989,7 @@ async function exportMarkdown() {
 
   // ── Install ──
   if (installData.length) {
-    lines.push('## Checklist Installation');
+    lines.push(`## ${t('tab.install')}`);
     lines.push('');
     installData.forEach(i => {
       lines.push(`- [${i.etat === 'Oui' ? 'x' : ' '}] ${i.action}${i.qui ? ` — *${i.qui}*` : ''}${i.comment ? ` *(${i.comment})*` : ''}`);
@@ -2929,7 +2999,7 @@ async function exportMarkdown() {
 
   // ── Billing ──
   if (jalonsProjet.length) {
-    lines.push('## Facturation — Jalons Projet');
+    lines.push(`## ${t('tab.billing')} — ${t('panel.jalons_proj')}`);
     lines.push('');
     lines.push(row(['Jalon', '%', 'Montant', 'Échéance', 'Date paiement', 'État']));
     lines.push(sep(6));
@@ -2937,7 +3007,7 @@ async function exportMarkdown() {
     lines.push('');
   }
   if (jalonsEquip.length) {
-    lines.push('## Facturation — Jalons Équipement');
+    lines.push(`## ${t('tab.billing')} — ${t('panel.jalons_equip')}`);
     lines.push('');
     lines.push(row(['Jalon', '%', 'Montant', 'Échéance', 'Date paiement', 'État']));
     lines.push(sep(6));
@@ -3140,7 +3210,7 @@ function saveMetaFromSettings() {
   s('pi-cdptech',   projectMeta.cdptech);
   s('pi-resplog',   projectMeta.respLog);
   s('pi-erpconsult',projectMeta.erpConsult);
-  const title = 'WMS Planning — ' + (projectMeta.name || 'Sans titre');
+  const title = 'WMS Planning — ' + (projectMeta.name || t('untitled'));
   setWindowTitle(title); document.title = title;
   renderGantt(); renderTaches();
   debouncedSave();
@@ -3158,7 +3228,7 @@ function resetAutoSavePath() {
   projectMeta.autoSavePath = '';
   _lastSecondaryBackupTime = 0;
   const display = document.getElementById('ps-folder-display');
-  if (display) display.textContent = 'Aucun';
+  if (display) display.textContent = t('modal.ps.none');
   debouncedSave();
 }
 function saveAutoSaveInterval() {
@@ -3181,7 +3251,7 @@ async function pickSourcePath() {
 function resetSourcePath() {
   projectMeta.sourcePath = '';
   const display = document.getElementById('ps-source-path-display');
-  if (display) display.textContent = 'Aucun (chemin par défaut)';
+  if (display) display.textContent = t('modal.ps.source_none');
   debouncedSave();
 }
 
@@ -3239,6 +3309,6 @@ if (projectPath) {
   if (lastKey) {
     loadProject(lastKey.slice('wmsplan_'.length));
   } else {
-    document.body.innerHTML += `<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;font-family:sans-serif;color:#64748b"><h2>Aucun projet ouvert</h2><p>Retournez à l'accueil pour créer ou ouvrir un projet.</p><button onclick="window.location.href='home.html'" style="margin-top:12px;padding:8px 20px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">Aller à l'accueil</button></div>`;
+    document.body.innerHTML += `<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;font-family:sans-serif;color:#64748b"><h2>${t('error.no_project')}</h2><p>${t('error.no_project_body')}</p><button onclick="window.location.href='home.html'" style="margin-top:12px;padding:8px 20px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">${t('error.go_home')}</button></div>`;
   }
 }

@@ -1,5 +1,6 @@
 // home.js — WMS Project Planner home screen logic
 import { invoke, setWindowTitle, getAppVersion, checkForUpdates, installUpdate } from './tauri-ipc.js';
+import { t, setLanguage, getCurrentLang, applyStaticI18n } from './i18n.js';
 
 setWindowTitle('WMS Project Planner');
 
@@ -7,7 +8,7 @@ setWindowTitle('WMS Project Planner');
 let recent = [];       // [{ name, client, pm, path, updatedAt, installStatus, installProgress, dryRunProgress }]
 let filteredRecent = [];
 let pendingConfirm = null;  // fn to call when user clicks "Confirmer"
-let appSettings = { saveFolder: '', companyName: '', lightMode: false, templatePath: '', jiraConfig: { url: '', email: '', token: '' } };
+let appSettings = { saveFolder: '', companyName: '', lightMode: false, templatePath: '', language: 'fr', jiraConfig: { url: '', email: '', token: '' } };
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 async function init() {
@@ -15,9 +16,11 @@ async function init() {
     const rawSettings = await invoke('read_settings');
     const loaded = typeof rawSettings === 'string' ? JSON.parse(rawSettings) : (rawSettings || {});
     appSettings = { ...appSettings, ...loaded, jiraConfig: { ...appSettings.jiraConfig, ...(loaded.jiraConfig || {}) } };
-  } catch { appSettings = { saveFolder: '', companyName: '', lightMode: false, templatePath: '', jiraConfig: { url: '', email: '', token: '' } }; }
+  } catch { appSettings = { saveFolder: '', companyName: '', lightMode: false, templatePath: '', language: 'fr', jiraConfig: { url: '', email: '', token: '' } }; }
 
+  setLanguage(appSettings.language || 'fr');
   applyTheme();
+  applyStaticI18n(document);
 
   getAppVersion().then(v => {
     const badge = document.getElementById('app-version');
@@ -31,6 +34,15 @@ async function init() {
     // Tauri returns a JSON string; browser stub may return a parsed array — handle both
     recent = typeof raw === 'string' ? JSON.parse(raw) : (Array.isArray(raw) ? raw : []);
   } catch { recent = []; }
+
+  if (!appSettings.examplesSeeded) {
+    try {
+      await seedExamples();
+      appSettings.examplesSeeded = true;
+      await persistSettings();
+    } catch { /* non-blocking */ }
+  }
+
   render();
   loadPortfolioData();
   checkForUpdates().then(r => {
@@ -71,21 +83,22 @@ function render() {
   // "New project" card at the end
   html += `<div class="project-card project-card-new" onclick="openNewProjectModal()">
     <div class="new-icon">＋</div>
-    <div>Nouveau projet</div>
+    <div>${t('home.btn.new')}</div>
   </div>`;
   grid.innerHTML = html;
 }
 
 function cardHTML(p) {
   const badge = statusBadge(p);
-  const updated = p.updatedAt ? new Date(p.updatedAt).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' }) : '—';
+  const locale = getCurrentLang() === 'en' ? 'en-GB' : getCurrentLang() === 'es' ? 'es-ES' : 'fr-FR';
+  const updated = p.updatedAt ? new Date(p.updatedAt).toLocaleDateString(locale, { day:'2-digit', month:'short', year:'numeric' }) : '—';
   const installPct = p.installProgress || '—';
   const dryPct    = p.dryRunProgress  || '—';
 
   // Path stored in data-path attribute (HTML-safe); onclick reads it back via dataset.path
   // This avoids JS escape sequence corruption of Windows backslashes in inline onclick strings.
   const ragClass = p.rag ? ` rag-border-${p.rag.toLowerCase()}` : '';
-  const ragTitle = p.rag ? ` title="Statut : ${p.rag === 'G' ? 'OK' : p.rag === 'A' ? 'Attention' : 'Bloqué'}"` : '';
+  const ragTitle = p.rag ? ` title="${t('rag.project_status')} : ${p.rag === 'G' ? t('rag.ok') : p.rag === 'A' ? t('rag.attention') : t('rag.blocked')}"` : '';
   return `<div class="project-card${ragClass}" data-path="${esc(p.path)}" onclick="openProjectCard(this.dataset.path)"${ragTitle}>
     <div class="card-top">
       <div class="card-icon">📋</div>
@@ -105,12 +118,12 @@ function cardHTML(p) {
       <div class="progress-pill">Dry Run <strong>${dryPct}</strong></div>
     </div>
     <div class="card-footer">
-      <div class="card-date">Modifié ${updated}</div>
+      <div class="card-date">${t('home.card.modified')} ${updated}</div>
       <div class="card-actions" onclick="event.stopPropagation()">
-        <button class="btn btn-ghost btn-icon btn-sm" title="Partager (ouvrir dans l'explorateur)" onclick="shareProject(this.closest('.project-card').dataset.path)">📤</button>
-        <button class="btn btn-ghost btn-icon btn-sm" title="Dupliquer" onclick="duplicateProject(this.closest('.project-card').dataset.path)">⧉</button>
-        <button class="btn btn-ghost btn-icon btn-sm" title="Retirer de la liste (conserver le fichier)" onclick="removeFromRecent(this.closest('.project-card').dataset.path)">✕</button>
-        <button class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="Supprimer définitivement" onclick="deleteProject(this.closest('.project-card').dataset.path)">🗑</button>
+        <button class="btn btn-ghost btn-icon btn-sm" title="${t('home.card.share')}" onclick="shareProject(this.closest('.project-card').dataset.path)">📤</button>
+        <button class="btn btn-ghost btn-icon btn-sm" title="${t('home.card.duplicate')}" onclick="duplicateProject(this.closest('.project-card').dataset.path)">⧉</button>
+        <button class="btn btn-ghost btn-icon btn-sm" title="${t('home.card.remove')}" onclick="removeFromRecent(this.closest('.project-card').dataset.path)">✕</button>
+        <button class="btn btn-ghost btn-icon btn-sm btn-danger-ghost" title="${t('home.card.delete')}" onclick="deleteProject(this.closest('.project-card').dataset.path)">🗑</button>
       </div>
     </div>
   </div>`;
@@ -118,12 +131,12 @@ function cardHTML(p) {
 
 function statusBadge(p) {
   if (p.installDateActual) {
-    return `<span class="status-badge badge-termine">Terminé</span>`;
+    return `<span class="status-badge badge-termine">${t('home.card.status.done')}</span>`;
   }
   if (p.installDateDelayed) {
-    return `<span class="status-badge badge-retarde">Retardé</span>`;
+    return `<span class="status-badge badge-retarde">${t('home.card.status.delayed')}</span>`;
   }
-  return `<span class="status-badge badge-en-cours">En cours</span>`;
+  return `<span class="status-badge badge-en-cours">${t('home.card.status.active')}</span>`;
 }
 
 function fmtDate(iso) {
@@ -135,6 +148,16 @@ function fmtDate(iso) {
 function esc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
+
+// ── Language ──────────────────────────────────────────────────────────────────
+window.saveLanguage = async function(lang) {
+  setLanguage(lang);
+  appSettings.language = lang;
+  await persistSettings();
+  applyStaticI18n(document);
+  render();
+  loadPortfolioData();
+};
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
 function applyTheme() {
@@ -238,15 +261,19 @@ window.createProject = async function() {
       const raw = await invoke('read_project', { path: appSettings.templatePath });
       template = typeof raw === 'string' ? JSON.parse(raw) : raw;
     } else {
-      const res = await fetch('./template.json');
+      const lang = getCurrentLang();
+      const templateFile = lang === 'en' ? './template.en.json' : lang === 'es' ? './template.es.json' : './template.json';
+      const res = await fetch(templateFile);
       template = await res.json();
     }
   } catch {
     try {
-      const res = await fetch('./template.json');
+      const lang = getCurrentLang();
+      const templateFile = lang === 'en' ? './template.en.json' : lang === 'es' ? './template.es.json' : './template.json';
+      const res = await fetch(templateFile);
       template = await res.json();
     } catch {
-      showToast('Erreur: template introuvable.');
+      showToast(t('error.template_not_found'));
       return;
     }
   }
@@ -410,13 +437,15 @@ function checklistProgress(items, doneValues) {
 // ── Settings modal ────────────────────────────────────────────────────────────
 window.openSettings = function() {
   const display = document.getElementById('settings-folder-display');
-  display.textContent = appSettings.saveFolder || 'Dossier par défaut (AppData)';
+  display.textContent = appSettings.saveFolder || t('settings.folder.default');
   document.getElementById('settings-company-name').value = appSettings.companyName || '';
   document.getElementById('settings-light-mode').checked = appSettings.lightMode || false;
+  const langSelect = document.getElementById('settings-language');
+  if (langSelect) langSelect.value = appSettings.language || getCurrentLang();
   const tplDisplay = document.getElementById('settings-template-display');
   if (tplDisplay) tplDisplay.textContent = appSettings.templatePath
     ? appSettings.templatePath.split(/[\\/]/).pop()
-    : 'Template par défaut';
+    : t('settings.template.default');
   const jc = appSettings.jiraConfig || {};
   const jiraUrl = document.getElementById('settings-jira-url');
   if (jiraUrl) jiraUrl.value = jc.url || '';
@@ -455,7 +484,7 @@ window.pickSaveFolder = async function() {
 
 window.resetSaveFolder = async function() {
   appSettings.saveFolder = '';
-  document.getElementById('settings-folder-display').textContent = 'Dossier par défaut (AppData)';
+  document.getElementById('settings-folder-display').textContent = t('settings.folder.default');
   await persistSettings();
   showToast('Dossier réinitialisé au défaut.');
 };
@@ -473,7 +502,7 @@ window.pickTemplatePath = async function() {
 window.resetTemplatePath = async function() {
   appSettings.templatePath = '';
   const display = document.getElementById('settings-template-display');
-  if (display) display.textContent = 'Template par défaut';
+  if (display) display.textContent = t('settings.template.default');
   await persistSettings();
   showToast('Template réinitialisé.');
 };
@@ -481,6 +510,30 @@ window.resetTemplatePath = async function() {
 document.getElementById('modal-settings').addEventListener('click', function(e) {
   if (e.target === this) closeSettings();
 });
+
+// ── Seed examples on first run ────────────────────────────────────────────────
+async function seedExamples() {
+  const lang = getCurrentLang();
+  let baseDir;
+  try { baseDir = await invoke('get_app_data_dir'); } catch { return; }
+
+  const sep = baseDir.includes('\\') ? '\\' : '/';
+  const examplesDir = [baseDir, 'projects', 'Exemples'].join(sep);
+
+  for (let i = 1; i <= 3; i++) {
+    const file = `./example.${lang}.${i}.wmsplan`;
+    try {
+      const res = await fetch(file);
+      if (!res.ok) continue;
+      const data = await res.json();
+      data.meta.id = uid();
+      const filename = `example.${lang}.${i}.wmsplan`;
+      const fullPath = examplesDir + sep + filename;
+      await invoke('write_project', { path: fullPath, data: JSON.stringify(data, null, 2) });
+      await addToRecent(data.meta, fullPath);
+    } catch { /* skip */ }
+  }
+}
 
 // ── Example project ───────────────────────────────────────────────────────────
 window.openExampleProject = async function() {
@@ -568,7 +621,7 @@ function wdLeft(dateStr) {
 
 async function loadPortfolioData() {
   if (!recent.length) {
-    document.getElementById('portfolio-loading').textContent = 'Aucun projet dans la liste récente.';
+    document.getElementById('portfolio-loading').textContent = t('pf.no_projects');
     return;
   }
 
@@ -620,7 +673,7 @@ async function loadPortfolioData() {
       // Upcoming install date (not yet done)
       const installDate = meta.installDateDelayed || meta.installDateOriginal;
       const upcomingInstall = (!meta.installDateActual && installDate)
-        ? [{ date: installDate, label: 'Mise en production', project: meta.name || p.name, path: p.path, delayed: !!meta.installDateDelayed }]
+        ? [{ date: installDate, label: t('pf.install_label'), project: meta.name || p.name, path: p.path, delayed: !!meta.installDateDelayed }]
         : [];
 
       const activeInstallDate = meta.installDateActual || installDate;
@@ -651,7 +704,7 @@ async function loadPortfolioData() {
   const failed = results.filter(r => r.status === 'rejected').length;
 
   if (!projects.length) {
-    const msg = failed ? `Impossible de lire les fichiers projet (${failed} erreur${failed > 1 ? 's' : ''}).` : 'Aucune donnée disponible.';
+    const msg = failed ? `Impossible de lire les fichiers projet (${failed} erreur${failed > 1 ? 's' : ''}).` : t('pf.no_data');
     document.getElementById('portfolio-body').innerHTML = `<div class="portfolio-loading">${msg}</div>`;
     return;
   }
@@ -673,7 +726,7 @@ async function loadPortfolioData() {
 
 function renderPortfolio(projects) {
   const body = document.getElementById('portfolio-body');
-  if (!projects.length) { body.innerHTML = '<div class="portfolio-loading">Aucune donnée disponible.</div>'; return; }
+  if (!projects.length) { body.innerHTML = `<div class="portfolio-loading">${t('pf.no_data')}</div>`; return; }
 
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const monthEnd = new Date(today); monthEnd.setDate(today.getDate() + 30);
@@ -695,21 +748,21 @@ function renderPortfolio(projects) {
   const pct = (a, b) => b > 0 ? Math.round(a / b * 100) : 0;
 
   const kpis = `<div class="pf-kpi-strip">
-    <div class="pf-kpi"><div class="pf-kpi-val">${active}</div><div class="pf-kpi-lbl">Projets actifs</div><div class="pf-kpi-sub">${completed} terminé${completed > 1 ? 's' : ''}</div></div>
+    <div class="pf-kpi"><div class="pf-kpi-val">${active}</div><div class="pf-kpi-lbl">${t('pf.kpi.active')}</div><div class="pf-kpi-sub">${completed} ${t('home.card.status.done').toLowerCase()}</div></div>
     <div class="pf-kpi"><div class="pf-kpi-val" style="display:flex;gap:10px;align-items:center;justify-content:center">
       <span class="rag-dot rag-dot-g" style="width:12px;height:12px"></span><span>${ragG}</span>
       <span class="rag-dot rag-dot-a" style="width:12px;height:12px"></span><span>${ragA}</span>
       <span class="rag-dot rag-dot-r" style="width:12px;height:12px"></span><span>${ragR}</span>
-    </div><div class="pf-kpi-lbl">Statut RAG</div><div class="pf-kpi-sub">${total - ragG - ragA - ragR} sans statut</div></div>
-    <div class="pf-kpi"><div class="pf-kpi-val" style="color:${totalOverdue ? '#dc2626' : '#059669'}">${totalOverdue}</div><div class="pf-kpi-lbl">Tâches en retard</div><div class="pf-kpi-sub">Tous projets confondus</div></div>
-    <div class="pf-kpi"><div class="pf-kpi-val">${fmtEur(totalBillingPaid)}</div><div class="pf-kpi-lbl">Facturation encaissée</div><div class="pf-kpi-sub">/ ${fmtEur(totalBillingAll)} — ${pct(totalBillingPaid, totalBillingAll)} %</div></div>
-    <div class="pf-kpi"><div class="pf-kpi-val">${totalHoursActual} h</div><div class="pf-kpi-lbl">Heures consommées</div><div class="pf-kpi-sub">/ ${totalHoursSold} h vendues — ${pct(totalHoursActual, totalHoursSold)} %</div></div>
+    </div><div class="pf-kpi-lbl">${t('pf.kpi.rag')}</div><div class="pf-kpi-sub">${total - ragG - ragA - ragR} ${t('pf.no_status')}</div></div>
+    <div class="pf-kpi"><div class="pf-kpi-val" style="color:${totalOverdue ? '#dc2626' : '#059669'}">${totalOverdue}</div><div class="pf-kpi-lbl">${t('pf.kpi.overdue')}</div><div class="pf-kpi-sub">${t('pf.all')}</div></div>
+    <div class="pf-kpi"><div class="pf-kpi-val">${fmtEur(totalBillingPaid)}</div><div class="pf-kpi-lbl">${t('pf.kpi.billing_paid')}</div><div class="pf-kpi-sub">/ ${fmtEur(totalBillingAll)} — ${pct(totalBillingPaid, totalBillingAll)} %</div></div>
+    <div class="pf-kpi"><div class="pf-kpi-val">${totalHoursActual} h</div><div class="pf-kpi-lbl">${t('pf.kpi.hours')}</div><div class="pf-kpi-sub">/ ${totalHoursSold} h — ${pct(totalHoursActual, totalHoursSold)} %</div></div>
   </div>`;
 
   // ── Cette semaine (grouped by project, sorted by project name then date) ──
   const weekAllTasks = projects.flatMap(p =>
-    [...p.tasks.overdue.map(t => ({ ...t, _proj: p, _late: true })),
-     ...p.tasks.thisWeek.map(t => ({ ...t, _proj: p, _late: false }))]
+    [...p.tasks.overdue.map(tk => ({ ...tk, _proj: p, _late: true })),
+     ...p.tasks.thisWeek.map(tk => ({ ...tk, _proj: p, _late: false }))]
   );
   weekAllTasks.sort((a, b) => {
     const pCmp = a._proj.name.localeCompare(b._proj.name, 'fr');
@@ -723,28 +776,28 @@ function renderPortfolio(projects) {
   let weekHtml = '';
   if (weekAllTasks.length) {
     let lastProj = null;
-    const rows = weekAllTasks.map(t => {
-      const end = t.segments?.length ? t.segments[t.segments.length-1].end : t.end;
+    const rows = weekAllTasks.map(tk => {
+      const end = tk.segments?.length ? tk.segments[tk.segments.length-1].end : tk.end;
       let groupRow = '';
-      if (t._proj.name !== lastProj) {
-        lastProj = t._proj.name;
-        groupRow = `<tr class="pf-group-row" data-path="${esc(t._proj.path)}" onclick="window.openProjectCard(this.dataset.path)"><td colspan="4">${esc(t._proj.name)}</td></tr>`;
+      if (tk._proj.name !== lastProj) {
+        lastProj = tk._proj.name;
+        groupRow = `<tr class="pf-group-row" data-path="${esc(tk._proj.path)}" onclick="window.openProjectCard(this.dataset.path)"><td colspan="4">${esc(tk._proj.name)}</td></tr>`;
       }
-      return groupRow + `<tr class="pf-row" data-path="${esc(t._proj.path)}" onclick="window.openProjectCard(this.dataset.path)" style="cursor:pointer">
-        <td style="padding-left:20px">${t._late ? '<span class="pf-late">⚠</span> ' : ''}${esc(t.name || '')}</td>
-        <td>${esc(t.owner || '—')}</td>
+      return groupRow + `<tr class="pf-row" data-path="${esc(tk._proj.path)}" onclick="window.openProjectCard(this.dataset.path)" style="cursor:pointer">
+        <td style="padding-left:20px">${tk._late ? '<span class="pf-late">⚠</span> ' : ''}${esc(tk.name || '')}</td>
+        <td>${esc(tk.owner || '—')}</td>
         <td style="white-space:nowrap">${end ? fmtDateShort(end) : '—'}</td>
-        <td>${t._late ? '<span class="pf-late">Retard</span>' : ''}</td>
+        <td>${tk._late ? `<span class="pf-late">${t('pf.late')}</span>` : ''}</td>
       </tr>`;
     }).join('');
     weekHtml = `<div class="pf-section pf-collapsible" id="pf-week">
       <div class="pf-section-title pf-toggle" onclick="window.togglePfSection('pf-week')">
-        <span>📅 Cette semaine &amp; retards</span>
+        <span>${t('pf.week_title')}</span>
         <span class="pf-count-badge">${weekAllTasks.length}</span>
         <span class="pf-chevron">▸</span>
       </div>
       <div class="pf-section-body">
-        <table class="pf-table"><thead><tr><th>Tâche</th><th>Propriétaire</th><th>Fin prévue</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+        <table class="pf-table"><thead><tr><th>${t('pf.col.task_week')}</th><th>${t('pf.col.pm')}</th><th>${t('pf.col.fin_prev')}</th><th></th></tr></thead><tbody>${rows}</tbody></table>
       </div>
     </div>`;
   }
@@ -767,7 +820,7 @@ function renderPortfolio(projects) {
       const daysLeft = Math.round((new Date(e.date) - today) / 86400000);
       const urgCls = daysLeft <= 7 ? 'pf-urgent' : daysLeft <= 14 ? 'pf-warn' : '';
       const typeIcon = e.montant !== undefined ? '💶' : (e.delayed ? '⚠ ' : '🏭');
-      const detail = e.montant !== undefined ? fmtEur(e.montant) : (e.delayed ? 'Date reportée' : '');
+      const detail = e.montant !== undefined ? fmtEur(e.montant) : (e.delayed ? t('pf.delayed') : '');
       let groupRow = '';
       if (e.project !== lastProjUp) {
         lastProjUp = e.project;
@@ -783,12 +836,12 @@ function renderPortfolio(projects) {
     }).join('');
     upcomingHtml = `<div class="pf-section pf-collapsible" id="pf-upcoming">
       <div class="pf-section-title pf-toggle" onclick="window.togglePfSection('pf-upcoming')">
-        <span>🗓 Événements à venir — 30 jours</span>
+        <span>${t('pf.upcoming_title')}</span>
         <span class="pf-count-badge">${upcoming.length}</span>
         <span class="pf-chevron">▸</span>
       </div>
       <div class="pf-section-body">
-        <table class="pf-table"><thead><tr><th>Date</th><th>Événement</th><th style="text-align:right">Montant</th><th>Délai</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+        <table class="pf-table"><thead><tr><th>${t('pf.col.date')}</th><th>${t('pf.col.event')}</th><th style="text-align:right">${t('pf.col.amount')}</th><th>${t('pf.col.delay')}</th><th></th></tr></thead><tbody>${rows}</tbody></table>
       </div>
     </div>`;
   }
@@ -825,8 +878,8 @@ function renderPortfolio(projects) {
   const cdpValues  = [...new Set(projects.map(p => p.cdptech).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
   const filterBar  = (pmValues.length > 1 || cdpValues.length > 1) ? `
     <div class="pf-filter-bar">
-      ${pmValues.length > 1 ? `<select id="pf-filter-pm" class="pf-filter-select" onchange="window.filterHealthTable()"><option value="">Tous les DP</option>${pmValues.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('')}</select>` : ''}
-      ${cdpValues.length > 1 ? `<select id="pf-filter-cdp" class="pf-filter-select" onchange="window.filterHealthTable()"><option value="">Tous les CDP Tech</option>${cdpValues.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('')}</select>` : ''}
+      ${pmValues.length > 1 ? `<select id="pf-filter-pm" class="pf-filter-select" onchange="window.filterHealthTable()"><option value="">${t('pf.filter.all_pm')}</option>${pmValues.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('')}</select>` : ''}
+      ${cdpValues.length > 1 ? `<select id="pf-filter-cdp" class="pf-filter-select" onchange="window.filterHealthTable()"><option value="">${t('pf.filter.all_cdp')}</option>${cdpValues.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('')}</select>` : ''}
     </div>` : '';
 
   window.filterHealthTable = function() {
@@ -840,9 +893,9 @@ function renderPortfolio(projects) {
   };
 
   const healthHtml = `<div class="pf-section pf-health-section">
-    <div class="pf-section-title">🏥 Santé du portefeuille</div>
+    <div class="pf-section-title">${t('pf.health')}</div>
     ${filterBar}
-    <table class="pf-table pf-health-table"><thead><tr><th>Projet</th><th>Client</th><th>DP</th><th>CDP Tech</th><th>RAG</th><th>Tâches</th><th>Heures</th><th>Facturation</th><th>Install</th><th>Checklists</th></tr></thead><tbody id="pf-health-tbody">${healthRows}</tbody></table>
+    <table class="pf-table pf-health-table"><thead><tr><th>${t('pf.col.project')}</th><th>${t('pf.col.client')}</th><th>${t('pf.col.pm')}</th><th>${t('pf.col.cdp')}</th><th>${t('pf.col.rag')}</th><th>${t('pf.col.tasks')}</th><th>${t('pf.col.hours')}</th><th>${t('pf.col.billing')}</th><th>${t('pf.col.install')}</th><th>${t('pf.col.checklists')}</th></tr></thead><tbody id="pf-health-tbody">${healthRows}</tbody></table>
   </div>`;
 
   body.innerHTML = healthHtml + kpis + weekHtml + upcomingHtml;
@@ -850,7 +903,8 @@ function renderPortfolio(projects) {
 
 function fmtDateShort(iso) {
   if (!iso) return '—';
-  try { return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: '2-digit' }); }
+  const locale = getCurrentLang() === 'en' ? 'en-GB' : getCurrentLang() === 'es' ? 'es-ES' : 'fr-FR';
+  try { return new Date(iso).toLocaleDateString(locale, { day: '2-digit', month: 'short', year: '2-digit' }); }
   catch { return iso; }
 }
 
