@@ -1,0 +1,229 @@
+{
+  "meta": {
+    "schemaVersion": 1,
+    "id": "_example_es3",
+    "name": "MercadoVeloz — WMS",
+    "client": "MercadoVeloz",
+    "pm": "Sergio Blanco",
+    "cdptech": "Isabel Ruiz",
+    "respLog": "Miguel Navarro",
+    "erpConsult": "Patricia Herrero",
+    "notes": "E-commerce retail de gran volumen. Integración Magento + SAP. APIs GLS, Correos Express y Amazon Logistics. Go live confirmado el 30/06.",
+    "startDate": "2025-11-01",
+    "installDateOriginal": "2026-06-30",
+    "installDateDelayed": "",
+    "installDateActual": "",
+    "installDateComment": "",
+    "endDate": "",
+    "createdAt": "2025-11-01T09:00:00.000Z",
+    "updatedAt": "2026-06-05T16:00:00.000Z",
+    "jiraProjectKey": "MVZ"
+  },
+  "phases": [
+    { "id": "INDISPO", "name": "INDISPONIBILIDADES / AUSENCIAS",  "code": "I", "color": "#64748b" },
+    { "id": "PLAN",    "name": "PLANIFICACIÓN DEL PROYECTO",      "code": "P", "color": "#2563eb" },
+    { "id": "ERP",     "name": "INTERFAZ ERP",                    "code": "E", "color": "#7c3aed" },
+    { "id": "DEV",     "name": "DESARROLLO",                      "code": "D", "color": "#0891b2" },
+    { "id": "FORM",    "name": "FORMACIÓN Y UAT",                 "code": "F", "color": "#059669" }
+  ],
+  "tasks": [
+    { "id": "task_indispo_dp",  "phaseId": "INDISPO", "name": "Director de Proyecto - Sergio Blanco",     "owner": "EMPRESA",     "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
+    { "id": "task_indispo_cdp", "phaseId": "INDISPO", "name": "Resp. Técnico de Proyecto - Isabel Ruiz",  "owner": "EMPRESA",     "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
+    { "id": "task_indispo_rl",  "phaseId": "INDISPO", "name": "Resp. Logístico - Miguel Navarro",         "owner": "MercadoVeloz","start": "2026-07-06", "end": "2026-07-19", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
+    { "id": "task_indispo_rd",  "phaseId": "INDISPO", "name": "Jefe de Almacén (Cliente)",                "owner": "MercadoVeloz","start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
+    { "id": "task_indispo_adv", "phaseId": "INDISPO", "name": "Resp. Administración Ventas (Cliente)",    "owner": "MercadoVeloz","start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
+    { "id": "task_plan_1", "phaseId": "PLAN", "name": "Visita de Análisis Funcional",                      "owner": "TODOS",   "start": "2025-11-01", "end": "2025-11-08", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "Informe de visita" },
+    { "id": "task_plan_2", "phaseId": "PLAN", "name": "Talleres y Redacción del Análisis Funcional",       "owner": "TODOS",   "start": "2025-11-10", "end": "2025-12-07", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "AF v1.0" },
+    { "id": "task_plan_3", "phaseId": "PLAN", "name": "Validación del Análisis Funcional",                 "owner": "TODOS",   "start": "2025-12-08", "end": "2025-12-18", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "AF firmada" },
+    { "id": "task_plan_4", "phaseId": "PLAN", "name": "Talleres de Mapeo ERP para el AF",                  "owner": "TODOS",   "start": "2025-11-24", "end": "2025-12-18", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_plan_5", "phaseId": "PLAN", "name": "Análisis Técnico y Redacción de Tareas de Dev",     "owner": "EMPRESA", "start": "2025-12-19", "end": "2026-01-04", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "Tareas JIRA" },
+    { "id": "task_erp_spec",  "phaseId": "ERP", "name": "Redacción de Especificaciones de Interfaces",     "owner": "EMPRESA", "start": "2025-12-19", "end": "2026-01-09", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "Esp. ITF" },
+    { "id": "task_erp_itm",   "phaseId": "ERP", "name": "Maestra de Artículos - ITM",                     "owner": "EMPRESA", "start": "2026-01-05", "end": "2026-02-01", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "" },
+    { "id": "task_erp_sup",   "phaseId": "ERP", "name": "Maestra de Proveedores - SUP",                   "owner": "EMPRESA", "start": "2026-01-05", "end": "2026-02-01", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_erp_ror",   "phaseId": "ERP", "name": "Aviso de Expedición - ROR/ASN",                  "owner": "EMPRESA", "start": "2026-01-26", "end": "2026-03-01", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "" },
+    { "id": "task_erp_cust",  "phaseId": "ERP", "name": "Confirmación de Descarga - Archivo Custom",      "owner": "EMPRESA", "start": "2026-02-02", "end": "2026-03-08", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_erp_rof",   "phaseId": "ERP", "name": "Cierre de Pedido de Compra - ROF/ASO/ASK",       "owner": "EMPRESA", "start": "2026-02-23", "end": "2026-03-29", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_erp_ref",   "phaseId": "ERP", "name": "Confirmación de Recepción - REF",                "owner": "EMPRESA", "start": "2026-03-09", "end": "2026-04-05", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_erp_sor",   "phaseId": "ERP", "name": "Pedido de Venta - SOR",                          "owner": "EMPRESA", "start": "2026-03-23", "end": "2026-05-03", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "" },
+    { "id": "task_erp_soc",   "phaseId": "ERP", "name": "Cambio de Estado del Pedido - SOC",              "owner": "EMPRESA", "start": "2026-04-20", "end": "2026-05-17", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_erp_sof",   "phaseId": "ERP", "name": "Cierre de Pedido de Venta - SOF",                "owner": "EMPRESA", "start": "2026-04-20", "end": "2026-05-17", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_erp_stc",   "phaseId": "ERP", "name": "Cambio de Estado del Stock - STC",               "owner": "EMPRESA", "start": "2026-05-04", "end": "2026-05-31", "status": "En cours", "priority": "normale", "progress": 80,  "deliverable": "" },
+    { "id": "task_erp_stv",   "phaseId": "ERP", "name": "Variación de Stock - STV",                       "owner": "EMPRESA", "start": "2026-05-04", "end": "2026-05-31", "status": "En cours", "priority": "normale", "progress": 70,  "deliverable": "" },
+    { "id": "task_erp_scr",   "phaseId": "ERP", "name": "Petición de Estado del Stock - SCR",             "owner": "EMPRESA", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
+    { "id": "task_erp_wsc",   "phaseId": "ERP", "name": "Imagen de Stock - WSC",                          "owner": "EMPRESA", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
+    { "id": "task_erp_trsp",  "phaseId": "ERP", "name": "APIs Transportistas (GLS + Correos Express + Amazon)", "owner": "EMPRESA", "start": "2026-03-30", "end": "2026-05-31", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "" },
+    { "id": "task_erp_err",   "phaseId": "ERP", "name": "Error de Integración - ERR",                     "owner": "EMPRESA", "start": "2026-05-18", "end": "2026-06-01", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_dev_1", "phaseId": "DEV", "name": "Modelización / Configuración del Almacén",            "owner": "EMPRESA",     "start": "2025-12-08", "end": "2026-02-08", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "" },
+    { "id": "task_dev_2", "phaseId": "DEV", "name": "Desarrollos Funcionales",                             "owner": "EMPRESA",     "start": "2026-02-09", "end": "2026-05-03", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "" },
+    { "id": "task_dev_3", "phaseId": "DEV", "name": "Pruebas y Validación de Desarrollos",                "owner": "EMPRESA",     "start": "2026-04-27", "end": "2026-05-24", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "" },
+    { "id": "task_dev_4", "phaseId": "DEV", "name": "Configuración del Entorno del Cliente",               "owner": "EMPRESA",     "start": "2026-05-18", "end": "2026-06-05", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_dev_5", "phaseId": "DEV", "name": "Etiquetado del Almacén",                              "owner": "MercadoVeloz","start": "2026-05-11", "end": "2026-06-07", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_dev_6", "phaseId": "DEV", "name": "Configuración de Terminales RF / Impresoras",         "owner": "EMPRESA",     "start": "2026-05-25", "end": "2026-06-07", "status": "Terminé",  "priority": "normale", "progress": 100, "deliverable": "" },
+    { "id": "task_form_1", "phaseId": "FORM", "name": "Formación de Key Users",                             "owner": "EMPRESA",     "start": "2026-06-08", "end": "2026-06-12", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "" },
+    { "id": "task_form_2", "phaseId": "FORM", "name": "Pruebas y Validación de Desarrollos",               "owner": "MercadoVeloz","start": "2026-06-13", "end": "2026-06-19", "status": "En cours", "priority": "haute",   "progress": 50,  "deliverable": "" },
+    { "id": "task_form_3", "phaseId": "FORM", "name": "Formación de Operarios",                             "owner": "MercadoVeloz","start": "2026-06-19", "end": "2026-06-22", "status": "À faire",  "priority": "haute",   "progress": 0,   "deliverable": "" },
+    { "id": "task_form_4", "phaseId": "FORM", "name": "Inventario de Stock Ubicado - Dry Run WMS",         "owner": "MercadoVeloz","start": "2026-06-22", "end": "2026-06-24", "status": "À faire",  "priority": "normale", "progress": 0,   "deliverable": "" },
+    { "id": "task_form_5", "phaseId": "FORM", "name": "DRY RUN & GO/NO GO",                                "owner": "TODOS",   "start": "2026-06-25", "end": "2026-06-26", "status": "À faire",  "priority": "haute",   "progress": 0,   "deliverable": "", "barColor": "#dc2626" },
+    { "id": "task_form_6", "phaseId": "FORM", "name": "Inventario Completo de Stock para GO LIVE",         "owner": "MercadoVeloz","start": "2026-06-28", "end": "2026-06-29", "status": "À faire",  "priority": "haute",   "progress": 0,   "deliverable": "" },
+    { "id": "task_form_7", "phaseId": "FORM", "name": "INSTALACIÓN",                                       "owner": "TODOS",   "start": "2026-06-30", "end": "2026-06-30", "status": "À faire",  "priority": "haute",   "progress": 0,   "deliverable": "", "barColor": "#ea580c" },
+    { "id": "task_form_8", "phaseId": "FORM", "name": "HyperCare",                                         "owner": "EMPRESA", "start": "2026-07-01", "end": "2026-07-31", "status": "À faire",  "priority": "normale", "progress": 0,   "deliverable": "", "barColor": "#4f46e5" }
+  ],
+  "heuresData": [
+    { "id": "h_std",   "cat": "Horas Estándar",              "vente": 150, "actuel": 140, "desc": "Implementación, gestión del proyecto, formación, pruebas", "bold": true,  "totalType": "Standard",   "sep": false, "custom": false, "history": [] },
+    { "id": "h_cust",  "cat": "Horas Custom",                "vente": 60,  "actuel": 57,  "desc": "Desarrollos específicos e-commerce",                       "bold": true,  "totalType": "Custom",     "sep": false, "custom": false, "history": [] },
+    { "id": "h_comp",  "cat": "Horas Comp.",                 "vente": 8,   "actuel": 6,   "desc": "Correcciones post-UAT",                                    "bold": true,  "totalType": "Offre Comp", "sep": false, "custom": false, "history": [] },
+    { "id": "h_sep1",  "sep": true },
+    { "id": "h_impl",  "cat": "Implementación Estándar",     "vente": 50,  "actuel": 50,  "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard",
+      "history": [
+        { "date": "2026-02-08", "value": 22, "note": "Configuración del almacén" },
+        { "date": "2026-04-30", "value": 50, "note": "Configuración completa validada" }
+      ]
+    },
+    { "id": "h_gp",    "cat": "Gestión del Proyecto",        "vente": 30,  "actuel": 30,  "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard",
+      "history": [
+        { "date": "2026-03-31", "value": 16, "note": "Comités Q1" },
+        { "date": "2026-05-31", "value": 30, "note": "Comités Q2 + preparación go live" }
+      ]
+    },
+    { "id": "h_af",    "cat": "Análisis Funcional",          "vente": 26,  "actuel": 26,  "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard",
+      "history": [
+        { "date": "2025-12-18", "value": 26, "note": "AF completada y firmada" }
+      ]
+    },
+    { "id": "h_itf",   "cat": "Interfaces ERP",              "vente": 20,  "actuel": 20,  "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard",
+      "history": [
+        { "date": "2026-05-31", "value": 20, "note": "Todas las interfaces desarrolladas y probadas" }
+      ]
+    },
+    { "id": "h_form",  "cat": "Formación",                   "vente": 12,  "actuel": 6,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard",
+      "history": [
+        { "date": "2026-06-12", "value": 6, "note": "Formación Key Users completada" }
+      ]
+    },
+    { "id": "h_tests", "cat": "Pruebas y Dry Run",           "vente": 12,  "actuel": 8,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard",
+      "history": [
+        { "date": "2026-05-24", "value": 8, "note": "Pruebas de integración completadas" }
+      ]
+    },
+    { "id": "h_site",  "cat": "In Situ (2 rec, 5d)",         "vente": 0,   "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_hc",    "cat": "HyperCare Remoto",            "vente": 0,   "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_trsp",  "cat": "Transportistas",              "vente": 0,   "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_dir",   "cat": "Directivas",                  "vente": 0,   "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_srv",   "cat": "Configuración del Servidor",  "vente": 0,   "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_env",   "cat": "Envolvente Custom",           "vente": 60,  "actuel": 57,  "desc": "", "bold": false, "sep": false, "custom": false, "type": "Custom",
+      "history": [
+        { "date": "2026-03-31", "value": 25, "note": "Oleada de picking + flujo unitario" },
+        { "date": "2026-05-31", "value": 57, "note": "GLS + Correos + Amazon Logistics + etiquetas" }
+      ]
+    }
+  ],
+  "internalTasks": [
+    { "id": "it_01", "action": "Plan de pruebas funcionales",                   "etat": "FAIT",     "temps": 10, "deadline": "2026-03-01", "urg": 2, "comment": "Enviado y validado" },
+    { "id": "it_02", "action": "Guía de usuario",                                "etat": "FAIT",     "temps": 14, "deadline": "2026-05-31", "urg": 2, "comment": "v2.0 validada por el cliente" },
+    { "id": "it_03", "action": "Verificaciones EasyMonitor",                     "etat": "FAIT",     "temps": 4,  "deadline": "2026-04-30", "urg": 3, "comment": "" },
+    { "id": "it_04", "action": "Validador del Proyecto",                          "etat": "FAIT",     "temps": 2,  "deadline": "2026-04-30", "urg": 3, "comment": "" },
+    { "id": "it_05", "action": "Configuración EasyS",                            "etat": "FAIT",     "temps": 5,  "deadline": "2026-05-15", "urg": 2, "comment": "" },
+    { "id": "it_06", "action": "Documentación módulo de entrega (API)",          "etat": "FAIT",     "temps": 8,  "deadline": "2026-05-31", "urg": 2, "comment": "" },
+    { "id": "it_07", "action": "Desarrollos en curso",                            "etat": "FAIT",     "temps": 32, "deadline": "2026-05-03", "urg": 1, "comment": "" },
+    { "id": "it_08", "action": "Pruebas de desarrollo + regresión",              "etat": "FAIT",     "temps": 12, "deadline": "2026-05-24", "urg": 1, "comment": "" },
+    { "id": "it_09", "action": "Módulo transportistas (GLS + Correos + Amazon)", "etat": "FAIT",     "temps": 18, "deadline": "2026-05-31", "urg": 2, "comment": "" },
+    { "id": "it_10", "action": "Dry Run ERP",                                     "etat": "FAIT",     "temps": 6,  "deadline": "2026-06-07", "urg": 2, "comment": "Validado el 06/06" },
+    { "id": "it_11", "action": "Desarrollos correctivos tras Dry Run ERP",      "etat": "EN COURS", "temps": 3,  "deadline": "2026-06-13", "urg": 2, "comment": "2 correctivos menores" },
+    { "id": "it_12", "action": "Pruebas de Key Users",                            "etat": "EN COURS", "temps": 5,  "deadline": "2026-06-19", "urg": 2, "comment": "En curso — sin bloqueos" },
+    { "id": "it_13", "action": "Plan de cutover",                                 "etat": "FAIT",     "temps": 4,  "deadline": "2026-06-05", "urg": 2, "comment": "Validado" },
+    { "id": "it_14", "action": "Configurar WMS de producción",                   "etat": "FAIT",     "temps": 5,  "deadline": "2026-06-10", "urg": 2, "comment": "" },
+    { "id": "it_15", "action": "Circuito de picking optimizado por zona",        "etat": "FAIT",     "temps": 6,  "deadline": "2026-05-18", "urg": 3, "comment": "Optimización zonas A/B validada" },
+    { "id": "it_16", "action": "WiFi + config. terminales RF validados",         "etat": "FAIT",     "temps": 3,  "deadline": "2026-06-05", "urg": 2, "comment": "" },
+    { "id": "it_17", "action": "Transferencia de stock desde sistema antiguo J-1","etat": "À FAIRE", "temps": 0,  "deadline": "2026-06-29", "urg": 3, "comment": "" },
+    { "id": "it_18", "action": "Control post-instalación J+1",                   "etat": "À FAIRE",  "temps": 0,  "deadline": "2026-07-01", "urg": 3, "comment": "" }
+  ],
+  "interfaces": [
+    { "id": "itf_01", "type": "Conector ERP", "name": "Maestra de Artículos - ITM",                    "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_02", "type": "Conector ERP", "name": "Maestra de Proveedores - SUP",                  "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_03", "type": "Conector ERP", "name": "Aviso de Expedición - ROR/ASN",                 "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_04", "type": "Archivo plano", "name": "Confirmación de Descarga - Archivo Custom",    "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_05", "type": "Conector ERP", "name": "Cierre de Pedido de Compra - ROF",              "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_06", "type": "Conector ERP", "name": "Cierre de Pedido de Compra - ASO",              "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_07", "type": "Conector ERP", "name": "Cierre de Pedido de Compra - ASK",              "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_08", "type": "Conector ERP", "name": "Confirmación de Recepción - REF",               "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_09", "type": "Conector ERP", "name": "Pedido de Venta - SOR",                         "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_10", "type": "Conector ERP", "name": "Cambio de Estado del Pedido - SOC",             "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_11", "type": "Conector ERP", "name": "Cierre de Pedido de Venta - SOF",               "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_12", "type": "Conector ERP", "name": "Cambio de Estado del Stock - STC",              "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "NON", "valide": "NON", "comment": "UAT cliente en curso" },
+    { "id": "itf_13", "type": "Conector ERP", "name": "Variación de Stock - STV",                      "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "NON", "valide": "NON", "comment": "UAT cliente en curso" },
+    { "id": "itf_14", "type": "Conector ERP", "name": "Petición de Estado del Stock - SCR",            "dev": "NON", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "Fuera de alcance" },
+    { "id": "itf_15", "type": "Conector ERP", "name": "Imagen de Stock - WSC",                         "dev": "NON", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "Fuera de alcance" },
+    { "id": "itf_16", "type": "API REST",      "name": "APIs GLS + Correos Express + Amazon Logistics", "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" },
+    { "id": "itf_17", "type": "Conector ERP", "name": "Error de Integración - ERR",                    "dev": "OUI", "preprod": "OUI", "recCompany": "OUI", "recClient": "OUI", "valide": "OUI", "comment": "" }
+  ],
+  "functional": [
+    { "id": "fn_01", "name": "RECEPCIÓN / DEVOLUCIONES",   "dev": "OUI", "pct": 100, "testCompany": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "OUI", "formUsers": "NON", "comment": "" },
+    { "id": "fn_02", "name": "UBICACIÓN",                  "dev": "OUI", "pct": 100, "testCompany": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "OUI", "formUsers": "NON", "comment": "" },
+    { "id": "fn_03", "name": "REAPROVISIONAMIENTO",        "dev": "OUI", "pct": 100, "testCompany": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "OUI", "formUsers": "NON", "comment": "" },
+    { "id": "fn_04", "name": "INVENTARIO",                 "dev": "OUI", "pct": 100, "testCompany": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "OUI", "formUsers": "NON", "comment": "" },
+    { "id": "fn_05", "name": "PREPARACIÓN EN OLEADA",      "dev": "OUI", "pct": 100, "testCompany": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "EN COURS", "formUsers": "NON", "comment": "" },
+    { "id": "fn_06", "name": "PICKING UNITARIO",           "dev": "OUI", "pct": 100, "testCompany": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "EN COURS", "formUsers": "NON", "comment": "" },
+    { "id": "fn_07", "name": "EMBALAJE / CONTROL",        "dev": "OUI", "pct": 95,  "testCompany": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "EN COURS", "formUsers": "NON", "comment": "1 correctivo menor pendiente" },
+    { "id": "fn_08", "name": "DOCUMENTACIÓN",              "dev": "OUI", "pct": 100, "testCompany": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "OUI",      "formUsers": "NON", "comment": "" },
+    { "id": "fn_09", "name": "EXPEDICIÓN + TRANSPORTISTA", "dev": "OUI", "pct": 100, "testCompany": "OUI", "preprod": "OUI", "formKU": "OUI", "testClient": "OUI",      "formUsers": "NON", "comment": "" }
+  ],
+  "dryRun": [
+    { "id": "dr_01", "name": "Plano del almacén disponible",                   "etat": "OK",  "comment": "" },
+    { "id": "dr_02", "name": "Almacén creado en WMS",                          "etat": "OK",  "comment": "" },
+    { "id": "dr_03", "name": "Validación del WiFi",                            "etat": "OK",  "comment": "" },
+    { "id": "dr_04", "name": "Etiquetado del almacén",                         "etat": "OK",  "comment": "" },
+    { "id": "dr_05", "name": "Planes de prueba validados",                     "etat": "OK",  "comment": "" },
+    { "id": "dr_06", "name": "Dry Run ERP validado",                           "etat": "OK",  "comment": "Validado el 06/06" },
+    { "id": "dr_07", "name": "Impresoras configuradas",                        "etat": "OK",  "comment": "" },
+    { "id": "dr_08", "name": "Terminales RF configurados",                     "etat": "OK",  "comment": "" },
+    { "id": "dr_09", "name": "Desarrollos validados",                          "etat": "NON", "comment": "2 correctivos menores en curso" },
+    { "id": "dr_10", "name": "Usuarios formados (por MercadoVeloz)",           "etat": "NON", "comment": "Formación operarios prevista 19/06" },
+    { "id": "dr_11", "name": "Inventario de stock",                            "etat": "NON", "comment": "Previsto 28-29/06" }
+  ],
+  "install": [
+    { "id": "in_01", "action": "Plano actualizado – autorizaciones verificadas",          "etat": "Oui", "qui": "MercadoVeloz", "deadline": "2026-05-01", "comment": "" },
+    { "id": "in_02", "action": "Almacén cubierto por WiFi",                               "etat": "Oui", "qui": "MercadoVeloz", "deadline": "2026-05-01", "comment": "" },
+    { "id": "in_03", "action": "Servidor instalado y WMS accesible sin VPN",             "etat": "Oui", "qui": "EMPRESA",      "deadline": "2026-05-15", "comment": "" },
+    { "id": "in_04", "action": "Terminales RF disponibles y correctamente configurados",  "etat": "Oui", "qui": "MercadoVeloz", "deadline": "2026-06-07", "comment": "" },
+    { "id": "in_05", "action": "Estanterías instaladas y correctamente etiquetadas",      "etat": "Oui", "qui": "MercadoVeloz", "deadline": "2026-06-07", "comment": "" },
+    { "id": "in_06", "action": "Impresoras disponibles, encendidas y conectadas",         "etat": "Oui", "qui": "MercadoVeloz", "deadline": "2026-06-07", "comment": "" },
+    { "id": "in_07", "action": "Ordenadores WMS disponibles y conectados",                "etat": "Oui", "qui": "MercadoVeloz", "deadline": "2026-06-07", "comment": "" },
+    { "id": "in_08", "action": "Comunicaciones WMS ↔ ERP operativas",                    "etat": "Oui", "qui": "EMPRESA",      "deadline": "2026-06-10", "comment": "" },
+    { "id": "in_09", "action": "Procesos de AF en preproducción",                         "etat": "Oui", "qui": "EMPRESA",      "deadline": "2026-06-05", "comment": "" },
+    { "id": "in_10", "action": "Procesos probados y comprendidos por Key Users",          "etat": "Oui", "qui": "TODOS",        "deadline": "2026-06-14", "comment": "" },
+    { "id": "in_11", "action": "Plan de pruebas funcionales redactado y enviado",         "etat": "Oui", "qui": "EMPRESA",      "deadline": "2026-03-01", "comment": "" },
+    { "id": "in_12", "action": "Planes de prueba WMS validados por el cliente",           "etat": "Non", "qui": "MercadoVeloz", "deadline": "2026-06-21", "comment": "En curso de validación" }
+  ],
+  "billing": {
+    "jalonsProjet": [
+      { "id": "jp_01", "jalon": "OFERTA FIRMADA",                     "date": "2025-10-22", "echeance": "2025-11-01", "etat": "Payé", "pct": 35, "montant": 35000 },
+      { "id": "jp_02", "jalon": "ANÁLISIS FUNCIONAL ENTREGADO",       "date": "2025-12-18", "echeance": "2025-12-28", "etat": "Payé", "pct": 25, "montant": 25000 },
+      { "id": "jp_03", "jalon": "ENTREGA DE DESARROLLOS",             "date": "2026-05-24", "echeance": "2026-05-24", "etat": "Payé", "pct": 30, "montant": 30000 },
+      { "id": "jp_04", "jalon": "ACEPTACIÓN FINAL",                   "date": "",           "echeance": "2026-07-31", "etat": "—",    "pct": 10, "montant": 10000 }
+    ],
+    "jalonsEquipement": [
+      { "id": "je_01", "jalon": "PEDIDO DE EQUIPOS",    "date": "2025-12-08", "echeance": "2025-12-15", "etat": "Payé", "pct": 50, "montant": 8000 },
+      { "id": "je_02", "jalon": "ENTREGA DE EQUIPOS",   "date": "2026-03-22", "echeance": "2026-03-27", "etat": "Payé", "pct": 50, "montant": 8000 }
+    ]
+  },
+  "customTabs": [
+    {
+      "id": "ct_es3_01",
+      "name": "Checklist Go Live",
+      "icon": "✅",
+      "columns": [
+        { "key": "accion", "label": "Acción",  "type": "text",   "editable": true },
+        { "key": "estado", "label": "Estado",  "type": "select", "options": ["Pendiente", "En curso", "Hecho"], "editable": true },
+        { "key": "resp",   "label": "Resp.",   "type": "text",   "editable": true }
+      ],
+      "rows": [
+        { "id": "r_001", "accion": "Correctivos UAT fusionados en producción",          "estado": "En curso", "resp": "Isabel R." },
+        { "id": "r_002", "accion": "Formación operarios turno noche (15 personas)",     "estado": "Pendiente","resp": "Sergio B." },
+        { "id": "r_003", "accion": "Inventario completo de stock antes de la bascule",  "estado": "Pendiente","resp": "Miguel N." },
+        { "id": "r_004", "accion": "Comunicación interna go live enviada",              "estado": "Hecho",    "resp": "MercadoVeloz" },
+        { "id": "r_005", "accion": "Guardia confirmada J+1 (2 recursos)",               "estado": "Hecho",    "resp": "EMPRESA" }
+      ]
+    }
+  ],
+  "jiraData": { "lastSync": "", "epics": [], "tasks": [] }
+}

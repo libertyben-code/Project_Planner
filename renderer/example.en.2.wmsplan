@@ -1,0 +1,196 @@
+{
+  "meta": {
+    "schemaVersion": 1,
+    "id": "_example_en2",
+    "name": "MediCore Supplies — WMS",
+    "client": "MediCore Supplies",
+    "pm": "Rachel Thompson",
+    "cdptech": "Oliver Bennett",
+    "respLog": "Caroline Walsh",
+    "erpConsult": "Nathan Foster",
+    "notes": "Pharmaceutical wholesale — strict serialisation & batch traceability (GS1). Temperature-controlled zones. ERP Microsoft Dynamics 365. Early project stage.",
+    "startDate": "2026-03-15",
+    "installDateOriginal": "2026-11-01",
+    "installDateDelayed": "",
+    "installDateActual": "",
+    "installDateComment": "",
+    "endDate": "",
+    "createdAt": "2026-03-15T08:00:00.000Z",
+    "updatedAt": "2026-06-04T09:00:00.000Z",
+    "jiraProjectKey": ""
+  },
+  "phases": [
+    { "id": "INDISPO", "name": "UNAVAILABILITIES / LEAVE",  "code": "I", "color": "#64748b" },
+    { "id": "PLAN",    "name": "PROJECT PLANNING",          "code": "P", "color": "#2563eb" },
+    { "id": "ERP",     "name": "ERP INTERFACE",             "code": "E", "color": "#7c3aed" },
+    { "id": "DEV",     "name": "DEVELOPMENT",               "code": "D", "color": "#0891b2" },
+    { "id": "FORM",    "name": "TRAINING & UAT",            "code": "F", "color": "#059669" }
+  ],
+  "tasks": [
+    { "id": "task_indispo_dp",  "phaseId": "INDISPO", "name": "Project Director - Rachel Thompson",  "owner": "COMPANY",         "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
+    { "id": "task_indispo_cdp", "phaseId": "INDISPO", "name": "Technical PM - Oliver Bennett",       "owner": "COMPANY",         "start": "2026-08-10", "end": "2026-08-20", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
+    { "id": "task_indispo_rl",  "phaseId": "INDISPO", "name": "Logistics Manager - Caroline Walsh",  "owner": "MediCore Supplies","start": "2026-07-14", "end": "2026-07-25", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
+    { "id": "task_indispo_rd",  "phaseId": "INDISPO", "name": "Warehouse Manager (Client)",          "owner": "MediCore Supplies","start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
+    { "id": "task_indispo_adv", "phaseId": "INDISPO", "name": "Sales Admin Manager (Client)",        "owner": "MediCore Supplies","start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "", "isUnavail": true },
+    { "id": "task_plan_1", "phaseId": "PLAN", "name": "Functional Analysis Visit",                    "owner": "TOUS",    "start": "2026-03-15", "end": "2026-03-21", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "Visit report" },
+    { "id": "task_plan_2", "phaseId": "PLAN", "name": "Workshops & Functional Analysis Drafting",     "owner": "TOUS",    "start": "2026-03-24", "end": "2026-04-24", "status": "Terminé",  "priority": "haute",   "progress": 100, "deliverable": "FA v1.0" },
+    { "id": "task_plan_3", "phaseId": "PLAN", "name": "Functional Analysis Validation",               "owner": "TOUS",    "start": "2026-04-25", "end": "2026-05-09", "status": "En cours", "priority": "haute",   "progress": 65,  "deliverable": "Signed FA" },
+    { "id": "task_plan_4", "phaseId": "PLAN", "name": "ERP Mapping Workshops",                        "owner": "TOUS",    "start": "2026-04-10", "end": "2026-05-09", "status": "En cours", "priority": "normale", "progress": 50,  "deliverable": "" },
+    { "id": "task_plan_5", "phaseId": "PLAN", "name": "Technical Analysis & Dev Task Drafting",       "owner": "COMPANY", "start": "2026-05-12", "end": "2026-05-28", "status": "À faire",  "priority": "normale", "progress": 0,   "deliverable": "" },
+    { "id": "task_erp_spec",  "phaseId": "ERP", "name": "Interface Specification Drafting",           "owner": "COMPANY", "start": "2026-05-15", "end": "2026-06-04", "status": "À faire",  "priority": "haute",   "progress": 0,   "deliverable": "" },
+    { "id": "task_erp_itm",   "phaseId": "ERP", "name": "Item Master - ITM",                          "owner": "COMPANY", "start": "2026-06-01", "end": "2026-06-28", "status": "À faire",  "priority": "haute",   "progress": 0,   "deliverable": "" },
+    { "id": "task_erp_sup",   "phaseId": "ERP", "name": "Supplier Master - SUP",                      "owner": "COMPANY", "start": "2026-06-01", "end": "2026-06-28", "status": "À faire",  "priority": "normale", "progress": 0,   "deliverable": "" },
+    { "id": "task_erp_ror",   "phaseId": "ERP", "name": "Advance Ship Notice - ROR/ASN",              "owner": "COMPANY", "start": "2026-07-01", "end": "2026-08-01", "status": "À faire",  "priority": "haute",   "progress": 0,   "deliverable": "" },
+    { "id": "task_erp_cust",  "phaseId": "ERP", "name": "Unloading Confirmation - Custom File",       "owner": "COMPANY", "start": "2026-07-01", "end": "2026-08-01", "status": "À faire",  "priority": "normale", "progress": 0,   "deliverable": "" },
+    { "id": "task_erp_rof",   "phaseId": "ERP", "name": "Purchase Order Close - ROF/ASO/ASK",         "owner": "COMPANY", "start": "2026-07-15", "end": "2026-08-15", "status": "À faire",  "priority": "normale", "progress": 0,   "deliverable": "" },
+    { "id": "task_erp_ref",   "phaseId": "ERP", "name": "Receipt Confirmation - REF",                 "owner": "COMPANY", "start": "2026-08-01", "end": "2026-09-01", "status": "À faire",  "priority": "normale", "progress": 0,   "deliverable": "" },
+    { "id": "task_erp_sor",   "phaseId": "ERP", "name": "Sales Order - SOR",                          "owner": "COMPANY", "start": "2026-08-01", "end": "2026-09-01", "status": "À faire",  "priority": "haute",   "progress": 0,   "deliverable": "" },
+    { "id": "task_erp_soc",   "phaseId": "ERP", "name": "Order Status Change - SOC",                  "owner": "COMPANY", "start": "2026-08-15", "end": "2026-09-10", "status": "À faire",  "priority": "normale", "progress": 0,   "deliverable": "" },
+    { "id": "task_erp_sof",   "phaseId": "ERP", "name": "Sales Order Close - SOF",                    "owner": "COMPANY", "start": "2026-08-15", "end": "2026-09-10", "status": "À faire",  "priority": "normale", "progress": 0,   "deliverable": "" },
+    { "id": "task_erp_stc",   "phaseId": "ERP", "name": "Stock Status Change - STC",                  "owner": "COMPANY", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
+    { "id": "task_erp_stv",   "phaseId": "ERP", "name": "Stock Variation - STV",                      "owner": "COMPANY", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
+    { "id": "task_erp_scr",   "phaseId": "ERP", "name": "Stock Status Request - SCR",                 "owner": "COMPANY", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
+    { "id": "task_erp_wsc",   "phaseId": "ERP", "name": "Stock Image - WSC",                          "owner": "COMPANY", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
+    { "id": "task_erp_trsp",  "phaseId": "ERP", "name": "Carrier API Call",                           "owner": "COMPANY", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
+    { "id": "task_erp_err",   "phaseId": "ERP", "name": "Integration Error - ERR",                    "owner": "COMPANY", "start": "", "end": "", "status": "", "priority": "", "progress": 0, "deliverable": "" },
+    { "id": "task_dev_1", "phaseId": "DEV", "name": "Warehouse Modelling / Configuration",             "owner": "COMPANY",         "start": "2026-04-20", "end": "2026-06-12", "status": "En cours", "priority": "haute",   "progress": 20, "deliverable": "" },
+    { "id": "task_dev_2", "phaseId": "DEV", "name": "Functional Developments",                        "owner": "COMPANY",         "start": "2026-06-15", "end": "2026-09-01", "status": "À faire",  "priority": "haute",   "progress": 0,  "deliverable": "" },
+    { "id": "task_dev_3", "phaseId": "DEV", "name": "Dev Testing & Validation",                       "owner": "COMPANY",         "start": "2026-09-01", "end": "2026-09-20", "status": "À faire",  "priority": "haute",   "progress": 0,  "deliverable": "" },
+    { "id": "task_dev_4", "phaseId": "DEV", "name": "Client Environment Configuration",               "owner": "COMPANY",         "start": "2026-09-15", "end": "2026-10-01", "status": "À faire",  "priority": "normale", "progress": 0,  "deliverable": "" },
+    { "id": "task_dev_5", "phaseId": "DEV", "name": "Warehouse Labelling",                            "owner": "MediCore Supplies","start": "2026-09-15", "end": "2026-10-01", "status": "À faire",  "priority": "normale", "progress": 0,  "deliverable": "" },
+    { "id": "task_dev_6", "phaseId": "DEV", "name": "RF Terminal / Printer Configuration",            "owner": "COMPANY",         "start": "2026-09-20", "end": "2026-10-05", "status": "À faire",  "priority": "normale", "progress": 0,  "deliverable": "" },
+    { "id": "task_form_1", "phaseId": "FORM", "name": "Key User Training",                             "owner": "COMPANY",         "start": "2026-10-05", "end": "2026-10-09", "status": "À faire",  "priority": "haute",   "progress": 0,  "deliverable": "" },
+    { "id": "task_form_2", "phaseId": "FORM", "name": "Development Testing & Validation",             "owner": "MediCore Supplies","start": "2026-10-10", "end": "2026-10-17", "status": "À faire",  "priority": "haute",   "progress": 0,  "deliverable": "" },
+    { "id": "task_form_3", "phaseId": "FORM", "name": "Operator Training",                            "owner": "MediCore Supplies","start": "2026-10-17", "end": "2026-10-22", "status": "À faire",  "priority": "haute",   "progress": 0,  "deliverable": "" },
+    { "id": "task_form_4", "phaseId": "FORM", "name": "Located Stock Inventory - Dry Run WMS",        "owner": "MediCore Supplies","start": "2026-10-22", "end": "2026-10-25", "status": "À faire",  "priority": "normale", "progress": 0,  "deliverable": "" },
+    { "id": "task_form_5", "phaseId": "FORM", "name": "DRY RUN & GO/NO GO",                           "owner": "TOUS",    "start": "2026-10-26", "end": "2026-10-27", "status": "À faire",  "priority": "haute",   "progress": 0,  "deliverable": "", "barColor": "#dc2626" },
+    { "id": "task_form_6", "phaseId": "FORM", "name": "Full Stock Inventory for GO LIVE",             "owner": "MediCore Supplies","start": "2026-10-28", "end": "2026-10-31", "status": "À faire",  "priority": "haute",   "progress": 0,  "deliverable": "" },
+    { "id": "task_form_7", "phaseId": "FORM", "name": "INSTALLATION",                                 "owner": "TOUS",    "start": "2026-11-01", "end": "2026-11-01", "status": "À faire",  "priority": "haute",   "progress": 0,  "deliverable": "", "barColor": "#ea580c" },
+    { "id": "task_form_8", "phaseId": "FORM", "name": "HyperCare",                                    "owner": "COMPANY", "start": "2026-11-02", "end": "2026-12-12", "status": "À faire",  "priority": "normale", "progress": 0,  "deliverable": "", "barColor": "#4f46e5" }
+  ],
+  "heuresData": [
+    { "id": "h_std",   "cat": "Standard Hours",             "vente": 190, "actuel": 40,  "desc": "Implementation, project management, training, testing", "bold": true,  "totalType": "Standard",   "sep": false, "custom": false, "history": [] },
+    { "id": "h_cust",  "cat": "Custom Hours",               "vente": 65,  "actuel": 6,   "desc": "Serialisation & batch traceability developments",        "bold": true,  "totalType": "Custom",     "sep": false, "custom": false, "history": [] },
+    { "id": "h_comp",  "cat": "Comp. Hours",                "vente": 0,   "actuel": 0,   "desc": "",                                                       "bold": true,  "totalType": "Offre Comp", "sep": false, "custom": false, "history": [] },
+    { "id": "h_sep1",  "sep": true },
+    { "id": "h_impl",  "cat": "Standard Implementation",    "vente": 65,  "actuel": 11,  "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard",
+      "history": [
+        { "date": "2026-05-31", "value": 11, "note": "Start of warehouse configuration" }
+      ]
+    },
+    { "id": "h_gp",    "cat": "Project Management",         "vente": 38,  "actuel": 17,  "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard",
+      "history": [
+        { "date": "2026-05-31", "value": 17, "note": "Kick-off + steering meetings" }
+      ]
+    },
+    { "id": "h_af",    "cat": "Functional Analysis",        "vente": 36,  "actuel": 12,  "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard",
+      "history": [
+        { "date": "2026-05-31", "value": 12, "note": "Visit + workshops (FA in progress)" }
+      ]
+    },
+    { "id": "h_itf",   "cat": "ERP Interfaces",             "vente": 28,  "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_form",  "cat": "Training",                   "vente": 15,  "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_tests", "cat": "Tests & Dry Run",            "vente": 8,   "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_site",  "cat": "On-Site (2 res, 5d)",        "vente": 0,   "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_hc",    "cat": "Remote HyperCare",           "vente": 0,   "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_trsp",  "cat": "Carriers",                   "vente": 0,   "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_dir",   "cat": "Directives",                 "vente": 0,   "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_srv",   "cat": "Server Configuration",       "vente": 0,   "actuel": 0,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Standard", "history": [] },
+    { "id": "h_env",   "cat": "Custom Envelope",            "vente": 65,  "actuel": 6,   "desc": "", "bold": false, "sep": false, "custom": false, "type": "Custom",
+      "history": [
+        { "date": "2026-05-31", "value": 6, "note": "Serialisation & GS1 traceability analysis" }
+      ]
+    }
+  ],
+  "internalTasks": [
+    { "id": "it_01", "action": "Functional test plan",                      "etat": "À FAIRE",  "temps": 0,  "deadline": "2026-07-31", "urg": 2, "comment": "" },
+    { "id": "it_02", "action": "User guide",                                 "etat": "À FAIRE",  "temps": 0,  "deadline": "2026-10-01", "urg": 1, "comment": "" },
+    { "id": "it_03", "action": "EasyMonitor Checks",                         "etat": "À FAIRE",  "temps": 0,  "deadline": "2026-07-15", "urg": 3, "comment": "" },
+    { "id": "it_04", "action": "Project Validator",                           "etat": "À FAIRE",  "temps": 0,  "deadline": "2026-07-15", "urg": 3, "comment": "" },
+    { "id": "it_05", "action": "EasyS Configuration",                        "etat": "À FAIRE",  "temps": 0,  "deadline": "2026-08-01", "urg": 2, "comment": "" },
+    { "id": "it_06", "action": "Delivery module documentation (API)",        "etat": "À FAIRE",  "temps": 0,  "deadline": "2026-09-01", "urg": 1, "comment": "" },
+    { "id": "it_07", "action": "Continued developments",                     "etat": "À FAIRE",  "temps": 0,  "deadline": "2026-09-01", "urg": 1, "comment": "" },
+    { "id": "it_08", "action": "GS1 serialisation module",                  "etat": "EN COURS", "temps": 6,  "deadline": "2026-06-28", "urg": 3, "comment": "Regulatory requirement — priority" },
+    { "id": "it_09", "action": "Batch traceability (lot/expiry date)",       "etat": "EN COURS", "temps": 4,  "deadline": "2026-06-28", "urg": 3, "comment": "Mandatory for compliance" },
+    { "id": "it_10", "action": "ERP Dry Run",                                 "etat": "À FAIRE",  "temps": 0,  "deadline": "2026-10-20", "urg": 2, "comment": "" },
+    { "id": "it_11", "action": "Corrective developments after ERP Dry Run",  "etat": "À FAIRE",  "temps": 0,  "deadline": "2026-10-25", "urg": 2, "comment": "" },
+    { "id": "it_12", "action": "Key User testing",                            "etat": "À FAIRE",  "temps": 0,  "deadline": "2026-10-17", "urg": 2, "comment": "" },
+    { "id": "it_13", "action": "Cutover plan",                                "etat": "À FAIRE",  "temps": 0,  "deadline": "2026-10-01", "urg": 2, "comment": "" },
+    { "id": "it_14", "action": "Set up and configure production WMS",        "etat": "À FAIRE",  "temps": 0,  "deadline": "2026-10-20", "urg": 2, "comment": "" },
+    { "id": "it_15", "action": "Temperature zone validation (2°C–8°C)",      "etat": "À FAIRE",  "temps": 0,  "deadline": "2026-09-15", "urg": 3, "comment": "Requires cold chain certification" },
+    { "id": "it_16", "action": "WiFi issues + RF terminal config",            "etat": "À FAIRE",  "temps": 0,  "deadline": "2026-10-15", "urg": 2, "comment": "" },
+    { "id": "it_17", "action": "FEFO picking process",                       "etat": "À FAIRE",  "temps": 0,  "deadline": "2026-09-01", "urg": 3, "comment": "" },
+    { "id": "it_18", "action": "Regulatory compliance audit preparation",     "etat": "À FAIRE",  "temps": 0,  "deadline": "2026-10-01", "urg": 3, "comment": "" }
+  ],
+  "interfaces": [
+    { "id": "itf_01", "type": "ERP Connector", "name": "Item Master - ITM",                       "dev": "NON", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_02", "type": "ERP Connector", "name": "Supplier Master - SUP",                   "dev": "NON", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_03", "type": "ERP Connector", "name": "Advance Ship Notice - ROR/ASN",           "dev": "NON", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_04", "type": "Flat File",     "name": "Unloading Confirmation - Custom File",    "dev": "NON", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_05", "type": "ERP Connector", "name": "Purchase Order Close - ROF",              "dev": "NON", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_06", "type": "ERP Connector", "name": "Purchase Order Close - ASO",              "dev": "NON", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_07", "type": "ERP Connector", "name": "Purchase Order Close - ASK",              "dev": "NON", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_08", "type": "ERP Connector", "name": "Receipt Confirmation - REF",              "dev": "NON", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_09", "type": "ERP Connector", "name": "Sales Order - SOR",                       "dev": "NON", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_10", "type": "ERP Connector", "name": "Order Status Change - SOC",               "dev": "NON", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_11", "type": "ERP Connector", "name": "Sales Order Close - SOF",                 "dev": "NON", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_12", "type": "ERP Connector", "name": "Stock Status Change - STC",               "dev": "NON", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_13", "type": "ERP Connector", "name": "Stock Variation - STV",                   "dev": "NON", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_14", "type": "ERP Connector", "name": "Stock Status Request - SCR",              "dev": "NON", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_15", "type": "ERP Connector", "name": "Stock Image - WSC",                       "dev": "NON", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_16", "type": "REST API",      "name": "Carrier API Call",                        "dev": "NON", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "" },
+    { "id": "itf_17", "type": "ERP Connector", "name": "Integration Error - ERR",                 "dev": "NON", "preprod": "NON", "recCompany": "NON", "recClient": "NON", "valide": "NON", "comment": "" }
+  ],
+  "functional": [
+    { "id": "fn_01", "name": "RECEIVING / RETURNS",      "dev": "NON", "pct": 0, "testCompany": "NON", "preprod": "NON", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "" },
+    { "id": "fn_02", "name": "PUTAWAY",                  "dev": "NON", "pct": 0, "testCompany": "NON", "preprod": "NON", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "" },
+    { "id": "fn_03", "name": "REPLENISHMENT",            "dev": "NON", "pct": 0, "testCompany": "NON", "preprod": "NON", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "" },
+    { "id": "fn_04", "name": "INVENTORY",                "dev": "NON", "pct": 0, "testCompany": "NON", "preprod": "NON", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "" },
+    { "id": "fn_05", "name": "ORDER PREPARATION",        "dev": "NON", "pct": 0, "testCompany": "NON", "preprod": "NON", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "" },
+    { "id": "fn_06", "name": "FEFO PICKING",             "dev": "NON", "pct": 0, "testCompany": "NON", "preprod": "NON", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "FEFO mandatory" },
+    { "id": "fn_07", "name": "PACKING",                  "dev": "NON", "pct": 0, "testCompany": "NON", "preprod": "NON", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "" },
+    { "id": "fn_08", "name": "DOCUMENTATION",            "dev": "NON", "pct": 0, "testCompany": "NON", "preprod": "NON", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "" },
+    { "id": "fn_09", "name": "SHIPPING + CARRIER",       "dev": "NON", "pct": 0, "testCompany": "NON", "preprod": "NON", "formKU": "NON", "testClient": "NON", "formUsers": "NON", "comment": "" }
+  ],
+  "dryRun": [
+    { "id": "dr_01", "name": "Warehouse floor plan available",    "etat": "NON", "comment": "" },
+    { "id": "dr_02", "name": "Warehouse created in WMS",          "etat": "NON", "comment": "" },
+    { "id": "dr_03", "name": "WiFi validation",                   "etat": "NON", "comment": "" },
+    { "id": "dr_04", "name": "Warehouse labelling",               "etat": "NON", "comment": "" },
+    { "id": "dr_05", "name": "Test plans validated",              "etat": "NON", "comment": "" },
+    { "id": "dr_06", "name": "ERP Dry Run validated",             "etat": "NON", "comment": "" },
+    { "id": "dr_07", "name": "Printers configured",               "etat": "NON", "comment": "" },
+    { "id": "dr_08", "name": "RF terminals configured",           "etat": "NON", "comment": "" },
+    { "id": "dr_09", "name": "Developments validated",            "etat": "NON", "comment": "" },
+    { "id": "dr_10", "name": "Users trained (by MediCore)",      "etat": "NON", "comment": "" },
+    { "id": "dr_11", "name": "Stock inventory",                   "etat": "NON", "comment": "" }
+  ],
+  "install": [
+    { "id": "in_01", "action": "Up-to-date floor plan – authorisations verified",  "etat": "Non", "qui": "MediCore Supplies", "deadline": "2026-09-15", "comment": "" },
+    { "id": "in_02", "action": "Warehouse covered by WiFi",                        "etat": "Non", "qui": "MediCore Supplies", "deadline": "2026-09-15", "comment": "" },
+    { "id": "in_03", "action": "Server installed and WMS accessible without VPN",  "etat": "Non", "qui": "COMPANY",           "deadline": "2026-10-01", "comment": "" },
+    { "id": "in_04", "action": "RF terminals available and correctly configured",   "etat": "Non", "qui": "MediCore Supplies", "deadline": "2026-10-20", "comment": "" },
+    { "id": "in_05", "action": "Racks installed and correctly labelled",            "etat": "Non", "qui": "MediCore Supplies", "deadline": "2026-10-15", "comment": "" },
+    { "id": "in_06", "action": "Printers available, powered and connected",         "etat": "Non", "qui": "MediCore Supplies", "deadline": "2026-10-20", "comment": "" },
+    { "id": "in_07", "action": "WMS computers available and connected",             "etat": "Non", "qui": "MediCore Supplies", "deadline": "2026-10-20", "comment": "" },
+    { "id": "in_08", "action": "WMS ↔ ERP communications operational",              "etat": "Non", "qui": "COMPANY",           "deadline": "2026-10-25", "comment": "" },
+    { "id": "in_09", "action": "FA processes in pre-production",                    "etat": "Non", "qui": "COMPANY",           "deadline": "2026-10-01", "comment": "" },
+    { "id": "in_10", "action": "Processes tested and understood by Key Users",      "etat": "Non", "qui": "TOUS",              "deadline": "2026-10-17", "comment": "" },
+    { "id": "in_11", "action": "Functional test plan drafted and sent",             "etat": "Non", "qui": "COMPANY",           "deadline": "2026-08-01", "comment": "" },
+    { "id": "in_12", "action": "WMS test plans validated by client",                "etat": "Non", "qui": "MediCore Supplies", "deadline": "2026-10-17", "comment": "" }
+  ],
+  "billing": {
+    "jalonsProjet": [
+      { "id": "jp_01", "jalon": "SIGNED CONTRACT OFFER",         "date": "2026-03-01", "echeance": "2026-03-15", "etat": "Payé", "pct": 35, "montant": 45500 },
+      { "id": "jp_02", "jalon": "FUNCTIONAL ANALYSIS DELIVERED", "date": "",           "echeance": "2026-05-31", "etat": "—",    "pct": 25, "montant": 32500 },
+      { "id": "jp_03", "jalon": "DEVELOPMENT DELIVERY",          "date": "",           "echeance": "2026-09-15", "etat": "—",    "pct": 30, "montant": 39000 },
+      { "id": "jp_04", "jalon": "FINAL ACCEPTANCE",              "date": "",           "echeance": "2026-12-01", "etat": "—",    "pct": 10, "montant": 13000 }
+    ],
+    "jalonsEquipement": [
+      { "id": "je_01", "jalon": "EQUIPMENT ORDER",    "date": "", "echeance": "2026-07-01", "etat": "—", "pct": 50, "montant": 14000 },
+      { "id": "je_02", "jalon": "EQUIPMENT DELIVERY", "date": "", "echeance": "2026-10-01", "etat": "—", "pct": 50, "montant": 14000 }
+    ]
+  },
+  "customTabs": [],
+  "jiraData": { "lastSync": "", "epics": [], "tasks": [] }
+}
