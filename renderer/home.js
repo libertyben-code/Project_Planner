@@ -34,6 +34,15 @@ async function init() {
     // Tauri returns a JSON string; browser stub may return a parsed array — handle both
     recent = typeof raw === 'string' ? JSON.parse(raw) : (Array.isArray(raw) ? raw : []);
   } catch { recent = []; }
+
+  if (!appSettings.examplesSeeded) {
+    try {
+      await seedExamples();
+      appSettings.examplesSeeded = true;
+      await persistSettings();
+    } catch { /* non-blocking */ }
+  }
+
   render();
   loadPortfolioData();
   checkForUpdates().then(r => {
@@ -501,6 +510,30 @@ window.resetTemplatePath = async function() {
 document.getElementById('modal-settings').addEventListener('click', function(e) {
   if (e.target === this) closeSettings();
 });
+
+// ── Seed examples on first run ────────────────────────────────────────────────
+async function seedExamples() {
+  const lang = getCurrentLang();
+  let baseDir;
+  try { baseDir = await invoke('get_app_data_dir'); } catch { return; }
+
+  const sep = baseDir.includes('\\') ? '\\' : '/';
+  const examplesDir = [baseDir, 'projects', 'Exemples'].join(sep);
+
+  for (let i = 1; i <= 3; i++) {
+    const file = `./example.${lang}.${i}.wmsplan`;
+    try {
+      const res = await fetch(file);
+      if (!res.ok) continue;
+      const data = await res.json();
+      data.meta.id = uid();
+      const filename = `example.${lang}.${i}.wmsplan`;
+      const fullPath = examplesDir + sep + filename;
+      await invoke('write_project', { path: fullPath, data: JSON.stringify(data, null, 2) });
+      await addToRecent(data.meta, fullPath);
+    } catch { /* skip */ }
+  }
+}
 
 // ── Example project ───────────────────────────────────────────────────────────
 window.openExampleProject = async function() {
