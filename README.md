@@ -12,13 +12,13 @@ L'application couvre toutes les étapes d'un déploiement WMS :
 
 - **Tableau de bord** — KPIs en direct : avancement des tâches, facturation encaissée, heures consommées, dérive de la date d'installation
 - **Planning** — Diagramme de Gantt sur 5 phases — glisser les tâches entre les phases, réordonner les phases
-- **Suivi Heures** — Heures vendues vs. réelles par catégorie (Standard / Custom / Offre Comp) avec historique
+- **Suivi Heures** — Heures vendues vs. réelles par catégorie (Standard / Custom / Offre Comp) avec historique ; budget vendu des déplacements saisissable directement dans la cellule
 - **Tâches Internes** — Liste d'actions internes avec urgence, propriétaire et deadline
 - **Interfaces ERP** — Statut de validation par interface (DEV → Préprod → Recette → Validé)
 - **Fonctionnel** — Avancement par flux fonctionnel
 - **Prérequis Dry Run** — Checklist Go/No-Go pour le dry run
 - **Prérequis Install** — Checklist Go/No-Go pour la mise en production
-- **Facturation** — Jalons de facturation avec calcul automatique des pourcentages
+- **Facturation** — Jalons de facturation avec saisie du montant directement dans la cellule, calcul automatique des pourcentages, ligne verte pour les jalons payés
 - **JIRA** — Statut des épics et tâches synchronisé depuis votre instance Jira via API
 - **Onglets personnalisés** — Créez vos propres onglets avec des colonnes sur mesure
 

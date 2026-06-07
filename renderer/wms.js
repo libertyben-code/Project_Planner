@@ -139,6 +139,7 @@ async function loadProject(path) {
     applyState(state);
     renderAll();
     applyStaticI18n(document);
+    initResizableTables();
     _syncZoomDisplay('page-dashboard');
     if (!_fileWatcherRegistered) {
       _fileWatcherRegistered = true;
@@ -1911,17 +1912,31 @@ function deleteJalonFromModal() {
 }
 
 function fmtMontant(v) { return (v || 0).toLocaleString('fr-FR') + ' €'; }
+function _recalcJalonPcts() {
+  const totalP = jalonsProjet.reduce((s, j) => s + (j.montant || 0), 0);
+  const totalE = jalonsEquip.reduce((s, j) => s + (j.montant || 0), 0);
+  jalonsProjet.forEach(j => { j.pct = totalP > 0 ? Math.round(j.montant / totalP * 100) : 0; });
+  jalonsEquip.forEach(j => { j.pct = totalE > 0 ? Math.round(j.montant / totalE * 100) : 0; });
+}
+function saveJalonMontant(id, type, val) {
+  const list = type === 'projet' ? jalonsProjet : jalonsEquip;
+  const row = list.find(r => r.id === id); if (!row) return;
+  row.montant = +val || 0;
+  _recalcJalonPcts();
+  renderFacturation(); renderDashboard(); debouncedSave();
+}
 function renderFactRow(tbody, list, type) {
   tbody.innerHTML = '';
   list.forEach(row => {
     const tr = tbody.insertRow(); tr.dataset.rowId = row.id;
+    if (row.etat === 'Payé') tr.style.background = 'rgba(5,150,105,.10)';
     tr.innerHTML = `<td>${dh()}</td>
       <td style="font-weight:600">${row.jalon}</td>
       <td style="font-size:12px">${row.date||'—'}</td>
       <td style="font-size:12px">${row.echeance||'—'}</td>
       <td style="min-width:78px">${cellBadge(FACT_B,row.etat)}</td>
       <td style="text-align:right;font-size:12px">${row.pct||0}%</td>
-      <td style="text-align:right;font-weight:600;font-family:'DM Mono',monospace">${fmtMontant(row.montant)}</td>
+      <td style="text-align:right"><input class="h-input" type="number" style="font-weight:600;width:90px" value="${row.montant||0}" min="0" onchange="saveJalonMontant('${row.id}','${type}',this.value)"></td>
       <td><button class="btn btn-secondary btn-sm" onclick="openEditJalon('${row.id}','${type}')">✏</button></td>`;
     const sp = tr.cells[4].querySelector('span');
     sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, FACT_STATES.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:FACT_D[v]})), val => { row.etat = val; sp.className = FACT_B[val]||'cell-none'; sp.textContent = CELL_LABEL[val]?.() ?? val; renderFacturation(); renderDashboard(); debouncedSave(); }); });
@@ -1951,6 +1966,11 @@ function saveDeplExpense() {
   if (!row.depenses) row.depenses = [];
   row.depenses.push({ date, montant, note });
   closeModal('modal-depl-expense');
+  renderHeures(); renderDashboard(); debouncedSave();
+}
+function saveDeplVendu(id, val) {
+  const row = jalonsDeplacements.find(r => r.id === id); if (!row) return;
+  row.vendu = +val || 0;
   renderHeures(); renderDashboard(); debouncedSave();
 }
 function deleteDeplExpense(id, idx) {
@@ -1996,16 +2016,12 @@ function renderDeplRow(tbody) {
     const tr = tbody.insertRow();
     tr.innerHTML = `
       <td style="font-weight:600">${row.label}</td>
-      <td style="text-align:right;cursor:pointer;text-decoration:underline dotted;font-family:'DM Mono',monospace" title="${t('depl.budget_click')}">${fmtMontant(row.vendu||0)}</td>
+      <td style="text-align:right"><input class="h-input" type="number" style="width:90px" value="${row.vendu||0}" min="0" onchange="saveDeplVendu('${row.id}',this.value)"></td>
       <td style="text-align:right;font-family:'DM Mono',monospace;font-weight:600">${fmtMontant(totalDepl)}</td>
       <td style="text-align:center;white-space:nowrap">
         ${(row.depenses||[]).length ? `<span title="${t('depl.history')}" style="cursor:pointer;font-size:14px" onclick="toggleDeplHistory('${row.id}',this)">🕐</span> ` : ''}
         <span title="${t('depl.add_expense')}" style="cursor:pointer;font-size:16px;color:var(--accent);font-weight:700" onclick="openAddDeplExpense('${row.id}')">+</span>
       </td>`;
-    tr.cells[1].addEventListener('click', () => {
-      const v = prompt(`Budget vendu — ${row.label} :`, row.vendu || 0);
-      if (v !== null && !isNaN(+v)) { row.vendu = +v; renderHeures(); renderDashboard(); debouncedSave(); }
-    });
   });
   _renderDeplKpi();
 }
@@ -3274,9 +3290,9 @@ Object.assign(window, {
   openEditFonctionnel, saveFonctionnel, deleteFonctionnelFromModal, addFonctionnel,
   openEditDryrun, saveDryrun, deleteDryrunFromModal, addDryrun,
   addInstall, openEditInstall, saveInstall, deleteInstallFromModal, deleteInstall,
-  addJalon, openEditJalon, saveJalon, deleteJalonFromModal, autoCalcJalonPct,
+  addJalon, openEditJalon, saveJalon, deleteJalonFromModal, autoCalcJalonPct, saveJalonMontant,
   renderFacturation,
-  openAddDeplExpense, saveDeplExpense, deleteDeplExpense, toggleDeplHistory,
+  openAddDeplExpense, saveDeplExpense, saveDeplVendu, deleteDeplExpense, toggleDeplHistory,
   addCustomHeuresRow, deleteHeuresRow, deleteHeuresFromModal, openEditHeure, saveHeures, toggleHeuresHistory,
   updateHeures, updateHeuresDesc, updateHeureCat, updateHeureHistNote,
   openProjectSettings, closeProjectSettings, saveMetaFromSettings,

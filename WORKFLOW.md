@@ -348,7 +348,16 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - **JSON schema migration**: `CURRENT_SCHEMA_VERSION = 1` constant + `migrateProjectData()` in `wms.js`; called on every project open after `JSON.parse`. `meta.schemaVersion` stamped in `template.json` and `example.wmsplan`. Add a migration patch here whenever the schema changes.
 - **Signing keypair**: generated with `npx tauri signer generate --ci -p ""`; public key in `tauri.conf.json`; private key stored as GitHub Secret `TAURI_SIGNING_PRIVATE_KEY` (no password).
 
-## Pending items (summary from FEEDBACK.md + Bugs.md as of 2026-06-06)
+### 2026-06-07 — Facturation inline, déplacements inline, resize fix (main, no branch)
+
+> Note: changes committed directly to `main` without a feature branch — against branch strategy.
+
+- **Facturation montant inline**: colonne Montant des jalons projet/équipement devient un `<input class="h-input" type="number">` éditable directement dans la cellule. `saveJalonMontant(id, type, val)` met à jour `row.montant` puis appelle `_recalcJalonPcts()`. `_recalcJalonPcts()` recalcule les % **indépendamment par tableau** (jalonsProjet sur leur propre total, jalonsEquip sur le leur) — l'ancienne `autoCalcJalonPct()` utilisait le total combiné, ce qui était incorrect.
+- **Déplacements vendu inline**: colonne Vendu des frais de déplacements devient un `<input>` inline. `saveDeplVendu(id, val)` remplace l'ancien `prompt()` qui s'ouvrait au clic (residual click handler sur `tr.cells[1]` — supprimé).
+- **Jalons payés → ligne verte**: `renderFactRow` applique `background: rgba(5,150,105,.10)` sur la `<tr>` quand `row.etat === 'Payé'`.
+- **Fix resize colonnes (régression i18n)**: `applyStaticI18n()` dans `i18n.js` utilisait `el.textContent = val` sur les `<th data-i18n>`, détruisant les `.col-resize-handle` enfants ajoutés par `makeResizable`. Fix : sauvegarder les enfants element-nodes avant `textContent =`, les réattacher ensuite. `initResizableTables()` aussi rappelé après `applyStaticI18n` dans `loadProject` comme filet de sécurité.
+
+## Pending items (summary from FEEDBACK.md + Bugs.md as of 2026-06-07)
 
 **Bugs (priority):**
 
@@ -363,4 +372,3 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - Global resource calendar (CDP Tech / DP availability, synced from Google Calendar)
 - Client test tracking / Phase 1 read-only HTML export for client
 - Excel import as a new tab
-- Zoom in/out on Gantt (Ctrl+scroll or +/- buttons)

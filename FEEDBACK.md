@@ -70,6 +70,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Ajouter une ligne Heures Comp. calculée (type Offre Comp). - OK
 - [x] Changer le type d'une ligne doit recalculer immédiatement les totaux et le dashboard. - OK
 - [x] Les KPI doivent afficher le détail par type (Std / Custom / Comp) en sous-titre. - OK
+- [x] pour la colonne vendu des frais de déplacements, rentrer le montant directement dans la cellule (inline, sans popup, même pattern que Facturation). — OK
 
 ## Tâches Internes
 
@@ -119,6 +120,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Les pourcentages doivent être calculés automatiquement en fonction du cout total et des manton de chaques jalons. - OK
 - [x] Ajouter une partie Déplacement dans la facturation avec une ligne Avion/Train, Voiture, Hôtel et Restauration. — OK (déplacé dans Suivi Heures, colonne État supprimée)
   - [x] Pour ces lignes, ajouter une colonne Vendu (comme les heures) et permettre de rentrer les dépenses lorsqu'elles arrivent (comme le récap des heures lors des éditions) — OK
+  - [x] pour la colonne montant, rentrer les montants directement dans la cellule sans passer par le bouton editer. Le faire dans la cellule sans pop up en haut de page. La mise à jour des pourcentage ce fait à ce moment là directement. — OK
 
 ## Tableau de Bord (Dashboard)
 

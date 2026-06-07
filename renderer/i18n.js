@@ -1823,7 +1823,11 @@ export function applyStaticI18n(root = document) {
   root.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.dataset.i18n;
     const val = t(key);
-    if (val && val !== key) el.textContent = val;
+    if (val && val !== key) {
+      const children = [...el.childNodes].filter(n => n.nodeType === Node.ELEMENT_NODE);
+      el.textContent = val;
+      children.forEach(c => el.appendChild(c));
+    }
   });
   root.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
     const val = t(el.dataset.i18nPlaceholder);

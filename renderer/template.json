@@ -165,10 +165,10 @@
   ],
   "billing": {
     "jalonsProjet": [
-      { "id": "jp_01", "jalon": "OFFRE CONTRAT SIGNÉE",          "date": "", "echeance": "", "etat": "—", "pct": 35, "montant": 0 },
-      { "id": "jp_02", "jalon": "ANALYSE FONCTIONNELLE LIVRÉE",  "date": "", "echeance": "", "etat": "—", "pct": 25, "montant": 0 },
-      { "id": "jp_03", "jalon": "LIVRAISON DÉVELOPPEMENTS",      "date": "", "echeance": "", "etat": "—", "pct": 30, "montant": 0 },
-      { "id": "jp_04", "jalon": "RÉCEPTION DÉFINITIVE",          "date": "", "echeance": "", "etat": "—", "pct": 10, "montant": 0 }
+      { "id": "jp_01", "jalon": "OFFRE CONTRAT SIGNÉE",          "date": "", "echeance": "", "etat": "—", "pct": 0, "montant": 0 },
+      { "id": "jp_02", "jalon": "ANALYSE FONCTIONNELLE LIVRÉE",  "date": "", "echeance": "", "etat": "—", "pct": 0, "montant": 0 },
+      { "id": "jp_03", "jalon": "LIVRAISON DÉVELOPPEMENTS",      "date": "", "echeance": "", "etat": "—", "pct": 0, "montant": 0 },
+      { "id": "jp_04", "jalon": "RÉCEPTION DÉFINITIVE",          "date": "", "echeance": "", "etat": "—", "pct": 0, "montant": 0 }
     ],
     "jalonsEquipement": [
       { "id": "je_01", "jalon": "COMMANDE ÉQUIPEMENT",  "date": "", "echeance": "", "etat": "—", "pct": 50, "montant": 0 },

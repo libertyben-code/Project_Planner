@@ -151,6 +151,7 @@ When saving, `saveTask()` reads all `.task-seg-row` elements, filters out blanks
 `makeResizable(tbodyId)` attaches pointer-event resize handles to all `thead th` elements of the table containing that tbody. Widths are persisted to `localStorage` under `col-w:<tbodyId>` and restored on each render call.
 
 - Called once on init for the standard tables (via `RESIZABLE_TBODIES`).
+- Called again after `applyStaticI18n()` in `loadProject()` — **important**: `applyStaticI18n` sets `el.textContent` on `[data-i18n]` elements, which destroys child nodes including the `.col-resize-handle` divs. `applyStaticI18n` now re-appends saved child elements after the text update, and `initResizableTables()` is called immediately after as a safety net.
 - Called at the end of `renderCustomTabRows(tabId)` for every custom tab (key: `col-w:tbody-ct-<tabId>`).
 - The Gantt fixed columns use a separate `makeGanttResizable(table)` (key: `col-w:gantt`) called at the end of `renderGantt()`, targeting `th.th-fixed` elements only.
 
