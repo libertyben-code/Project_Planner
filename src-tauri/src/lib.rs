@@ -448,6 +448,14 @@ fn get_app_data_dir(app: AppHandle) -> Result<String, String> {
         .map_err(|e| e.to_string())
 }
 
+// ── Open external URL in default browser ─────────────────────────────────────
+
+#[tauri::command]
+async fn open_url(app: AppHandle, url: String) -> Result<(), String> {
+    use tauri_plugin_shell::ShellExt;
+    app.shell().open(&url, None).map_err(|e| e.to_string())
+}
+
 // ── App entry point ──────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -490,6 +498,7 @@ pub fn run() {
             get_version,
             get_app_data_dir,
             jira_fetch,
+            open_url,
             check_update,
             install_update,
         ])

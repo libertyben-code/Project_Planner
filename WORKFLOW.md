@@ -383,7 +383,14 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - **Jalons payés → ligne verte**: `renderFactRow` applique `background: rgba(5,150,105,.10)` sur la `<tr>` quand `row.etat === 'Payé'`.
 - **Fix resize colonnes (régression i18n)**: `applyStaticI18n()` dans `i18n.js` utilisait `el.textContent = val` sur les `<th data-i18n>`, détruisant les `.col-resize-handle` enfants ajoutés par `makeResizable`. Fix : sauvegarder les enfants element-nodes avant `textContent =`, les réattacher ensuite. `initResizableTables()` aussi rappelé après `applyStaticI18n` dans `loadProject` comme filet de sécurité.
 
-## Pending items (summary from FEEDBACK.md + Bugs.md as of 2026-06-07)
+### 2026-06-08 — JIRA tab polish + auto-sync (`feature/jira-status-link-estimate`)
+
+- **Real JIRA status**: `statusName` (raw name from JIRA) + `statusCategoryKey` (`new`/`indeterminate`/`done`) stored in `jiraData` tasks and epics. JIRA tab now displays the real status label (e.g. "In Review", "Backlog") with badge color from the status category instead of the normalized planning-style label. Gantt keeps the normalized status for consistency with regular tasks. `jiraStatusBadgeClassFromCategory()` helper added.
+- **Clickable task key**: task key in JIRA tab is now a clickable badge (`<span class="jira-link" onclick="openJiraIssue(this.dataset.key)">`). `openJiraIssue(key)` constructs `${cfg.url}/browse/${key}` and opens it externally. New `open_url` Rust command uses `tauri_plugin_shell` (already registered). `openExternal(url)` added to `tauri-ipc.js` (falls back to `window.open` in browser mode).
+- **Estimation originale + temps passé**: `timeoriginalestimate` and `timespent` (seconds) added to JIRA API fields list. Stored as `originalEstimateSec`/`timeSpentSec`. "J" column (both Gantt and JIRA tab) now shows original estimate in hours via `fmtJiraTime()`. New "Passé" column in JIRA tab shows time spent. CSS grid updated from 9 to 10 columns. `jira.col.spent` i18n key added in FR/EN/ES.
+- **Auto-sync**: `_startJiraAutoSync()` called at end of `loadProject()`. Fires one immediate `syncJira()` then sets a 10-minute `setInterval`. Silently skips if JIRA credentials or project key are not configured. Timer cleared and reset on reload.
+
+## Pending items (summary from FEEDBACK.md + Bugs.md as of 2026-06-08)
 
 **Bugs (priority):**
 

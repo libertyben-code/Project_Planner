@@ -149,9 +149,10 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 
 - [x] Enregistrer les indentifiants JIRA dans le JSON settings de l'utilisateur et non du projet. Chaque utilisateur devra mettre ses identifiants et clé JIRA. — OK
 - [x] Les identifiants et clé API JIRA seront renseigné au niveau du menu settings du menu principal. La clé 3 lettres du projet sera renseigné au niveau du projet dans le menu settings de chaques projets. — OK
-- [ ] Récuperer le statut de la tâche dans l'onglet JIRA au lieu du statut pris du planning.
-- [ ] Mettre un lien hyperlink vers la tâche dans l'ID de la tâche = CLE-XXX
-- [ ] La collone J doit correspondre à l'estimation originale et ajouter une autre colonne avec le temps passé actuel.
+- [x] Récuperer le statut de la tâche dans l'onglet JIRA au lieu du statut pris du planning. — OK
+- [x] Mettre un lien hyperlink vers la tâche dans l'ID de la tâche = CLE-XXX — OK
+- [x] La collone J doit correspondre à l'estimation originale et ajouter une autre colonne avec le temps passé actuel. — OK
+- [x] Synchronisation JIRA automatique à l'ouverture du projet et toutes les 10 minutes. — OK
 
 ## General / Cross-cutting
 
