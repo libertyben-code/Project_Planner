@@ -2,6 +2,24 @@
 
 ---
 
+## 1.5.0 — 2026-06-08
+
+### 🇫🇷 Nouveautés
+
+- **Onglet JIRA — Statut réel** : le statut affiché correspond désormais au statut réel de JIRA (ex. « In Review », « Backlog »), coloré selon la catégorie du statut, au lieu d'un statut normalisé générique.
+- **Lien vers la tâche JIRA** : cliquez sur l'identifiant d'une tâche (ex. `WMS-42`) pour ouvrir directement la tâche dans votre navigateur.
+- **Estimation originale et temps passé** : la colonne « J » affiche désormais l'estimation originale en heures (issue de JIRA). Une nouvelle colonne « Passé » indique le temps déjà enregistré sur la tâche.
+- **Synchronisation automatique** : le projet se synchronise avec JIRA à l'ouverture, puis toutes les 10 minutes, si les identifiants sont configurés.
+
+### 🇬🇧 What's new
+
+- **JIRA tab — Real status**: the status badge now shows the actual JIRA status name (e.g. "In Review", "Backlog") coloured by status category, instead of a generic normalised label.
+- **Clickable task key**: click any task identifier (e.g. `WMS-42`) to open that issue directly in your browser.
+- **Original estimate & time spent**: the "J" column now shows the original estimate in hours from JIRA. A new "Spent" column displays time already logged on the task.
+- **Auto-sync**: the project syncs with JIRA on open and every 10 minutes when credentials are configured.
+
+---
+
 ## 1.3.0 — 2026-06-06
 
 ### 🇫🇷 Nouveautés
