@@ -1,52 +1,52 @@
-{
-  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "WMS Project Planner",
-  "version": "1.4.1",
-  "identifier": "com.wmsplanner.app",
-  "build": {
-    "frontendDist": "../renderer",
-    "devUrl": "http://localhost:8080/home.html",
-    "beforeDevCommand": "npm run dev"
-  },
-  "app": {
-    "withGlobalTauri": true,
-    "windows": [
-      {
-        "label": "main",
-        "title": "WMS Project Planner",
-        "url": "home.html",
-        "width": 1280,
-        "height": 800,
-        "minWidth": 900,
-        "minHeight": 600,
-        "resizable": true,
-        "fullscreen": false
-      }
-    ],
-    "security": {
-      "csp": null
-    }
-  },
-  "plugins": {
-    "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVFMjMxQTMzNDI5M0ZDNDcKUldSSC9KTkNNeG9qWHRJV0dZUFRBU3lldUVNSFJZUEkvdzBUMHFEUnVjM0RxK0RtT3M0OFFIK2sK",
-      "endpoints": [
-        "https://github.com/libertyben-code/Project_Planner/releases/latest/download/latest.json"
-      ]
-    }
-  },
-  "bundle": {
-    "active": true,
-    "createUpdaterArtifacts": true,
-    "targets": [
-      "nsis"
-    ],
-    "icon": [
-      "icons/32x32.png",
-      "icons/128x128.png",
-      "icons/128x128@2x.png",
-      "icons/icon.icns",
-      "icons/icon.ico"
-    ]
-  }
+﻿{
+    "$schema":  "../node_modules/@tauri-apps/cli/config.schema.json",
+    "productName":  "WMS Project Planner",
+    "version":  "1.5.0",
+    "identifier":  "com.wmsplanner.app",
+    "build":  {
+                  "frontendDist":  "../renderer",
+                  "devUrl":  "http://localhost:8080/home.html",
+                  "beforeDevCommand":  "npm run dev"
+              },
+    "app":  {
+                "withGlobalTauri":  true,
+                "windows":  [
+                                {
+                                    "label":  "main",
+                                    "title":  "WMS Project Planner",
+                                    "url":  "home.html",
+                                    "width":  1280,
+                                    "height":  800,
+                                    "minWidth":  900,
+                                    "minHeight":  600,
+                                    "resizable":  true,
+                                    "fullscreen":  false
+                                }
+                            ],
+                "security":  {
+                                 "csp":  null
+                             }
+            },
+    "plugins":  {
+                    "updater":  {
+                                    "pubkey":  "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVFMjMxQTMzNDI5M0ZDNDcKUldSSC9KTkNNeG9qWHRJV0dZUFRBU3lldUVNSFJZUEkvdzBUMHFEUnVjM0RxK0RtT3M0OFFIK2sK",
+                                    "endpoints":  [
+                                                      "https://github.com/libertyben-code/Project_Planner/releases/latest/download/latest.json"
+                                                  ]
+                                }
+                },
+    "bundle":  {
+                   "active":  true,
+                   "createUpdaterArtifacts":  true,
+                   "targets":  [
+                                   "nsis"
+                               ],
+                   "icon":  [
+                                "icons/32x32.png",
+                                "icons/128x128.png",
+                                "icons/128x128@2x.png",
+                                "icons/icon.icns",
+                                "icons/icon.ico"
+                            ]
+               }
 }
