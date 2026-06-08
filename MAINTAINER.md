@@ -136,11 +136,22 @@ The `isUnavail: true` flag on a task suppresses Statut, Priorité, J, and % Avan
 
 When saving, `saveTask()` reads all `.task-seg-row` elements, filters out blanks, sets `task.segments` only when there are 2+, and deletes the property otherwise to keep the JSON clean.
 
+### Per-page zoom
+
+`_pageZoom` is a module-level object (`{ [pageId]: zoomPercent }`) persisted to `localStorage` under the key `pageZoom`. Range: 50–200, step: 10.
+
+- `_syncZoomDisplay(pageId)` — applies `element.style.zoom = z + '%'` to the page element and updates the `#nav-zoom-display` button text. Called on every page switch (both built-in nav-tab click handler and custom-tab click handler) and once on project load for the initial `page-dashboard`.
+- `changeZoom(delta)` — reads the active page via `document.querySelector('.page.active')?.id`, clamps and saves, then calls `_syncZoomDisplay`. Wired to `Ctrl+wheel` on `document`.
+- `resetZoom()` — deletes the active page's entry from `_pageZoom` and syncs. Wired to the `#nav-zoom-display` button in `app.html`.
+
+`element.style.zoom` is set on the `.page` div, not on inner containers, so `renderXxx()` calls that only touch children do not reset the zoom.
+
 ### Column resizing
 
 `makeResizable(tbodyId)` attaches pointer-event resize handles to all `thead th` elements of the table containing that tbody. Widths are persisted to `localStorage` under `col-w:<tbodyId>` and restored on each render call.
 
 - Called once on init for the standard tables (via `RESIZABLE_TBODIES`).
+- Called again after `applyStaticI18n()` in `loadProject()` — **important**: `applyStaticI18n` sets `el.textContent` on `[data-i18n]` elements, which destroys child nodes including the `.col-resize-handle` divs. `applyStaticI18n` now re-appends saved child elements after the text update, and `initResizableTables()` is called immediately after as a safety net.
 - Called at the end of `renderCustomTabRows(tabId)` for every custom tab (key: `col-w:tbody-ct-<tabId>`).
 - The Gantt fixed columns use a separate `makeGanttResizable(table)` (key: `col-w:gantt`) called at the end of `renderGantt()`, targeting `th.th-fixed` elements only.
 
@@ -264,6 +275,49 @@ All called via `invoke(cmd, args)` in `tauri-ipc.js`, which falls back to `local
 ### FilePath / path safety in Rust
 
 Tauri v2's dialog plugin returns `FilePath` which may contain a `file:///C:/...` URI. **Always** use `file_path_to_string(fp)` (defined in `lib.rs`) to convert — it calls `.into_path()` to extract a proper `PathBuf`, then `to_string_lossy()`. Never call `.to_string()` directly on a `FilePath`.
+
+## Auto-update
+
+### How it works
+
+`tauri-plugin-updater` is registered in `lib.rs`. On startup, `home.js` calls `checkForUpdates()` (fire-and-forget). If an update is found, a banner appears at the top of the home screen. The Settings panel also has a manual "Vérifier les mises à jour" button.
+
+Two custom Rust commands handle the flow:
+
+| Command | Returns | Notes |
+| --- | --- | --- |
+| `check_update` | `{ available, version?, notes?, checkFailed? }` | Never returns `Err` — network/404 becomes `{ checkFailed: true }` |
+| `install_update` | `Ok(())` | Downloads, installs, then calls `app.restart()` |
+
+The public key is in `tauri.conf.json → plugins.updater.pubkey`. The private key must be stored as a GitHub Secret `TAURI_SIGNING_PRIVATE_KEY`. Generated once with `npx tauri signer generate --ci -p ""`.
+
+### JSON schema migration
+
+Every `.wmsplan` file carries `meta.schemaVersion`. `migrateProjectData()` in `wms.js` runs on every project open. Current version: `1`.
+
+When adding a new schema change:
+
+1. Bump `CURRENT_SCHEMA_VERSION` in `wms.js`
+2. Add a migration patch inside `migrateProjectData()` for the previous version number
+3. Update `template.json` and `example.wmsplan`
+
+### Releasing a new version
+
+```powershell
+# 1. Merge feature branch to main, then:
+.\scripts\bump-version.ps1 X.Y.Z
+git add src-tauri/Cargo.toml src-tauri/tauri.conf.json
+git commit -m "chore: bump version to X.Y.Z"
+
+# 2. Add FR+EN release notes to CHANGELOG.md (Claude writes these at session end)
+
+# 3. Tag and push — triggers GitHub Actions automatically
+git push
+git tag vX.Y.Z
+git push origin vX.Y.Z
+```
+
+CI (`.github/workflows/release.yml`) builds on `windows-latest`, signs the NSIS installer, creates a GitHub Release, uploads the installer + `latest.json`. The release body is extracted from `CHANGELOG.md` for the matching version.
 
 ## Building for distribution
 

@@ -1,5 +1,6 @@
 {
   "meta": {
+    "schemaVersion": 1,
     "id": "_example_demo",
     "name": "Projet Exemple",
     "client": "LogiCorp Distribution",
@@ -16,7 +17,7 @@
     "endDate": "",
     "createdAt": "2026-01-15T09:00:00.000Z",
     "updatedAt": "2026-05-20T14:30:00.000Z",
-    "jiraConfig": { "url": "", "projectKey": "", "email": "", "token": "" }
+    "jiraProjectKey": ""
   },
   "phases": [
     { "id": "INDISPO", "name": "INDISPONIBILITÉS / CONGÉS",  "code": "I", "color": "#64748b" },

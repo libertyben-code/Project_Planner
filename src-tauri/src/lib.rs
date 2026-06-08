@@ -2,6 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_dialog::DialogExt;
+use tauri_plugin_updater::UpdaterExt;
 use base64::Engine;
 
 // ── File I/O commands ────────────────────────────────────────────────────────
@@ -405,11 +406,54 @@ async fn jira_fetch(url: String, email: String, token: String, body: Option<Stri
     resp.text().await.map_err(|e| format!("Lecture réponse: {}", e))
 }
 
+// ── Auto-update ──────────────────────────────────────────────────────────────
+
+#[tauri::command]
+async fn check_update(app: AppHandle) -> serde_json::Value {
+    let updater = match app.updater_builder().build() {
+        Ok(u) => u,
+        Err(_) => return serde_json::json!({ "available": false, "checkFailed": true }),
+    };
+    match updater.check().await {
+        Ok(Some(update)) => serde_json::json!({
+            "available": true,
+            "version": update.version,
+            "notes": update.body.unwrap_or_default()
+        }),
+        Ok(None) => serde_json::json!({ "available": false }),
+        Err(_)   => serde_json::json!({ "available": false, "checkFailed": true }),
+    }
+}
+
+#[tauri::command]
+async fn install_update(app: AppHandle) -> Result<(), String> {
+    let updater = app.updater_builder().build().map_err(|e| e.to_string())?;
+    if let Some(update) = updater.check().await.map_err(|e| e.to_string())? {
+        update
+            .download_and_install(|_, _| {}, || {})
+            .await
+            .map_err(|e| e.to_string())?;
+        app.restart();
+    }
+    Ok(())
+}
+
+// ── App data directory (used by JS to compute example paths) ─────────────────
+
+#[tauri::command]
+fn get_app_data_dir(app: AppHandle) -> Result<String, String> {
+    app.path()
+        .app_data_dir()
+        .map(|p| p.to_string_lossy().to_string())
+        .map_err(|e| e.to_string())
+}
+
 // ── App entry point ──────────────────────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
         .setup(|app| {
@@ -444,7 +488,10 @@ pub fn run() {
             save_md_dialog,
             pick_folder,
             get_version,
+            get_app_data_dir,
             jira_fetch,
+            check_update,
+            install_update,
         ])
         .run(tauri::generate_context!())
         .expect("Erreur au démarrage de l'application");

@@ -55,7 +55,6 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
   - [x] Ajouter ces jours dans le planning en dessous de la date d'installation — OK
 - [x] Ajouter une indication des semaines avec des jours fériés. (colonne grisée, cellule semaine d'une certaine couleur ?) — OK
 
-
 ## Suivi Heures
 
 <!-- Hours table, custom rows, history accordion, KPI cards -->
@@ -71,6 +70,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Ajouter une ligne Heures Comp. calculée (type Offre Comp). - OK
 - [x] Changer le type d'une ligne doit recalculer immédiatement les totaux et le dashboard. - OK
 - [x] Les KPI doivent afficher le détail par type (Std / Custom / Comp) en sous-titre. - OK
+- [x] pour la colonne vendu des frais de déplacements, rentrer le montant directement dans la cellule (inline, sans popup, même pattern que Facturation). — OK
 
 ## Tâches Internes
 
@@ -87,6 +87,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] toutes les lignes doivent avoir un bouton edit avec un bouton delete dans la modale.
 - [x] Les colonnes doivent être assez large pour afficher tout le texte.
 - [x] le drag and drop ne fonctionne pas.
+- [x] dans la colonne type, les cellules doivent être un menu déroulant avec les options : Connecteur ERP, GNA, Connecteur SAGE, REST API, Autre — OK
 
 ## Fonctionnel
 
@@ -119,6 +120,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Les pourcentages doivent être calculés automatiquement en fonction du cout total et des manton de chaques jalons. - OK
 - [x] Ajouter une partie Déplacement dans la facturation avec une ligne Avion/Train, Voiture, Hôtel et Restauration. — OK (déplacé dans Suivi Heures, colonne État supprimée)
   - [x] Pour ces lignes, ajouter une colonne Vendu (comme les heures) et permettre de rentrer les dépenses lorsqu'elles arrivent (comme le récap des heures lors des éditions) — OK
+  - [x] pour la colonne montant, rentrer les montants directement dans la cellule sans passer par le bouton editer. Le faire dans la cellule sans pop up en haut de page. La mise à jour des pourcentage ce fait à ce moment là directement. — OK
 
 ## Tableau de Bord (Dashboard)
 
@@ -144,7 +146,9 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Changer le Chef de Projet en haut à gauche et mettre Directeur de Projet. — OK
 
 ## JIRA
+
 - [x] Enregistrer les indentifiants JIRA dans le JSON settings de l'utilisateur et non du projet. Chaque utilisateur devra mettre ses identifiants et clé JIRA. — OK
+- [x] Les identifiants et clé API JIRA seront renseigné au niveau du menu settings du menu principal. La clé 3 lettres du projet sera renseigné au niveau du projet dans le menu settings de chaques projets. — OK
 - [ ] Récuperer le statut de la tâche dans l'onglet JIRA au lieu du statut pris du planning.
 - [ ] Mettre un lien hyperlink vers la tâche dans l'ID de la tâche = CLE-XXX
 - [ ] La collone J doit correspondre à l'estimation originale et ajouter une autre colonne avec le temps passé actuel.
@@ -159,7 +163,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Dans le menu Settings du menu principal, prévoir la possibilité de choisir son propre template pour tous les nouveaux projets. — OK
 - [x] Ajouter une partie Settings qui permet de définit les listes de menu déroulant comme "propriétaire". — OK (par projet, via ⚙ Paramètres du projet)
 - [x] Mettre à jour l'identifiant app dans AppData — OK (identifier → com.wmsplanner.app)
-- [ ] Pour chaques projets, demander le lien d'ouverture du Json. Par exemple si celui ci est partager sur un dossier git, cela permet au manager d'avoir la dernière version. Si tu as une méthode plus efficace n'hésite pas. On pourrais aussi dire que le path d'ouverture du projet la première fois reste celui par défaut.
+- [x] Pour chaques projets, demander le path d'ouverture du Json. Par exemple si celui ci est partager sur un dossier git, cela permet au manager d'avoir la dernière version. — OK (`projectMeta.sourcePath` dans ⚙ Paramètres du projet ; au clic sur la carte, l'app lit depuis sourcePath et met à jour le fichier local avant de naviguer)
 
 ## Notes Techniques
 
@@ -174,16 +178,12 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 
 ### Fonctionnalités standalone (pas de backend requis)
 
-- [ ] Permettre le zoom in et out sur le Gantt en faisant Ctrl+scroll ou boutons +/- dans le nav.
+- [x] Permettre le zoom in et out sur le Gantt en faisant Ctrl+scroll ou boutons +/- dans le nav. — OK (étendu à toutes les pages, Ctrl+scroll + bouton reset dans le nav)
 - [ ] Intégrer l'import de fichier Excel en tant que nouvelle tab (tableau avec colonnes et types configurables).
 - [ ] Calendrier global des ressources : connaitre les disponibilités de chaque CDP Tech et DP. Leurs congés pourront être remplis automatiquement depuis ce calendrier (source actuelle : Google Calendar).
   - [ ] Les utilisateurs devront être créés à l'avance. Dans la création de projet, un menu déroulant permettra de choisir le DP et le CDP Tech.
-- [ ] **Mises à jour automatiques** : à l'ouverture de l'app, vérifier si une nouvelle version est disponible et proposer la mise à jour.
-  - Utiliser `tauri-plugin-updater` (intégré Tauri v2).
-  - Hébergement des manifestes de mise à jour : GitHub Releases (option la plus simple — tag `vX.Y.Z`, asset `latest.json` + EXE signé).
-  - Flow : au démarrage, appel silencieux au manifest → si nouvelle version détectée, modale "Une mise à jour est disponible (vX.Y.Z) — Installer maintenant / Plus tard" → téléchargement + relance automatique.
-  - Nécessite une clé de signature (`tauri signer generate`) et le champ `updater.pubkey` dans `tauri.conf.json`.
-  - À décider : dépôt GitHub public ou privé pour héberger les releases.
+- [x] **Mises à jour automatiques** : vérification silencieuse au démarrage, bannière + bouton "Installer et redémarrer", notes de version affichées. GitHub Releases + `tauri-plugin-updater`. — OK (v1.2.0)
+- [ ] Faire une version multilangue en FR, EN et SP configurable dans settings du homepage.
 
 ### Phase 1 — Vue client read-only (export HTML autonome)
 
@@ -199,8 +199,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
   - Liste des retours déjà enregistrés par le DP (titre, type, priorité, statut) — lecture seule.
   - Formulaire "Signaler un problème" : type (Bug / Question / Amélioration), description, priorité.
   - À la soumission : génère un lien `mailto:` pré-rempli → email envoyé au DP.
-- [ ] Onglet "Retours / UAT" dans l'app (côté DP).
-  - Tableau des retours clients : titre, type, priorité, statut (Nouveau / En cours / Résolu), commentaire DP.
+- [ ] Onglet "Retours / UAT" dans l'app (côté DP).  - Tableau des retours clients : titre, type, priorité, statut (Nouveau / En cours / Résolu), commentaire DP.
   - CRUD complet (ajout manuel + réception des retours email), drag-drop pour réordonner.
   - Les retours sont stockés dans le `.wmsplan` et visibles en read-only dans l'export client.
 

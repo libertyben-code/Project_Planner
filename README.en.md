@@ -12,13 +12,13 @@ The app covers every stage of a WMS deployment:
 
 - **Tableau de bord** — Live KPIs: task progress, billing collected, hours burned, install date drift
 - **Planning** — Gantt chart across 5 phases — drag tasks between phases, reorder phases
-- **Suivi Heures** — Hours sold vs. actual by category (Standard / Custom / Offre Comp) with history
+- **Suivi Heures** — Hours sold vs. actual by category (Standard / Custom / Offre Comp) with history; travel budget (Vendu) editable inline in the cell
 - **Tâches Internes** — Internal action list with urgency, owner, and deadline
 - **Interfaces ERP** — Validation status per interface (DEV → Préprod → Recette → Validé)
 - **Fonctionnel** — Functional flow advancement per process
 - **Prérequis Dry Run** — Go/No-Go checklist for the dry run
 - **Prérequis Install** — Go/No-Go checklist for go-live
-- **Facturation** — Billing milestones with automatic % calculations
+- **Facturation** — Billing milestones with inline amount editing, automatic % recalculation, green row highlight for paid milestones
 - **JIRA** — Epic & task status synced from your Jira instance via API
 - **Onglets personnalisés** — Add your own tabs with custom columns
 
@@ -121,7 +121,9 @@ Click the **⚙** icon in the top-right of the home screen:
 - **Project template** — choose an existing `.wmsplan` file to use as the base for all new projects (pre-filled phases, config, etc.).
 - **Light mode** — toggles between dark (default) and light theme.
 
-The app version is displayed at the bottom of this panel and in the home screen header (`v1.0.0`).
+The app version is displayed at the bottom of this panel and in the home screen header.
+
+A **Check for updates** button is available in this panel. The app also checks silently on startup: if a new version is available, a banner appears at the top of the screen with a one-click install button. Release notes are shown before installation.
 
 ## Per-project settings
 
@@ -141,6 +143,7 @@ Click **📖 Exemple** in the home screen header (or the button on the empty sta
 
 - `Ctrl+O` — Open a project file
 - `Ctrl+S` — Force save immediately
+- `Ctrl+scroll` — Zoom in / out on the current page (50 %–200 %). The zoom level is shown in the nav bar; click it to reset to 100 %. Each page has its own zoom level, remembered across sessions.
 - `Escape` — Close the open modal
 
 ---

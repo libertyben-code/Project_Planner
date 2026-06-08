@@ -8,21 +8,28 @@
 </head>
 <body>
 
+<!-- ── UPDATE BANNER ── -->
+<div id="update-banner" style="display:none;align-items:center;justify-content:center;gap:12px;background:var(--accent);color:#fff;padding:8px 16px;font-size:13px;flex-wrap:wrap">
+  <span id="update-banner-text"></span>
+  <button onclick="installFromBanner()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:3px 12px;border-radius:4px;cursor:pointer;font-size:12px">Voir &amp; Installer</button>
+  <button onclick="dismissUpdateBanner()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:16px;line-height:1">×</button>
+</div>
+
 <header class="home-header">
   <div class="home-logo">● WMS <span>Planner</span><span class="app-version-badge" id="app-version"></span></div>
   <nav class="home-tabs-center">
-    <button class="home-tab active" id="tab-btn-projects" onclick="switchTab('projects')">📋 Projets récents</button>
-    <button class="home-tab" id="tab-btn-portfolio" onclick="switchTab('portfolio')">📊 Portfolio</button>
+    <button class="home-tab active" id="tab-btn-projects" onclick="switchTab('projects')" data-i18n="home.tab.projects">📋 Projets récents</button>
+    <button class="home-tab" id="tab-btn-portfolio" onclick="switchTab('portfolio')" data-i18n="home.tab.portfolio">📊 Portfolio</button>
   </nav>
   <div class="header-right">
     <div class="home-search">
       <span class="home-search-icon">🔍</span>
-      <input type="text" id="search-input" placeholder="Rechercher un projet ou client…" oninput="filterCards()">
+      <input type="text" id="search-input" data-i18n-placeholder="home.search.placeholder" placeholder="Rechercher un projet ou client…" oninput="filterCards()">
     </div>
     <div class="header-actions">
-      <button class="btn btn-ghost" onclick="openExampleProject()" title="Ouvrir le projet de démonstration">📖 Exemple</button>
-      <button class="btn btn-secondary" onclick="openProject()">📂 Ouvrir…</button>
-      <button class="btn btn-primary" onclick="openNewProjectModal()">＋ Nouveau projet</button>
+      <button class="btn btn-ghost" onclick="openExampleProject()" data-i18n-title="home.btn.example" title="Ouvrir le projet de démonstration" data-i18n="home.btn.example">📖 Exemple</button>
+      <button class="btn btn-secondary" onclick="openProject()" data-i18n="home.btn.open">📂 Ouvrir…</button>
+      <button class="btn btn-primary" onclick="openNewProjectModal()" data-i18n="home.btn.new">＋ Nouveau projet</button>
       <button class="btn btn-ghost btn-icon" onclick="openSettings()" title="Paramètres">⚙</button>
     </div>
   </div>
@@ -31,17 +38,17 @@
 <!-- ── PROJECTS TAB ── -->
 <div id="tab-panel-projects">
   <main class="home-main">
-    <div class="home-section-title">Projets récents</div>
+    <div class="home-section-title" data-i18n="home.section.recent">Projets récents</div>
     <div class="project-grid" id="project-grid">
       <!-- Cards injected by home.js -->
     </div>
     <div class="empty-state" id="empty-state" style="display:none">
       <div class="empty-icon">📋</div>
-      <h3>Aucun projet pour le moment</h3>
-      <p>Créez votre premier projet ou ouvrez un fichier <code>.wmsplan</code> existant.</p>
+      <h3 data-i18n="home.empty.title">Aucun projet pour le moment</h3>
+      <p data-i18n="home.empty.body">Créez votre premier projet ou ouvrez un fichier <code>.wmsplan</code> existant.</p>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-        <button class="btn btn-primary" onclick="openNewProjectModal()">＋ Nouveau projet</button>
-        <button class="btn btn-secondary" onclick="openExampleProject()">📖 Ouvrir le projet exemple</button>
+        <button class="btn btn-primary" onclick="openNewProjectModal()" data-i18n="home.btn.new">＋ Nouveau projet</button>
+        <button class="btn btn-secondary" onclick="openExampleProject()" data-i18n="home.btn.example">📖 Ouvrir le projet exemple</button>
       </div>
     </div>
   </main>
@@ -50,33 +57,33 @@
 <!-- ── PORTFOLIO TAB ── -->
 <div id="tab-panel-portfolio" style="display:none">
   <div class="portfolio-body" id="portfolio-body">
-    <div class="portfolio-loading" id="portfolio-loading">Chargement des données…</div>
+    <div class="portfolio-loading" id="portfolio-loading" data-i18n="pf.loading">Chargement des données…</div>
   </div>
 </div>
 
 <!-- ── NEW PROJECT MODAL ── -->
 <div class="modal-overlay" id="modal-new-project">
   <div class="modal">
-    <h3>Nouveau projet</h3>
+    <h3 data-i18n="modal.newproject.title">Nouveau projet</h3>
     <div class="form-2col">
-      <div class="form-row"><label>Nom du projet *</label><input id="np-name" type="text" placeholder="Projet WMS" oninput="autoFillClient()"></div>
-      <div class="form-row"><label>Client *</label><input id="np-client" type="text" placeholder="Nom du client"></div>
+      <div class="form-row"><label data-i18n="modal.newproject.name">Nom du projet *</label><input id="np-name" type="text" placeholder="Projet WMS" oninput="autoFillClient()"></div>
+      <div class="form-row"><label data-i18n="modal.newproject.client">Client *</label><input id="np-client" type="text" placeholder="Nom du client"></div>
     </div>
     <div class="form-2col">
-      <div class="form-row"><label>Dir. Projet</label><input id="np-pm" type="text" placeholder="DPName"></div>
-      <div class="form-row"><label>Chef de Projet Tech.</label><input id="np-cdptech" type="text" placeholder="CDPName"></div>
+      <div class="form-row"><label data-i18n="modal.newproject.pm">Dir. Projet</label><input id="np-pm" type="text" placeholder="DPName"></div>
+      <div class="form-row"><label data-i18n="modal.newproject.cdptech">Chef de Projet Tech.</label><input id="np-cdptech" type="text" placeholder="CDPName"></div>
     </div>
     <div class="form-2col">
-      <div class="form-row"><label>Resp. Logistique Client</label><input id="np-resplog" type="text" placeholder="RespoLogClient"></div>
-      <div class="form-row"><label>Consultant ERP</label><input id="np-erpconsult" type="text" placeholder="ERP Consultant"></div>
+      <div class="form-row"><label data-i18n="modal.newproject.resplog">Resp. Logistique Client</label><input id="np-resplog" type="text" placeholder="RespoLogClient"></div>
+      <div class="form-row"><label data-i18n="modal.newproject.erpconsult">Consultant ERP</label><input id="np-erpconsult" type="text" placeholder="ERP Consultant"></div>
     </div>
     <div class="form-2col">
-      <div class="form-row"><label>Date de début</label><input id="np-start" type="date"></div>
-      <div class="form-row"><label>Date d'installation prévue</label><input id="np-install" type="date"></div>
+      <div class="form-row"><label data-i18n="modal.newproject.start">Date de début</label><input id="np-start" type="date"></div>
+      <div class="form-row"><label data-i18n="modal.newproject.install">Date d'installation prévue</label><input id="np-install" type="date"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeNewProjectModal()">Annuler</button>
-      <button class="btn btn-primary" onclick="createProject()">Créer le projet</button>
+      <button class="btn btn-secondary" onclick="closeNewProjectModal()" data-i18n="btn.cancel">Annuler</button>
+      <button class="btn btn-primary" onclick="createProject()" data-i18n="modal.newproject.create">Créer le projet</button>
     </div>
   </div>
 </div>
@@ -84,45 +91,69 @@
 <!-- ── SETTINGS MODAL ── -->
 <div class="modal-overlay" id="modal-settings">
   <div class="modal">
-    <h3>⚙ Paramètres</h3>
+    <h3 data-i18n="settings.title">⚙ Paramètres</h3>
     <div class="settings-section">
-      <div class="settings-section-title">Nom de la société intégratrice</div>
-      <p class="settings-hint">Ce nom remplace "COMPANY" dans le champ Propriétaire de toutes les tâches.</p>
+      <div class="settings-section-title" data-i18n="settings.company.title">Nom de la société intégratrice</div>
+      <p class="settings-hint" data-i18n="settings.company.hint">Ce nom remplace "COMPANY" dans le champ Propriétaire de toutes les tâches.</p>
       <input type="text" id="settings-company-name" class="settings-text-input" placeholder="COMPANY" oninput="saveCompanyName()">
     </div>
     <div class="settings-section">
-      <div class="settings-section-title">Dossier de sauvegarde par défaut</div>
-      <p class="settings-hint">Les nouveaux projets seront créés dans ce dossier. Si non défini, ils sont sauvegardés dans le dossier AppData de l'application.</p>
+      <div class="settings-section-title" data-i18n="settings.folder.title">Dossier de sauvegarde par défaut</div>
+      <p class="settings-hint" data-i18n="settings.folder.hint">Les nouveaux projets seront créés dans ce dossier. Si non défini, ils sont sauvegardés dans le dossier AppData de l'application.</p>
       <div class="folder-picker-row">
-        <div class="folder-display" id="settings-folder-display">Dossier par défaut (AppData)</div>
-        <button class="btn btn-secondary btn-sm" onclick="pickSaveFolder()">Parcourir…</button>
-        <button class="btn btn-ghost btn-sm" onclick="resetSaveFolder()">Réinitialiser</button>
+        <div class="folder-display" id="settings-folder-display" data-i18n="settings.folder.default">Dossier par défaut (AppData)</div>
+        <button class="btn btn-secondary btn-sm" onclick="pickSaveFolder()" data-i18n="settings.btn.browse">Parcourir…</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetSaveFolder()" data-i18n="settings.btn.reset">Réinitialiser</button>
       </div>
     </div>
     <div class="settings-section">
-      <div class="settings-section-title">Template de projet</div>
-      <p class="settings-hint">Les nouveaux projets seront basés sur ce fichier au lieu du template par défaut.</p>
+      <div class="settings-section-title" data-i18n="settings.template.title">Template de projet</div>
+      <p class="settings-hint" data-i18n="settings.template.hint">Les nouveaux projets seront basés sur ce fichier au lieu du template par défaut.</p>
       <div class="folder-picker-row">
-        <div class="folder-display" id="settings-template-display">Template par défaut</div>
-        <button class="btn btn-secondary btn-sm" onclick="pickTemplatePath()">Choisir…</button>
-        <button class="btn btn-ghost btn-sm" onclick="resetTemplatePath()">Réinitialiser</button>
+        <div class="folder-display" id="settings-template-display" data-i18n="settings.template.default">Template par défaut</div>
+        <button class="btn btn-secondary btn-sm" onclick="pickTemplatePath()" data-i18n="settings.btn.choose">Choisir…</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetTemplatePath()" data-i18n="settings.btn.reset">Réinitialiser</button>
       </div>
     </div>
     <div class="settings-section">
-      <div class="settings-section-title">Apparence</div>
+      <div class="settings-section-title" data-i18n="settings.appearance.title">Apparence</div>
       <div class="settings-toggle-row">
-        <span class="settings-hint" style="margin:0">Mode clair</span>
+        <span class="settings-hint" style="margin:0" data-i18n="settings.lightmode">Mode clair</span>
         <label class="toggle-switch">
           <input type="checkbox" id="settings-light-mode" onchange="toggleTheme()">
           <span class="toggle-knob"></span>
         </label>
       </div>
     </div>
+    <div class="settings-section">
+      <div class="settings-section-title" data-i18n="settings.language.title">Langue / Language</div>
+      <select id="settings-language" class="settings-text-input" onchange="saveLanguage(this.value)" style="cursor:pointer">
+        <option value="fr">🇫🇷 Français</option>
+        <option value="en">🇬🇧 English</option>
+        <option value="es">🇪🇸 Español</option>
+      </select>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title" data-i18n="settings.jira.title">JIRA / Atlassian</div>
+      <p class="settings-hint" data-i18n="settings.jira.hint">Identifiants partagés entre tous les projets. La clé de projet (ex : WMS) se configure dans les paramètres de chaque projet.</p>
+      <div class="settings-section-title" style="font-size:12px;font-weight:500;margin-bottom:4px" data-i18n="settings.jira.url">URL Atlassian</div>
+      <input type="text" id="settings-jira-url" class="settings-text-input" placeholder="https://votre-domaine.atlassian.net" onchange="saveJiraCredentials()">
+      <div class="settings-section-title" style="font-size:12px;font-weight:500;margin-top:8px;margin-bottom:4px" data-i18n="settings.jira.email">Email</div>
+      <input type="email" id="settings-jira-email" class="settings-text-input" placeholder="prenom.nom@entreprise.com" onchange="saveJiraCredentials()">
+      <div class="settings-section-title" style="font-size:12px;font-weight:500;margin-top:8px;margin-bottom:4px" data-i18n="settings.jira.token">Token API <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank" style="font-size:11px;color:var(--accent)">(Générer)</a></div>
+      <input type="password" id="settings-jira-token" class="settings-text-input" placeholder="Token API Atlassian" onchange="saveJiraCredentials()">
+    </div>
     <div class="settings-section settings-version-section">
       <span id="settings-version-text" class="settings-version-text"></span>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <button id="btn-check-update" class="btn btn-ghost btn-sm" onclick="checkForUpdatesManual()" data-i18n="settings.update.check">Vérifier les mises à jour</button>
+        <button id="btn-install-update" class="btn btn-primary btn-sm" onclick="doInstallUpdate()" style="display:none" data-i18n="settings.update.install">Installer et redémarrer</button>
+        <span id="update-status" style="font-size:12px;color:var(--text-muted)"></span>
+      </div>
+      <pre id="update-notes" style="display:block;margin-top:8px;font-size:11px;color:var(--text-muted);white-space:pre-wrap;max-height:120px;overflow-y:auto;background:var(--bg-secondary);border-radius:4px;padding:6px 8px"></pre>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-primary" onclick="closeSettings()">Fermer</button>
+      <button class="btn btn-primary" onclick="closeSettings()" data-i18n="settings.btn.close">Fermer</button>
     </div>
   </div>
 </div>
@@ -133,7 +164,7 @@
     <h4 id="confirm-title">Confirmer</h4>
     <p id="confirm-msg"></p>
     <div class="confirm-footer">
-      <button class="btn btn-secondary" onclick="closeConfirm()">Annuler</button>
+      <button class="btn btn-secondary" onclick="closeConfirm()" data-i18n="btn.cancel">Annuler</button>
       <button class="btn btn-danger" id="confirm-ok-btn" onclick="confirmOk()">Confirmer</button>
     </div>
   </div>

@@ -11,22 +11,48 @@ Paste this file (or mention it) at the start of a new conversation to restore co
 3. Reference `FEEDBACK.md` for the pending `[ ]` items backlog
 4. Reference the plan file (`~/.claude/plans/`) for large features in progress
 5. State what you want to accomplish — Claude will ask clarifying questions if needed before starting
+6. **Claude creates a feature branch before touching any code** — no exceptions (see Branch strategy below)
+
+---
+
+## Ending a session
+
+Claude follows this checklist at the end of every working session, in order:
+
+1. **Ask the user to test** — "Can you test the build? (`npx serve renderer -l 8080` or `npx tauri dev`)"
+2. **Wait for approval** — do not proceed until the user confirms ("ok", "good", etc.) or requests fixes
+3. **Update all docs** once approved:
+   - `FEEDBACK.md` — mark completed items `[x]`
+   - `README.md` (French) — any user-visible change
+   - `README.en.md` (English) — same, translated
+   - `MAINTAINER.md` — any architecture / IPC / gotcha change
+   - `WORKFLOW.md` — add dated dev log entry for the session
+4. **Commit everything** on the feature branch (code + docs in one commit, or docs as a follow-up commit)
+5. **Ask the user to merge** — "Ready to merge `feature/xxx` → `main`?"
+6. **After merge confirmed**: bump version (`.\scripts\bump-version.ps1 X.Y.Z`), commit the bump, `git push`
+7. **Push the release tag** — `git tag vX.Y.Z && git push origin vX.Y.Z` (triggers GitHub Actions)
+8. **Write release notes** — add FR + EN entry to `CHANGELOG.md` for the new version, commit + push
 
 ---
 
 ## Branch strategy
 
+> **Rule #1 — enforced at session start**: Claude runs `git checkout -b feature/xxx` as the very first action of every session, before any file edit. If this step is skipped, no code changes are made until it is done.
+
 | Rule | Detail |
 |---|---|
-| Never commit to `main` directly | Always branch first |
+| **Never commit to `main` directly** | Always branch first — no exceptions |
 | Branch naming | `feature/short-description` (e.g. `feature/dashboard-rag-deps-tabs`) |
 | One branch per feature set | Group related changes; don't mix unrelated features |
-| Merge only when complete | Feature done + docs updated + smoke test passed |
+| Merge only when complete | Feature done + docs updated + user smoke test passed |
 
-```bash
+```powershell
+# Start of session — always first
 git checkout -b feature/my-feature
-# ... work ...
-git checkout main && git merge feature/my-feature --no-ff
+
+# End of session — after user approval
+git checkout main
+git merge feature/my-feature --no-ff
 git push
 ```
 
@@ -318,22 +344,57 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - **Portfolio — colonne Équipe** : nouveau champ `cdptech` + helper `wdLeft()` dans `home.js`. Tableau Santé : colonne "Équipe" (`DP: X` / `CDP: Y`) après Client ; colonne Install enrichie d'un badge `X j.o.` coloré (rouge ≤30 j, orange ≤60 j, vert au-delà).
 - **Planning — jours fériés français** : `easterDate(year)` + `getFrenchHolidays(year)` (11 jours fériés légaux, Pâques mobile). `WEEK_HOLIDAYS[]` pré-calculé dans `renderGantt()`. Header semaine `holiday-week` (fond ambre + tooltip) ; cellules tâches/JIRA/epic `holiday-col` (léger fond jaune).
 
-## Pending items (summary from FEEDBACK.md + Bugs.md as of 2026-06-05)
+### 2026-06-06 (session 7) — Per-page zoom
+
+- **Per-page zoom**: `Ctrl+scroll` zooms each page independently (50–200%, 10% per step). Zoom persists per page in `localStorage` under key `pageZoom`. A small badge in the nav-right shows the current page's zoom; clicking it resets to 100%. Implementation: `_pageZoom` object in module state; `_syncZoomDisplay(pageId)` applies `element.style.zoom` and updates the badge; both built-in and custom-tab click handlers patched to sync the display on page switch; `Ctrl+wheel` listener added in the keyboard shortcuts section. Functions `changeZoom(delta)` and `resetZoom()` exported to `window`. Files changed: `renderer/app.html` (+1 line), `renderer/wms.js` (+33 lines). **Pending test + commit.**
+
+### 2026-06-06 — Code cleanup (pre-deployment review)
+
+- **`tauri-ipc.js`** : suppression d'un `try { … } catch (e) { throw e; }` inutile dans le stub `read_project`.
+- **`cellBadge(map, v)`** : les 4 fonctions identiques `itfBadge`, `drBadge`, `instBadge`, `factBadge` fusionnées en un seul helper paramétré.
+- **`_delFactJalon(id, list)`** : `del_fact_projet` et `del_fact_equip` (corps identiques, tableau différent) fusionnés en un helper privé.
+- **`normalizeSpecialLabel`** : fonction définie mais jamais appelée — supprimée.
+- **Exports `window`** : `normalizeSpecialLabel`, `buildState`, `del_fact_projet`, `del_fact_equip` retirés (aucun handler HTML ne les référençait).
+- **XSS** : message d'erreur échappé avant injection dans `innerHTML` dans le catch de `loadProject`.
+- Net : −19 lignes (38 supprimées, 19 ajoutées).
+
+### 2026-06-06 (session 5) — JIRA split, source path, project meta settings, interface type dropdown
+
+- **JIRA settings split**: credentials (URL, email, token) moved to global Settings modal (`home.html` / `home.js`, persisted via `write_settings`). Project key (3-letter code) moved to per-project ⚙ settings modal (`projectMeta.jiraProjectKey`). Dedicated `modal-jira-config` removed from `app.html`. JIRA tab "⚙ Configurer" button removed — use navbar ⚙ instead. `syncJira()` now reads credentials from `_userSettings.jiraConfig` and project key from `projectMeta.jiraProjectKey`; missing config shows inline message pointing to the right settings location.
+- **Source path per project**: `projectMeta.sourcePath` — set via file picker in ⚙ project settings. On home screen card click, `openProjectCard()` reads the local file first; if `sourcePath` is set and reachable, pulls the source file and writes it locally before navigating, so the app always opens the freshest version from a shared folder (e.g. git). Falls back silently to local copy if source is unreachable.
+- **Project meta in settings modal**: new "Informations du projet" grid at the top of ⚙ project settings — Nom, Client, DP, CDP Tech, Resp. Logistique, Consultant ERP. `saveMetaFromSettings()` writes to `projectMeta`, syncs `pi-*` Planning header inputs, and calls `renderGantt()` / `renderTaches()`. Also patches baked-in names in `isUnavail` tasks (congés phase): captures old values, replaces old→new in `task.name` for any task where the actual name was stored literally rather than as a token.
+- **Interface type dropdown**: `ITF_TYPES` constant added. Type cell in `renderInterfaces()` is now a clickable `<span>` using `showDropdown` (same pattern as status badges). Options: Connecteur ERP, GNA, Connecteur SAGE, REST API, Autre. Edit modal `<select id="ei-type">` updated to the same list.
+- **Data migration**: `template.json` and `example.wmsplan` updated — `jiraConfig` block in meta replaced with flat `jiraProjectKey: ""`.
+
+### 2026-06-06 (session 6) — Auto-update + JSON schema migration
+
+- **Auto-update** (`feature/auto-update`): `tauri-plugin-updater` registered in `lib.rs`. Two Rust commands — `check_update` (returns `{ available, version, notes, checkFailed }`, never throws) and `install_update` (downloads, installs, calls `app.restart()`). Silent startup check in `home.js`; update banner at top of home screen; "Vérifier les mises à jour" button + release notes display in Settings modal.
+- **GitHub Actions CI** (`.github/workflows/release.yml`): triggers on `v*` tag push; builds NSIS installer on `windows-latest`, signs with `TAURI_SIGNING_PRIVATE_KEY` secret, creates GitHub Release, uploads installer + `latest.json`.
+- **Bilingual release notes**: `CHANGELOG.md` holds FR + EN notes per version. CI extracts the matching section and uses it as the GitHub Release body — same text shown to users in the in-app update dialog.
+- **JSON schema migration**: `CURRENT_SCHEMA_VERSION = 1` constant + `migrateProjectData()` in `wms.js`; called on every project open after `JSON.parse`. `meta.schemaVersion` stamped in `template.json` and `example.wmsplan`. Add a migration patch here whenever the schema changes.
+- **Signing keypair**: generated with `npx tauri signer generate --ci -p ""`; public key in `tauri.conf.json`; private key stored as GitHub Secret `TAURI_SIGNING_PRIVATE_KEY` (no password).
+
+### 2026-06-07 — Facturation inline, déplacements inline, resize fix (main, no branch)
+
+> Note: changes committed directly to `main` without a feature branch — against branch strategy.
+
+- **Facturation montant inline**: colonne Montant des jalons projet/équipement devient un `<input class="h-input" type="number">` éditable directement dans la cellule. `saveJalonMontant(id, type, val)` met à jour `row.montant` puis appelle `_recalcJalonPcts()`. `_recalcJalonPcts()` recalcule les % **indépendamment par tableau** (jalonsProjet sur leur propre total, jalonsEquip sur le leur) — l'ancienne `autoCalcJalonPct()` utilisait le total combiné, ce qui était incorrect.
+- **Déplacements vendu inline**: colonne Vendu des frais de déplacements devient un `<input>` inline. `saveDeplVendu(id, val)` remplace l'ancien `prompt()` qui s'ouvrait au clic (residual click handler sur `tr.cells[1]` — supprimé).
+- **Jalons payés → ligne verte**: `renderFactRow` applique `background: rgba(5,150,105,.10)` sur la `<tr>` quand `row.etat === 'Payé'`.
+- **Fix resize colonnes (régression i18n)**: `applyStaticI18n()` dans `i18n.js` utilisait `el.textContent = val` sur les `<th data-i18n>`, détruisant les `.col-resize-handle` enfants ajoutés par `makeResizable`. Fix : sauvegarder les enfants element-nodes avant `textContent =`, les réattacher ensuite. `initResizableTables()` aussi rappelé après `applyStaticI18n` dans `loadProject` comme filet de sécurité.
+
+## Pending items (summary from FEEDBACK.md + Bugs.md as of 2026-06-07)
 
 **Bugs (priority):**
+
 - *(aucun bug ouvert)*
 
 **Export:**
+
 - HTML export formatting doesn't match app (button disabled — pending review)
 
-**Portfolio:**
-- *(items précédents fermés — voir évolutions)*
-
 **Evolutions (larger features):**
-- Auto-update check at app launch (tauri-plugin-updater + GitHub Releases)
+
 - Global resource calendar (CDP Tech / DP availability, synced from Google Calendar)
 - Client test tracking / Phase 1 read-only HTML export for client
 - Excel import as a new tab
-- Zoom in/out on Gantt (Ctrl+scroll or +/- buttons)
-- Project sharing link (git folder path or equivalent)
-- General: per-project open URL for shared JSON (manager always gets latest version)

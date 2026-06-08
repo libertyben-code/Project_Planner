@@ -12,13 +12,13 @@ L'application couvre toutes les étapes d'un déploiement WMS :
 
 - **Tableau de bord** — KPIs en direct : avancement des tâches, facturation encaissée, heures consommées, dérive de la date d'installation
 - **Planning** — Diagramme de Gantt sur 5 phases — glisser les tâches entre les phases, réordonner les phases
-- **Suivi Heures** — Heures vendues vs. réelles par catégorie (Standard / Custom / Offre Comp) avec historique
+- **Suivi Heures** — Heures vendues vs. réelles par catégorie (Standard / Custom / Offre Comp) avec historique ; budget vendu des déplacements saisissable directement dans la cellule
 - **Tâches Internes** — Liste d'actions internes avec urgence, propriétaire et deadline
 - **Interfaces ERP** — Statut de validation par interface (DEV → Préprod → Recette → Validé)
 - **Fonctionnel** — Avancement par flux fonctionnel
 - **Prérequis Dry Run** — Checklist Go/No-Go pour le dry run
 - **Prérequis Install** — Checklist Go/No-Go pour la mise en production
-- **Facturation** — Jalons de facturation avec calcul automatique des pourcentages
+- **Facturation** — Jalons de facturation avec saisie du montant directement dans la cellule, calcul automatique des pourcentages, ligne verte pour les jalons payés
 - **JIRA** — Statut des épics et tâches synchronisé depuis votre instance Jira via API
 - **Onglets personnalisés** — Créez vos propres onglets avec des colonnes sur mesure
 
@@ -121,7 +121,9 @@ Cliquez sur l'icône **⚙** en haut à droite de l'écran d'accueil :
 - **Template de projet** — choisissez un fichier `.wmsplan` existant comme base pour tous les nouveaux projets (phases, configurations pré-remplies).
 - **Mode clair** — bascule entre le mode sombre (défaut) et le mode clair.
 
-La version de l'application est affichée en bas de ce panneau et dans la barre d'en-tête de l'écran d'accueil (`v1.0.0`).
+La version de l'application est affichée en bas de ce panneau et dans la barre d'en-tête de l'écran d'accueil.
+
+Un bouton **Vérifier les mises à jour** est disponible dans ce panneau. L'application vérifie également au démarrage si une nouvelle version est disponible : si c'est le cas, une bannière apparaît en haut de l'écran avec un bouton d'installation en un clic. Les notes de version s'affichent avant installation.
 
 ## Paramètres par projet
 
@@ -141,6 +143,7 @@ Cliquez sur **📖 Exemple** dans l'en-tête de l'écran d'accueil (ou sur le bo
 
 - `Ctrl+O` — Ouvrir un fichier projet
 - `Ctrl+S` — Forcer la sauvegarde immédiatement
+- `Ctrl+scroll` — Zoomer / dézoomer la page en cours (50 %–200 %). Le niveau est affiché dans la barre de navigation ; cliquez dessus pour revenir à 100 %. Chaque page a son propre zoom, mémorisé entre les sessions.
 - `Échap` — Fermer la modale ouverte
 
 ---

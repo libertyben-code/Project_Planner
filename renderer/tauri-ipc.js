@@ -28,6 +28,15 @@ export async function getAppVersion() {
   return 'dev';
 }
 
+export async function checkForUpdates() {
+  if (TAURI) return invoke('check_update');
+  return { available: false };
+}
+
+export async function installUpdate() {
+  if (TAURI) return invoke('install_update');
+}
+
 export function setWindowTitle(title) {
   if (TAURI) {
     window.__TAURI__.window.getCurrentWindow().setTitle(title);
@@ -71,11 +80,9 @@ function _stub(cmd, args) {
     }
 
     case 'read_project': {
-      try {
-        const raw = localStorage.getItem(PREFIX + args.path);
-        if (!raw) throw new Error('Project not found: ' + args.path);
-        return raw;
-      } catch (e) { throw e; }
+      const raw = localStorage.getItem(PREFIX + args.path);
+      if (!raw) throw new Error('Project not found: ' + args.path);
+      return raw;
     }
 
     case 'write_project': {

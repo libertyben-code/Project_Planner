@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "WMS Project Planner",
-  "version": "1.0.0",
+  "version": "1.4.1",
   "identifier": "com.wmsplanner.app",
   "build": {
     "frontendDist": "../renderer",
@@ -27,9 +27,20 @@
       "csp": null
     }
   },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVFMjMxQTMzNDI5M0ZDNDcKUldSSC9KTkNNeG9qWHRJV0dZUFRBU3lldUVNSFJZUEkvdzBUMHFEUnVjM0RxK0RtT3M0OFFIK2sK",
+      "endpoints": [
+        "https://github.com/libertyben-code/Project_Planner/releases/latest/download/latest.json"
+      ]
+    }
+  },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
+    "createUpdaterArtifacts": true,
+    "targets": [
+      "nsis"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
