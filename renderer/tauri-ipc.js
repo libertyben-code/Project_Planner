@@ -37,6 +37,11 @@ export async function installUpdate() {
   if (TAURI) return invoke('install_update');
 }
 
+export async function openExternal(url) {
+  if (TAURI) return invoke('open_url', { url });
+  window.open(url, '_blank', 'noopener');
+}
+
 export function setWindowTitle(title) {
   if (TAURI) {
     window.__TAURI__.window.getCurrentWindow().setTitle(title);

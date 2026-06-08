@@ -2,7 +2,7 @@
 //  WMS Project Planning — Application Script (v2)
 //  ES module — loaded via <script type="module">
 // =====================================================
-import { invoke, listenFileChanged, setWindowTitle, getAppVersion } from './tauri-ipc.js';
+import { invoke, listenFileChanged, setWindowTitle, getAppVersion, openExternal } from './tauri-ipc.js';
 import { t, getCurrentLang, setLanguage, applyStaticI18n } from './i18n.js';
 
 // ── Schema migration ────────────────────────────────���────────────────────────
@@ -43,6 +43,7 @@ const DEFAULT_DEPLACEMENTS = [
 ];
 let customTabs = [];
 let jiraData = { epics: [], tasks: [], lastSync: '' };
+let _jiraAutoSyncTimer = null;
 let _ganttEditMode = false;
 let _collapsedPhases = new Set();
 let _companyName = 'COMPANY';
@@ -141,6 +142,7 @@ async function loadProject(path) {
     applyStaticI18n(document);
     initResizableTables();
     _syncZoomDisplay('page-dashboard');
+    _startJiraAutoSync();
     if (!_fileWatcherRegistered) {
       _fileWatcherRegistered = true;
       listenFileChanged(() => {
@@ -838,7 +840,7 @@ function renderGantt() {
                 td.style.fontSize = '11px'; td.textContent = jTask.dueDate ? fmtDDMMYY(jTask.dueDate) : '—';
               } else if (lbl === 'J') {
                 td.style.cssText = 'text-align:center;font-size:11px';
-                if (jTask.startDate && jTask.dueDate) { const d = Math.round((new Date(jTask.dueDate) - new Date(jTask.startDate)) / 86400000) + 1; if (d > 0) td.textContent = d; }
+                td.textContent = fmtJiraTime(jTask.originalEstimateSec);
               } else if (lbl === '% AVA.') {
                 const pct = jTask.progress || 0; td.style.padding = '2px 6px';
                 td.innerHTML = `<div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${epic.color}"></div></div><span class="progress-pct">${pct}%</span></div>`;
@@ -1004,6 +1006,17 @@ function jiraStatusLabel(s) {
 function jiraStatusBadgeClass(s) {
   return { TO_DO:'Non-commencé', IN_PROGRESS:'En-cours', DONE:'Terminé', IN_REVIEW:'Vérification-requise', BLOCKED:'En-attente' }[s] || 'empty';
 }
+function jiraStatusBadgeClassFromCategory(key) {
+  return { done: 'Terminé', indeterminate: 'En-cours', new: 'Non-commencé' }[key] || 'empty';
+}
+function fmtJiraTime(sec) {
+  if (!sec) return '—';
+  return Math.round(sec / 3600) + 'h';
+}
+function openJiraIssue(key) {
+  const url = _userSettings?.jiraConfig?.url;
+  if (url && key) openExternal(`${url}/browse/${key}`);
+}
 function normalizeJiraStatus(name) {
   const n = (name || '').toLowerCase();
   if (n.includes('done') || n.includes('terminé') || n.includes('closed') || n.includes('resolved')) return 'DONE';
@@ -1017,6 +1030,8 @@ function transformJiraIssues(epicsRaw, tasksRaw) {
   const epics = (epicsRaw.issues || []).map((iss, i) => ({
     id: iss.key, key: iss.key, summary: iss.fields.summary,
     status: normalizeJiraStatus(iss.fields.status?.name || ''),
+    statusName: iss.fields.status?.name || '',
+    statusCategoryKey: iss.fields.status?.statusCategory?.key || 'new',
     color: COLORS[i % COLORS.length]
   }));
   const tasks = (tasksRaw.issues || []).map(iss => ({
@@ -1024,11 +1039,15 @@ function transformJiraIssues(epicsRaw, tasksRaw) {
     epicId: iss.fields.parent?.key || null,
     summary: iss.fields.summary,
     status: normalizeJiraStatus(iss.fields.status?.name || ''),
+    statusName: iss.fields.status?.name || '',
+    statusCategoryKey: iss.fields.status?.statusCategory?.key || 'new',
     assignee: iss.fields.assignee?.displayName || '',
     storyPoints: iss.fields.customfield_10016 || 0,
     startDate: iss.fields.startdate || '',
     dueDate: iss.fields.duedate || '',
-    progress: iss.fields.progress?.percent || 0
+    progress: iss.fields.progress?.percent || 0,
+    originalEstimateSec: iss.fields.timeoriginalestimate || 0,
+    timeSpentSec: iss.fields.timespent || 0,
   }));
   return { epics, tasks, lastSync: '' };
 }
@@ -1051,7 +1070,7 @@ async function syncJira() {
     const jiraUrl = `${cfg.url}/rest/api/3/search/jql`;
     const [erText, trText] = await Promise.all([
       invoke('jira_fetch', { url: jiraUrl, email: cfg.email, token: cfg.token, body: JSON.stringify({ jql: `project=${projectKey} AND issuetype=Epic`, fields: ['summary', 'status'], maxResults: 50 }) }),
-      invoke('jira_fetch', { url: jiraUrl, email: cfg.email, token: cfg.token, body: JSON.stringify({ jql: `project=${projectKey} AND issuetype in (Story,Task,Bug)`, fields: ['summary', 'status', 'assignee', 'customfield_10016', 'duedate', 'startdate', 'parent', 'progress'], maxResults: 100 }) })
+      invoke('jira_fetch', { url: jiraUrl, email: cfg.email, token: cfg.token, body: JSON.stringify({ jql: `project=${projectKey} AND issuetype in (Story,Task,Bug)`, fields: ['summary', 'status', 'assignee', 'customfield_10016', 'duedate', 'startdate', 'parent', 'progress', 'timeoriginalestimate', 'timespent'], maxResults: 100 }) })
     ]);
     jiraData = transformJiraIssues(JSON.parse(erText), JSON.parse(trText));
     jiraData.lastSync = new Date().toLocaleString('fr-FR');
@@ -1064,6 +1083,13 @@ async function syncJira() {
   } finally {
     if (syncBtn) { syncBtn.disabled = false; syncBtn.textContent = t('jira.sync'); }
   }
+}
+function _startJiraAutoSync() {
+  if (_jiraAutoSyncTimer) clearInterval(_jiraAutoSyncTimer);
+  const cfg = _userSettings?.jiraConfig;
+  if (!cfg?.token || !cfg?.url || !projectMeta?.jiraProjectKey) return;
+  syncJira();
+  _jiraAutoSyncTimer = setInterval(syncJira, 10 * 60 * 1000);
 }
 function renderJira() {
   const container = document.getElementById('jira-epics-container');
@@ -1099,7 +1125,7 @@ function renderJira() {
         <span class="jira-epic-color-dot" style="background:${epic.color}"></span>
         ${epic.key ? `<span class="jira-epic-key">${epic.key}</span>` : ''}
         <span style="font-weight:600;font-size:13px;flex:1">${epic.summary}</span>
-        ${epic.status ? `<span class="badge badge-${jiraStatusBadgeClass(epic.status)}" style="font-size:10px">${jiraStatusLabel(epic.status)}</span>` : ''}
+        ${epic.status ? `<span class="badge badge-${jiraStatusBadgeClassFromCategory(epic.statusCategoryKey || 'new')}" style="font-size:10px">${epic.statusName || jiraStatusLabel(epic.status)}</span>` : ''}
         <div class="jira-epic-progress">
           <div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:${epicPct}%;background:${epic.color}"></div></div>
           <span class="progress-pct">${epicPct}%</span>
@@ -1107,19 +1133,20 @@ function renderJira() {
         </div>
       </div>
       <div class="jira-epic-tasks">
-        <div class="jira-tasks-header"><span>${t('jira.col.key')}</span><span>${t('jira.col.title')}</span><span>${t('jira.col.status')}</span><span>${t('jira.col.owner')}</span><span>${t('jira.col.pts')}</span><span>${t('jira.col.start')}</span><span>${t('jira.col.due')}</span><span>${t('jira.col.days')}</span><span>${t('jira.col.progress')}</span></div>
-        ${epicTasks.map(t => {
-          const days = (t.startDate && t.dueDate) ? Math.round((new Date(t.dueDate) - new Date(t.startDate)) / 86400000) + 1 : null;
+        <div class="jira-tasks-header"><span>${t('jira.col.key')}</span><span>${t('jira.col.title')}</span><span>${t('jira.col.status')}</span><span>${t('jira.col.owner')}</span><span>${t('jira.col.pts')}</span><span>${t('jira.col.start')}</span><span>${t('jira.col.due')}</span><span>${t('jira.col.days')}</span><span>${t('jira.col.spent')}</span><span>${t('jira.col.progress')}</span></div>
+        ${epicTasks.map(tk => {
+          const catKey = tk.statusCategoryKey || ({ DONE:'done', IN_PROGRESS:'indeterminate', IN_REVIEW:'indeterminate' }[tk.status] || 'new');
           return `<div class="jira-task-row">
-          <span class="jira-task-key">${t.key}</span>
-          <span class="jira-task-summary">${t.summary}</span>
-          <span class="badge badge-${jiraStatusBadgeClass(t.status)}" style="font-size:10px">${jiraStatusLabel(t.status)}</span>
-          <span style="font-size:12px;color:var(--text-muted)">${t.assignee ? formatTemplate(t.assignee) : '—'}</span>
-          <span style="font-size:12px;text-align:center">${t.storyPoints ? t.storyPoints + ' pts' : '—'}</span>
-          <span style="font-size:12px;color:var(--text-muted)">${t.startDate ? fmtDDMMYY(t.startDate) : '—'}</span>
-          <span style="font-size:12px;color:var(--text-muted)">${t.dueDate ? fmtDDMMYY(t.dueDate) : '—'}</span>
-          <span style="font-size:12px;text-align:center;color:var(--text-muted)">${days && days > 0 ? days : '—'}</span>
-          <div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${t.progress||0}%;background:${epic.color}"></div></div><span class="progress-pct">${t.progress||0}%</span></div>
+          <span class="jira-task-key jira-link" data-key="${tk.key}" onclick="openJiraIssue(this.dataset.key)">${tk.key}</span>
+          <span class="jira-task-summary">${tk.summary}</span>
+          <span class="badge badge-${jiraStatusBadgeClassFromCategory(catKey)}" style="font-size:10px">${tk.statusName || jiraStatusLabel(tk.status)}</span>
+          <span style="font-size:12px;color:var(--text-muted)">${tk.assignee ? formatTemplate(tk.assignee) : '—'}</span>
+          <span style="font-size:12px;text-align:center">${tk.storyPoints ? tk.storyPoints + ' pts' : '—'}</span>
+          <span style="font-size:12px;color:var(--text-muted)">${tk.startDate ? fmtDDMMYY(tk.startDate) : '—'}</span>
+          <span style="font-size:12px;color:var(--text-muted)">${tk.dueDate ? fmtDDMMYY(tk.dueDate) : '—'}</span>
+          <span style="font-size:12px;text-align:center;color:var(--text-muted)">${fmtJiraTime(tk.originalEstimateSec)}</span>
+          <span style="font-size:12px;text-align:center;color:var(--text-muted)">${fmtJiraTime(tk.timeSpentSec)}</span>
+          <div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${tk.progress||0}%;background:${epic.color}"></div></div><span class="progress-pct">${tk.progress||0}%</span></div>
         </div>`;}).join('')}
       </div>`;
     container.appendChild(section);
@@ -3282,7 +3309,7 @@ Object.assign(window, {
   addTaskSegment, removeTaskSegment,
   setRag,
   openManageTabsModal, saveManageTabs, resetTabOrder,
-  renderJira, syncJira,
+  renderJira, syncJira, openJiraIssue,
   renderTaches, renderInstall,
   addInternalTask, openEditInternalTask, saveInternalTask, deleteInternalTask, deleteInternalTaskFromModal,
   addInterface, openEditInterface, saveInterface, deleteInterfaceFromModal,

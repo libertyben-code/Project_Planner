@@ -266,10 +266,12 @@ td[contenteditable="true"]:focus{outline:2px solid var(--accent);outline-offset:
 .jira-collapse-icon { font-size:10px;color:var(--text-muted);transition:transform .2s;flex-shrink:0; }
 .jira-epic.collapsed .jira-collapse-icon { transform:rotate(-90deg); }
 .jira-epic.collapsed .jira-epic-tasks { display:none; }
-.jira-tasks-header { display:grid;grid-template-columns:80px 1fr 120px 120px 45px 80px 80px 40px 90px;gap:8px;padding:5px 14px 5px 28px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--text-muted);background:var(--bg);border-top:1px solid var(--border); }
-.jira-task-row { display:grid;grid-template-columns:80px 1fr 120px 120px 45px 80px 80px 40px 90px;gap:8px;align-items:center;padding:7px 14px 7px 28px;border-top:1px solid var(--border);font-size:12px; }
+.jira-tasks-header { display:grid;grid-template-columns:80px 1fr 120px 120px 45px 80px 80px 40px 40px 90px;gap:8px;padding:5px 14px 5px 28px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--text-muted);background:var(--bg);border-top:1px solid var(--border); }
+.jira-task-row { display:grid;grid-template-columns:80px 1fr 120px 120px 45px 80px 80px 40px 40px 90px;gap:8px;align-items:center;padding:7px 14px 7px 28px;border-top:1px solid var(--border);font-size:12px; }
 .jira-task-row:hover { background:var(--hover-bg,#f8fafc); }
 .jira-task-key { font-size:10px;font-weight:700;color:#0052CC;background:#EAF0FF;padding:2px 5px;border-radius:3px;font-family:monospace;text-align:center;white-space:nowrap; }
+.jira-link { cursor:pointer; }
+.jira-link:hover { text-decoration:underline; }
 .jira-task-summary { overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500; }
 .jira-empty { text-align:center;padding:48px 20px;color:var(--text-muted); }
 .jira-no-tasks { padding:8px 28px;color:var(--text-muted);font-style:italic;font-size:12px;border-top:1px solid var(--border); }
