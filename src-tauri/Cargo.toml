@@ -1,4 +1,4 @@
-﻿[package]
+[package]
 name = "wms-planner"
 version = "1.5.0"
 description = "WMS Project Planner â€” multi-project desktop app"

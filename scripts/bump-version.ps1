@@ -14,15 +14,18 @@ if ($Version -notmatch '^\d+\.\d+\.\d+$') {
 $cargoPath  = "$PSScriptRoot\..\src-tauri\Cargo.toml"
 $tauriPath  = "$PSScriptRoot\..\src-tauri\tauri.conf.json"
 
+# UTF-8 without BOM writer (PowerShell 5.1 -Encoding utf8 adds BOM — this does not)
+$utf8 = [System.Text.UTF8Encoding]::new($false)
+
 # --- Cargo.toml ---
 $cargo = Get-Content $cargoPath -Raw
 $cargo = $cargo -replace '(?m)^version = "\d+\.\d+\.\d+"', "version = `"$Version`""
-Set-Content $cargoPath $cargo -NoNewline -Encoding utf8
+[System.IO.File]::WriteAllText($cargoPath, $cargo, $utf8)
 
 # --- tauri.conf.json ---
 $tauri = Get-Content $tauriPath -Raw | ConvertFrom-Json
 $tauri.version = $Version
-$tauri | ConvertTo-Json -Depth 10 | Set-Content $tauriPath -Encoding utf8
+[System.IO.File]::WriteAllText($tauriPath, ($tauri | ConvertTo-Json -Depth 10), $utf8)
 
 Write-Host ""
 Write-Host "Version bumped to $Version" -ForegroundColor Green
