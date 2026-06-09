@@ -202,10 +202,14 @@ window.openProjectCard = async function(path) {
 window.openProject = async function() {
   const path = await invoke('open_dialog');
   if (!path) return;
-  // Verify file exists / is readable
   try {
     const raw = await invoke('read_project', { path });
     const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    if (!data.meta) data.meta = {};
+    if (!data.meta.sourcePath) {
+      data.meta.sourcePath = path;
+      await invoke('write_project', { path, data: JSON.stringify(data) });
+    }
     await addToRecent(data.meta, path);
     navigateToApp(path);
   } catch (e) {
