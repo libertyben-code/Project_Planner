@@ -1,7 +1,7 @@
 [package]
 name = "wms-planner"
-version = "1.5.0"
-description = "WMS Project Planner â€” multi-project desktop app"
+version = "1.6.0"
+description = "WMS Project Planner Ã¢â‚¬â€ multi-project desktop app"
 authors = ["COMPANY"]
 license = "MIT"
 edition = "2021"
