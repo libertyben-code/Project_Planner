@@ -2,6 +2,20 @@
 
 ---
 
+## 1.6.0 — 2026-06-09
+
+### 🇫🇷 Nouveautés
+
+- **Partage OneDrive / dossier réseau** : définissez votre nom d'utilisateur dans ⚙ Paramètres. Chaque sauvegarde estampille `lastEditedBy` dans le fichier `.wmsplan` pour identifier qui a modifié le projet.
+- **Détection de conflits** : si un autre utilisateur sauvegarde pendant que vous travaillez, une bannière indique *"Modifié par [Prénom Nom] — pensez à recharger."* Si vous continuez d'éditer avant de recharger, une modale de conflit s'affiche et vous laisse choisir entre annuler ou écraser.
+
+### 🇬🇧 What's new
+
+- **OneDrive / network folder sharing**: set your username in ⚙ Settings. Every save stamps `lastEditedBy` in the `.wmsplan` file so team members know who last edited the project.
+- **Conflict detection**: if another user saves while you are working, a banner shows *"Modified by [Name] — consider reloading."* If you continue editing before reloading, a conflict modal appears and lets you choose between cancelling or overwriting.
+
+---
+
 ## 1.5.0 — 2026-06-08
 
 ### 🇫🇷 Nouveautés
