@@ -98,6 +98,11 @@
       <input type="text" id="settings-company-name" class="settings-text-input" placeholder="COMPANY" oninput="saveCompanyName()">
     </div>
     <div class="settings-section">
+      <div class="settings-section-title">Votre nom d'utilisateur</div>
+      <p class="settings-hint">Affiché aux autres membres lors des modifications sur un fichier partagé (OneDrive, dossier réseau).</p>
+      <input type="text" id="settings-display-name" class="settings-text-input" placeholder="Prénom Nom" oninput="saveDisplayName()">
+    </div>
+    <div class="settings-section">
       <div class="settings-section-title" data-i18n="settings.folder.title">Dossier de sauvegarde par défaut</div>
       <p class="settings-hint" data-i18n="settings.folder.hint">Les nouveaux projets seront créés dans ce dossier. Si non défini, ils sont sauvegardés dans le dossier AppData de l'application.</p>
       <div class="folder-picker-row">
