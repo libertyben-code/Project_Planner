@@ -2,6 +2,40 @@
 
 ---
 
+## 1.6.1 — 2026-06-09
+
+### 🇫🇷 Correctifs & améliorations
+
+- **Édition inline** : les cellules texte de tous les onglets (Tâches Internes, Interfaces, Fonctionnel, Prérequis Dry Run, Prérequis Installation, Facturation, onglets personnalisés) sont désormais éditables directement dans la cellule — même style que Suivi Heures (cadre bleu pleine cellule, coins arrondis). `Entrée` passe à la ligne ; un second `Entrée` sur une ligne vide valide et sort de la cellule.
+- **Statistiques de phase** : chaque ligne de phase affiche le nombre de tâches et le pourcentage d'avancement global de la phase.
+- **Colonnes épic JIRA** : les cellules de semaine des épics JIRA utilisent le style des phases (fond atténué, sans couleur jour férié).
+- **Statut JIRA dans le Gantt** : le badge de statut des tâches JIRA affiche désormais le vrai statut JIRA (ex. « In Review ») avec la couleur de la catégorie.
+- **Lien JIRA dans le Gantt** : la clé de tâche JIRA dans le Gantt est un lien cliquable qui ouvre la tâche dans le navigateur.
+- **Couleur du texte des épics JIRA** : le libellé des épics utilise la couleur de l'épic au lieu du blanc (illisible sur fond clair).
+- **Ligne du jour au zoom < 100 %** : la ligne rouge du jour reste visible quel que soit le niveau de zoom.
+- **Chemin source automatique** : à l'ouverture d'un projet via le bouton « Ouvrir », le champ *Chemin source* est renseigné automatiquement si vide.
+- **Cellules dropdown entièrement cliquables** : toute la cellule (pas seulement le badge) déclenche le menu déroulant, sur tous les onglets.
+- **Badge Qui?** : la colonne *Qui?* de Prérequis Installation affiche désormais un badge pill gris comme les autres colonnes dropdown.
+- **Badge Type (Interfaces)** : la colonne *Type* affiche un badge pill gris cohérent avec les autres colonnes.
+- **Scrollbar de navigation** : fine scrollbar stylisée sur la barre d'onglets (visible uniquement en cas de dépassement).
+
+### 🇬🇧 Fixes & improvements
+
+- **Inline editing**: text cells in all tabs (Internal Tasks, Interfaces, Functional, Dry Run, Install, Billing, custom tabs) are now directly editable in the cell — same style as Suivi Heures (full-cell blue outline, rounded corners). `Enter` inserts a new line; a second `Enter` on an empty line validates and exits.
+- **Phase statistics**: each phase row now shows the task count and overall completion percentage.
+- **JIRA epic week columns**: week cells on JIRA epic rows use the phase style (dimmed background, no holiday colour override).
+- **JIRA status in Gantt**: JIRA task status badges now show the real JIRA status name (e.g. "In Review") with the category colour.
+- **Clickable JIRA key in Gantt**: the JIRA task key in the Gantt is now a clickable link that opens the issue in the browser.
+- **JIRA epic text colour**: epic labels now use the epic colour instead of white (which was unreadable on light backgrounds).
+- **Today line at zoom < 100 %**: the red today line remains visible at any zoom level.
+- **Auto-fill source path**: opening a project via the Open button automatically fills the *Source path* field if empty.
+- **Full-cell dropdown click**: the entire cell (not just the badge) triggers the dropdown, across all tabs.
+- **Qui? badge**: the *Qui?* column in Prérequis Installation now shows a grey pill badge like other dropdown columns.
+- **Type badge (Interfaces)**: the *Type* column shows a consistent grey pill badge.
+- **Nav scrollbar**: thin styled scrollbar on the tab bar (visible only when content overflows).
+
+---
+
 ## 1.6.0 — 2026-06-09
 
 ### 🇫🇷 Nouveautés
