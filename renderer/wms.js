@@ -408,7 +408,7 @@ document.querySelectorAll('.nav-tab[data-page]').forEach(tab => {
 function _syncZoomDisplay(pageId) {
   const z = _pageZoom[pageId] || 100;
   const el = document.getElementById(pageId);
-  if (el) el.style.zoom = z + '%';
+  if (el) { el.style.zoom = z + '%'; el.style.setProperty('--page-zoom', z / 100); }
   const disp = document.getElementById('nav-zoom-display');
   if (disp) disp.textContent = z === 100 ? '100%' : z + '%';
 }
@@ -684,11 +684,14 @@ function renderGantt() {
     const phStarts = phaseTasks.map(t => t.start).filter(Boolean).map(d => new Date(d).getTime());
     const phEnds   = phaseTasks.map(t => t.end).filter(Boolean).map(d => new Date(d).getTime());
     const phDurStr = phStarts.length && phEnds.length ? ` <span style="opacity:.75;font-size:10px;font-weight:400">(${Math.round((Math.max(...phEnds) - Math.min(...phStarts)) / 86400000) + 1}j)</span>` : '';
+    const realTasks = phaseTasks.filter(t => !t.isUnavail);
+    const phAvg = realTasks.length ? Math.round(realTasks.reduce((s, t) => s + (t.progress || 0), 0) / realTasks.length) : 0;
+    const phStatsStr = realTasks.length ? ` <span style="opacity:.75;font-size:10px;font-weight:400;margin-left:6px">${realTasks.length} tâche${realTasks.length > 1 ? 's' : ''} · ${phAvg}%</span>` : '';
     const collapseBtn = `<button data-phase-id="${phase.id}" onclick="togglePhaseCollapse('${phase.id}')" title="${isCollapsed ? t('gantt.expand') : t('gantt.collapse')}" style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:4px;padding:1px 7px;cursor:pointer;font-size:11px;font-family:inherit;line-height:1.4">${isCollapsed ? '▶' : '▼'}</button>`;
     if (_ganttEditMode) {
-      tdPh.innerHTML = `<span class="drag-handle gantt-drag-handle" style="color:rgba(255,255,255,.85);margin-right:8px;font-size:15px;vertical-align:middle">⠿</span>${phase.name}${phDurStr}`;
+      tdPh.innerHTML = `<span class="drag-handle gantt-drag-handle" style="color:rgba(255,255,255,.85);margin-right:8px;font-size:15px;vertical-align:middle">⠿</span>${phase.name}${phDurStr}${phStatsStr}`;
     } else {
-      tdPh.innerHTML = `${collapseBtn}<span style="cursor:pointer;margin-left:6px" title="${t('modal.phase.edit')}" onclick="openEditPhase('${phase.id}')">${phase.name}${phDurStr}</span>
+      tdPh.innerHTML = `${collapseBtn}<span style="cursor:pointer;margin-left:6px" title="${t('modal.phase.edit')}" onclick="openEditPhase('${phase.id}')">${phase.name}${phDurStr}</span>${phStatsStr}
         <span style="float:right;display:flex;gap:6px;align-items:center">
           <button onclick="openAddTaskModal('${phase.id}')" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;font-family:inherit">${t('btn.add_task')}</button>
         </span>`;
@@ -825,7 +828,7 @@ function renderGantt() {
         // Epic sub-header
         const repic = table.insertRow(); repic.className = 'tr-phase'; repic.dataset.jiraEpicId = epic.id;
         const tdEpic = document.createElement('td'); tdEpic.colSpan = fixedCount;
-        tdEpic.style.cssText = `background:${epic.color}18;border-left:3px solid ${epic.color};padding-left:8px;font-size:11px`;
+        tdEpic.style.cssText = `background:${epic.color}18;border-left:3px solid ${epic.color};padding-left:8px;font-size:11px;color:${epic.color}`;
         const epicCollapseBtn = `<button onclick="togglePhaseCollapse('__epic_${epic.id}')" title="${epicCollapsed ? t('gantt.expand') : t('gantt.collapse')}" style="background:rgba(0,0,0,.08);border:none;color:${epic.color};border-radius:4px;padding:1px 7px;cursor:pointer;font-size:11px;font-family:inherit;line-height:1.4;margin-right:4px">${epicCollapsed ? '▶' : '▼'}</button>`;
         if (_ganttEditMode) {
           tdEpic.innerHTML = `<span class="drag-handle gantt-drag-handle" style="color:${epic.color};margin-right:6px;font-size:13px;vertical-align:middle">⠿</span><span style="font-weight:700;color:${epic.color};font-family:monospace;margin-right:6px">${epic.key}</span>${epic.summary}`;
@@ -833,7 +836,7 @@ function renderGantt() {
           tdEpic.innerHTML = `${epicCollapseBtn}<span style="font-weight:700;color:${epic.color};font-family:monospace;margin-right:6px">${epic.key}</span>${epic.summary}`;
         }
         repic.appendChild(tdEpic);
-        WEEKS.forEach((w, wi) => { const td = document.createElement('td'); td.className = 'gantt-cell'; if (isToday(w)) td.classList.add('today-col'); if (WEEK_HOLIDAYS[wi].length) td.classList.add('holiday-col'); repic.appendChild(td); });
+        WEEKS.forEach(w => { const td = document.createElement('td'); td.className = 'gantt-cell'; td.style.background = epic.color; td.style.opacity = '.2'; if (isToday(w)) td.style.borderLeft = '2px solid #f97316'; repic.appendChild(td); });
 
         if (!epicCollapsed) {
           epicTasks.forEach(jTask => {
@@ -845,14 +848,14 @@ function renderGantt() {
                   td.innerHTML = `<span class="drag-handle gantt-drag-handle" title="${t('drag.move_task')}" style="display:block;text-align:center">⠿</span>`;
                 } else {
                   td.className += ' status-cell';
-                  td.innerHTML = `<span class="badge badge-${jiraStatusBadgeClass(jTask.status)}">${jiraStatusLabel(jTask.status)}</span>`;
+                  td.innerHTML = `<span class="badge badge-${jiraStatusBadgeClassFromCategory(jTask.statusCategoryKey || 'new')}">${jTask.statusName || jiraStatusLabel(jTask.status)}</span>`;
                 }
               } else if (lbl === 'PRIORITÉ') {
                 td.style.cssText = 'text-align:center;font-size:10px;color:var(--text-muted)';
                 td.textContent = jTask.storyPoints ? jTask.storyPoints + ' pts' : '—';
               } else if (lbl === 'INTITULÉ') {
                 td.style.cssText = 'padding:2px 6px;font-size:11.5px';
-                td.innerHTML = `<span style="font-size:10px;font-weight:700;color:#0052CC;background:#EAF0FF;padding:1px 4px;border-radius:2px;margin-right:5px;font-family:monospace">${jTask.key}</span>${jTask.summary}`;
+                td.innerHTML = `<span class="jira-link" data-key="${jTask.key}" onclick="openJiraIssue(this.dataset.key)" style="font-size:10px;font-weight:700;color:#0052CC;background:#EAF0FF;padding:1px 4px;border-radius:2px;margin-right:5px;font-family:monospace;cursor:pointer">${jTask.key}</span>${jTask.summary}`;
               } else if (lbl === 'PROPRIÉTAIRE') {
                 td.style.cssText = 'padding:2px 4px;font-size:11px'; td.textContent = jTask.assignee || '—';
               } else if (lbl === 'DÉBUT') {
@@ -1023,9 +1026,6 @@ function jiraStatusLabel(s) {
     BLOCKED: () => t('jira.status.blocked'),
   };
   return map[s] ? map[s]() : (s || '—');
-}
-function jiraStatusBadgeClass(s) {
-  return { TO_DO:'Non-commencé', IN_PROGRESS:'En-cours', DONE:'Terminé', IN_REVIEW:'Vérification-requise', BLOCKED:'En-attente' }[s] || 'empty';
 }
 function jiraStatusBadgeClassFromCategory(key) {
   return { done: 'Terminé', indeterminate: 'En-cours', new: 'Non-commencé' }[key] || 'empty';
@@ -1602,14 +1602,22 @@ function renderTaches() {
     const tr = tbody.insertRow(); tr.dataset.rowId = task.id;
     const urgChip = urgChipHTML(task.urg);
     tr.innerHTML = `<td>${dh()}</td>
-      <td style="font-weight:500;min-width:190px">${task.action}</td>
+      <td contenteditable="true" style="min-width:190px;font-weight:500"></td>
       <td style="padding:2px 4px"></td>
       <td style="min-width:98px"><span class="${ETAT_B[task.etat]||'cell-none'}" style="cursor:pointer">${task.etat}</span></td>
       <td style="text-align:center;font-size:12px">${task.temps||0} h</td>
-      <td style="font-size:12px">${task.deadline||'—'}</td>
+      <td style="padding:0"><input class="cell-input" type="date" style="font-size:12px"></td>
       <td style="text-align:center">${urgChip}</td>
-      <td style="color:var(--text-muted);min-width:120px;font-size:12px">${task.comment||''}</td>
+      <td contenteditable="true" style="min-width:120px;color:var(--text-muted);font-size:12px"></td>
       <td><button class="btn btn-secondary btn-sm" onclick="openEditInternalTask('${task.id}')">✏</button></td>`;
+    tr.cells[1].textContent = task.action || '';
+    tr.cells[1].addEventListener('blur', () => { task.action = tr.cells[1].textContent.trim(); debouncedSave(); });
+    tr.cells[1].addEventListener('keydown', e => { if (e.key === 'Enter') { e.stopPropagation(); const el = e.currentTarget; const html = el.innerHTML; if (html === '' || html === '<br>' || html.endsWith('<br>')) { e.preventDefault(); if (html.endsWith('<br>')) el.innerHTML = html.slice(0, -4); el.blur(); } } });
+    tr.cells[5].querySelector('input').value = task.deadline || '';
+    tr.cells[5].querySelector('input').addEventListener('change', e => { task.deadline = e.target.value; debouncedSave(); });
+    tr.cells[7].textContent = task.comment || '';
+    tr.cells[7].addEventListener('blur', () => { task.comment = tr.cells[7].textContent.trim(); debouncedSave(); });
+    tr.cells[7].addEventListener('keydown', e => { if (e.key === 'Enter') { e.stopPropagation(); const el = e.currentTarget; const html = el.innerHTML; if (html === '' || html === '<br>' || html.endsWith('<br>')) { e.preventDefault(); if (html.endsWith('<br>')) el.innerHTML = html.slice(0, -4); el.blur(); } } });
     // Owner inline select
     const ownerSel = document.createElement('select');
     ownerSel.className = 'gantt-select'; ownerSel.style.width = '100%';
@@ -1617,8 +1625,11 @@ function renderTaches() {
     ownerSel.onchange = () => { task.owner = ownerSel.value; debouncedSave(); };
     tr.cells[2].appendChild(ownerSel);
     const etatSp = tr.cells[3].querySelector('span');
-    etatSp.addEventListener('click', e => { e.stopPropagation(); showDropdown(etatSp, ETAT_INT.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:ETAT_D[v]})), val => { task.etat = val; renderTaches(); debouncedSave(); }); });
-    tr.cells[6].querySelector('span').addEventListener('click', e => { e.stopPropagation(); showDropdown(tr.cells[6].querySelector('span'), URG_OPTS, val => { task.urg = val; renderTaches(); debouncedSave(); }); });
+    tr.cells[3].style.cursor = 'pointer';
+    tr.cells[3].addEventListener('click', e => { e.stopPropagation(); showDropdown(etatSp, ETAT_INT.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:ETAT_D[v]})), val => { task.etat = val; renderTaches(); debouncedSave(); }); });
+    const urgSp = tr.cells[6].querySelector('span');
+    tr.cells[6].style.cursor = 'pointer';
+    tr.cells[6].addEventListener('click', e => { e.stopPropagation(); showDropdown(urgSp, URG_OPTS, val => { task.urg = val; renderTaches(); debouncedSave(); }); });
   });
   makeSortable(tbody, internalTasks, renderTaches);
 }
@@ -1699,16 +1710,24 @@ function renderInterfaces() {
   interfacesData.forEach(row => {
     const tr = tbody.insertRow(); tr.dataset.rowId = row.id;
     tr.innerHTML = `<td>${dh()}</td>
-      <td style="font-size:12px"><span class="cell-type" style="cursor:pointer">${row.type || 'Connecteur ERP'}</span></td>
-      <td style="font-weight:500">${row.name}</td>
+      <td style="font-size:12px"><span class="cell-none" style="cursor:pointer">${row.type || 'Connecteur ERP'}</span></td>
+      <td contenteditable="true" style="font-weight:500"></td>
       <td>${cellBadge(ITF_B,row.dev)}</td><td>${cellBadge(ITF_B,row.preprod)}</td><td>${cellBadge(ITF_B,row.recCompany)}</td><td>${cellBadge(ITF_B,row.recClient)}</td><td>${cellBadge(ITF_B,row.valide)}</td>
-      <td style="color:var(--text-muted);font-size:12px">${row.comment}</td>
+      <td contenteditable="true" style="color:var(--text-muted);font-size:12px"></td>
       <td><button class="btn btn-secondary btn-sm" onclick="openEditInterface('${row.id}')">✏</button></td>`;
+    tr.cells[2].textContent = row.name || '';
+    tr.cells[2].addEventListener('blur', () => { row.name = tr.cells[2].textContent.trim(); debouncedSave(); });
+    tr.cells[2].addEventListener('keydown', e => { if (e.key === 'Enter') { e.stopPropagation(); const el = e.currentTarget; const html = el.innerHTML; if (html === '' || html === '<br>' || html.endsWith('<br>')) { e.preventDefault(); if (html.endsWith('<br>')) el.innerHTML = html.slice(0, -4); el.blur(); } } });
+    tr.cells[8].textContent = row.comment || '';
+    tr.cells[8].addEventListener('blur', () => { row.comment = tr.cells[8].textContent.trim(); debouncedSave(); });
+    tr.cells[8].addEventListener('keydown', e => { if (e.key === 'Enter') { e.stopPropagation(); const el = e.currentTarget; const html = el.innerHTML; if (html === '' || html === '<br>' || html.endsWith('<br>')) { e.preventDefault(); if (html.endsWith('<br>')) el.innerHTML = html.slice(0, -4); el.blur(); } } });
     const typeSp = tr.cells[1].querySelector('span');
-    typeSp.addEventListener('click', e => { e.stopPropagation(); showDropdown(typeSp, ITF_TYPES.map(v => ({label:v,value:v,dot:'#94a3b8'})), val => { row.type = val; typeSp.textContent = val; debouncedSave(); }); });
+    tr.cells[1].style.cursor = 'pointer';
+    tr.cells[1].addEventListener('click', e => { e.stopPropagation(); showDropdown(typeSp, ITF_TYPES.map(v => ({label:v,value:v,dot:'#94a3b8'})), val => { row.type = val; typeSp.textContent = val; debouncedSave(); }); });
     ['dev','preprod','recCompany','recClient','valide'].forEach((f,fi) => {
-      const sp = tr.cells[fi+3].querySelector('span');
-      sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, ITF_STATES.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:ITF_D[v]})), val => { row[f] = val; sp.className = ITF_B[val]||'cell-none'; sp.textContent = CELL_LABEL[val]?.() ?? val; renderDashboard(); debouncedSave(); }); });
+      const td = tr.cells[fi+3]; const sp = td.querySelector('span');
+      td.style.cursor = 'pointer';
+      td.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, ITF_STATES.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:ITF_D[v]})), val => { row[f] = val; sp.className = ITF_B[val]||'cell-none'; sp.textContent = CELL_LABEL[val]?.() ?? val; renderDashboard(); debouncedSave(); }); });
 });
   });
   makeSortable(tbody, interfacesData, renderInterfaces);
@@ -1769,17 +1788,25 @@ function renderFonctionnel() {
   fonctionnelData.forEach(row => {
     const tr = tbody.insertRow(); tr.dataset.rowId = row.id;
     tr.innerHTML = `<td>${dh()}</td>
-      <td style="font-weight:600;min-width:160px">${row.name}</td>
+      <td contenteditable="true" style="min-width:160px;font-weight:600"></td>
       <td>${cellBadge(ITF_B,row.dev)}</td>
       <td style="text-align:center;cursor:pointer"><span>${row.pct}%</span></td>
       <td>${cellBadge(ITF_B,row.testCompany)}</td><td>${cellBadge(ITF_B,row.preprod)}</td><td>${cellBadge(ITF_B,row.formKU)}</td><td>${cellBadge(ITF_B,row.testClient)}</td><td>${cellBadge(ITF_B,row.formUsers)}</td>
-      <td style="color:var(--text-muted);min-width:110px;font-size:12px">${row.comment}</td>
+      <td contenteditable="true" style="min-width:110px;color:var(--text-muted);font-size:12px"></td>
       <td><button class="btn btn-secondary btn-sm" onclick="openEditFonctionnel('${row.id}')">✏</button></td>`;
+    tr.cells[1].textContent = row.name || '';
+    tr.cells[1].addEventListener('blur', () => { row.name = tr.cells[1].textContent.trim(); debouncedSave(); });
+    tr.cells[1].addEventListener('keydown', e => { if (e.key === 'Enter') { e.stopPropagation(); const el = e.currentTarget; const html = el.innerHTML; if (html === '' || html === '<br>' || html.endsWith('<br>')) { e.preventDefault(); if (html.endsWith('<br>')) el.innerHTML = html.slice(0, -4); el.blur(); } } });
+    tr.cells[9].textContent = row.comment || '';
+    tr.cells[9].addEventListener('blur', () => { row.comment = tr.cells[9].textContent.trim(); debouncedSave(); });
+    tr.cells[9].addEventListener('keydown', e => { if (e.key === 'Enter') { e.stopPropagation(); const el = e.currentTarget; const html = el.innerHTML; if (html === '' || html === '<br>' || html.endsWith('<br>')) { e.preventDefault(); if (html.endsWith('<br>')) el.innerHTML = html.slice(0, -4); el.blur(); } } });
     ['dev','testCompany','preprod','formKU','testClient','formUsers'].forEach((f,fi) => {
       const td = tr.cells[[2,4,5,6,7,8][fi]]; const sp = td.querySelector('span');
-      sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, ITF_STATES.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:ITF_D[v]})), val => { row[f] = val; sp.className = ITF_B[val]||'cell-none'; sp.textContent = CELL_LABEL[val]?.() ?? val; debouncedSave(); }); });
+      td.style.cursor = 'pointer';
+      td.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, ITF_STATES.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:ITF_D[v]})), val => { row[f] = val; sp.className = ITF_B[val]||'cell-none'; sp.textContent = CELL_LABEL[val]?.() ?? val; debouncedSave(); }); });
     });
-    tr.cells[3].querySelector('span').addEventListener('click', e => { e.stopPropagation(); showDropdown(tr.cells[3].querySelector('span'), [0,10,20,30,40,50,60,70,80,90,100].map(v=>({label:v+'%',value:v,dot:'#2563eb'})), val => { row.pct = val; renderFonctionnel(); debouncedSave(); }); });
+    const pctSp = tr.cells[3].querySelector('span'); tr.cells[3].style.cursor = 'pointer';
+    tr.cells[3].addEventListener('click', e => { e.stopPropagation(); showDropdown(pctSp, [0,10,20,30,40,50,60,70,80,90,100].map(v=>({label:v+'%',value:v,dot:'#2563eb'})), val => { row.pct = val; renderFonctionnel(); debouncedSave(); }); });
   });
   makeSortable(tbody, fonctionnelData, renderFonctionnel);
 }
@@ -1820,12 +1847,19 @@ function renderDryrun() {
   dryrunData.forEach(row => {
     const tr = tbody.insertRow(); tr.dataset.rowId = row.id;
     tr.innerHTML = `<td>${dh()}</td>
-      <td style="font-weight:500">${formatTemplate(row.name)}</td>
+      <td contenteditable="true" style="font-weight:500"></td>
       <td style="min-width:98px">${cellBadge(DR_B,row.etat)}</td>
-      <td style="color:var(--text-muted);font-size:12px">${row.comment}</td>
+      <td contenteditable="true" style="color:var(--text-muted);font-size:12px"></td>
       <td><button class="btn btn-secondary btn-sm" onclick="openEditDryrun('${row.id}')">✏</button></td>`;
+    tr.cells[1].textContent = row.name || '';
+    tr.cells[1].addEventListener('blur', () => { row.name = tr.cells[1].textContent.trim(); debouncedSave(); });
+    tr.cells[1].addEventListener('keydown', e => { if (e.key === 'Enter') { e.stopPropagation(); const el = e.currentTarget; const html = el.innerHTML; if (html === '' || html === '<br>' || html.endsWith('<br>')) { e.preventDefault(); if (html.endsWith('<br>')) el.innerHTML = html.slice(0, -4); el.blur(); } } });
+    tr.cells[3].textContent = row.comment || '';
+    tr.cells[3].addEventListener('blur', () => { row.comment = tr.cells[3].textContent.trim(); debouncedSave(); });
+    tr.cells[3].addEventListener('keydown', e => { if (e.key === 'Enter') { e.stopPropagation(); const el = e.currentTarget; const html = el.innerHTML; if (html === '' || html === '<br>' || html.endsWith('<br>')) { e.preventDefault(); if (html.endsWith('<br>')) el.innerHTML = html.slice(0, -4); el.blur(); } } });
     const sp = tr.cells[2].querySelector('span');
-    sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, DR_STATES.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:DR_D[v]})), val => { row.etat = val; sp.className = DR_B[val]||'cell-none'; sp.textContent = CELL_LABEL[val]?.() ?? val; renderDashboard(); debouncedSave(); }); });
+    tr.cells[2].style.cursor = 'pointer';
+    tr.cells[2].addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, DR_STATES.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:DR_D[v]})), val => { row.etat = val; sp.className = DR_B[val]||'cell-none'; sp.textContent = CELL_LABEL[val]?.() ?? val; renderDashboard(); debouncedSave(); }); });
   });
   makeSortable(tbody, dryrunData, renderDryrun);
 }
@@ -1878,16 +1912,26 @@ function renderInstall() {
     const tr = tbody.insertRow(); tr.dataset.rowId = row.id;
     const quiLabel = row.qui === TOKEN_CLIENT ? getClientLabel() : row.qui === 'COMPANY' ? getCompanyLabel() : (row.qui || '—');
     tr.innerHTML = `<td>${dh()}</td>
-      <td style="font-weight:500">${row.action}</td>
+      <td contenteditable="true" style="font-weight:500"></td>
       <td style="min-width:88px">${cellBadge(INST_B,row.etat)}</td>
-      <td style="font-size:12px;cursor:pointer"><span class="qui-label">${quiLabel}</span></td>
-      <td style="font-size:12px">${row.deadline||'—'}</td>
-      <td style="color:var(--text-muted);font-size:12px">${row.comment}</td>
+      <td style="cursor:pointer"><span class="cell-none">${quiLabel}</span></td>
+      <td style="padding:0"><input class="cell-input" type="date" style="font-size:12px"></td>
+      <td contenteditable="true" style="color:var(--text-muted);font-size:12px"></td>
       <td><button class="btn btn-secondary btn-sm" onclick="openEditInstall('${row.id}')">✏</button></td>`;
+    tr.cells[1].textContent = row.action || '';
+    tr.cells[1].addEventListener('blur', () => { row.action = tr.cells[1].textContent.trim(); debouncedSave(); });
+    tr.cells[1].addEventListener('keydown', e => { if (e.key === 'Enter') { e.stopPropagation(); const el = e.currentTarget; const html = el.innerHTML; if (html === '' || html === '<br>' || html.endsWith('<br>')) { e.preventDefault(); if (html.endsWith('<br>')) el.innerHTML = html.slice(0, -4); el.blur(); } } });
+    tr.cells[4].querySelector('input').value = row.deadline || '';
+    tr.cells[4].querySelector('input').addEventListener('change', e => { row.deadline = e.target.value; debouncedSave(); });
+    tr.cells[5].textContent = row.comment || '';
+    tr.cells[5].addEventListener('blur', () => { row.comment = tr.cells[5].textContent.trim(); debouncedSave(); });
+    tr.cells[5].addEventListener('keydown', e => { if (e.key === 'Enter') { e.stopPropagation(); const el = e.currentTarget; const html = el.innerHTML; if (html === '' || html === '<br>' || html.endsWith('<br>')) { e.preventDefault(); if (html.endsWith('<br>')) el.innerHTML = html.slice(0, -4); el.blur(); } } });
     const sp = tr.cells[2].querySelector('span');
-    sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, INST_STATES.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:INST_D[v]})), val => { row.etat = val; sp.className = INST_B[val]||'cell-none'; sp.textContent = CELL_LABEL[val]?.() ?? val; renderDashboard(); debouncedSave(); }); });
-    const quiSpan = tr.cells[3].querySelector('.qui-label');
-    quiSpan.addEventListener('click', e => {
+    tr.cells[2].style.cursor = 'pointer';
+    tr.cells[2].addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, INST_STATES.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:INST_D[v]})), val => { row.etat = val; sp.className = INST_B[val]||'cell-none'; sp.textContent = CELL_LABEL[val]?.() ?? val; renderDashboard(); debouncedSave(); }); });
+    const quiSpan = tr.cells[3].querySelector('span');
+    tr.cells[3].style.cursor = 'pointer';
+    tr.cells[3].addEventListener('click', e => {
       e.stopPropagation();
       showDropdown(quiSpan, getOwnerOptions().map(o => ({ label: typeof o.label === 'function' ? o.label() : o.label, value: o.value })), val => {
         row.qui = val;
@@ -1978,15 +2022,23 @@ function renderFactRow(tbody, list, type) {
     const tr = tbody.insertRow(); tr.dataset.rowId = row.id;
     if (row.etat === 'Payé') tr.style.background = 'rgba(5,150,105,.10)';
     tr.innerHTML = `<td>${dh()}</td>
-      <td style="font-weight:600">${row.jalon}</td>
-      <td style="font-size:12px">${row.date||'—'}</td>
-      <td style="font-size:12px">${row.echeance||'—'}</td>
+      <td contenteditable="true" style="font-weight:600"></td>
+      <td style="padding:0"><input class="cell-input" type="date" style="font-size:12px"></td>
+      <td style="padding:0"><input class="cell-input" type="date" style="font-size:12px"></td>
       <td style="min-width:78px">${cellBadge(FACT_B,row.etat)}</td>
       <td style="text-align:right;font-size:12px">${row.pct||0}%</td>
       <td style="text-align:right"><input class="h-input" type="number" style="font-weight:600;width:90px" value="${row.montant||0}" min="0" onchange="saveJalonMontant('${row.id}','${type}',this.value)"></td>
       <td><button class="btn btn-secondary btn-sm" onclick="openEditJalon('${row.id}','${type}')">✏</button></td>`;
+    tr.cells[1].textContent = row.jalon || '';
+    tr.cells[1].addEventListener('blur', () => { row.jalon = tr.cells[1].textContent.trim(); debouncedSave(); });
+    tr.cells[1].addEventListener('keydown', e => { if (e.key === 'Enter') { e.stopPropagation(); const el = e.currentTarget; const html = el.innerHTML; if (html === '' || html === '<br>' || html.endsWith('<br>')) { e.preventDefault(); if (html.endsWith('<br>')) el.innerHTML = html.slice(0, -4); el.blur(); } } });
+    tr.cells[2].querySelector('input').value = row.date || '';
+    tr.cells[2].querySelector('input').addEventListener('change', e => { row.date = e.target.value; debouncedSave(); });
+    tr.cells[3].querySelector('input').value = row.echeance || '';
+    tr.cells[3].querySelector('input').addEventListener('change', e => { row.echeance = e.target.value; debouncedSave(); });
     const sp = tr.cells[4].querySelector('span');
-    sp.addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, FACT_STATES.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:FACT_D[v]})), val => { row.etat = val; sp.className = FACT_B[val]||'cell-none'; sp.textContent = CELL_LABEL[val]?.() ?? val; renderFacturation(); renderDashboard(); debouncedSave(); }); });
+    tr.cells[4].style.cursor = 'pointer';
+    tr.cells[4].addEventListener('click', e => { e.stopPropagation(); showDropdown(sp, FACT_STATES.map(v => ({label: () => CELL_LABEL[v]?.() ?? v, value:v, dot:FACT_D[v]})), val => { row.etat = val; sp.className = FACT_B[val]||'cell-none'; sp.textContent = CELL_LABEL[val]?.() ?? val; renderFacturation(); renderDashboard(); debouncedSave(); }); });
   });
   makeSortable(tbody, list, renderFacturation);
 }
@@ -2596,7 +2648,7 @@ function renderCustomTabRows(tabId) {
       if (col.type === 'checkbox') {
         cells += `<td style="text-align:center"><input type="checkbox" ${val?'checked':''} onchange="ctSetCell('${tabId}','${row.id}','${col.key}',this.checked);debouncedSave()"></td>`;
       } else if (col.type === 'date') {
-        cells += `<td><input type="date" value="${val}" style="border:none;background:transparent;font-family:inherit;font-size:11.5px;width:100%" onchange="ctSetCell('${tabId}','${row.id}','${col.key}',this.value);debouncedSave()"></td>`;
+        cells += `<td style="padding:0"><input class="cell-input" type="date" style="font-size:11.5px" onchange="ctSetCell('${tabId}','${row.id}','${col.key}',this.value);debouncedSave()" value="${val}"></td>`;
       } else if (col.type === 'select') {
         const opts = (col.options||[]).map(o=>`<option${o===val?' selected':''}>${o}</option>`).join('');
         cells += `<td><select class="tbl-sel" onchange="ctSetCell('${tabId}','${row.id}','${col.key}',this.value);debouncedSave()">${opts}</select></td>`;

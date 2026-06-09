@@ -19,7 +19,7 @@ Paste this file (or mention it) at the start of a new conversation to restore co
 
 Claude follows this checklist at the end of every working session, in order:
 
-1. **Ask the user to test** — "Can you test the build? (`npx serve renderer -l 8080` or `npx tauri dev`)"
+1. **Ask the user to test** — "Can you test the build? (`npx serve renderer -l 3000` or `npx tauri dev`)"
 2. **Wait for approval** — do not proceed until the user confirms ("ok", "good", etc.) or requests fixes
 3. **Update all docs** once approved:
    - `FEEDBACK.md` — mark completed items `[x]`
@@ -125,7 +125,7 @@ The versioned EXE is a copy of the raw Rust binary — no install required, just
 **The mandatory flow for any code change:**
 
 1. Claude implements the change and states which files changed and why
-2. **User tests the build** — either `npx tauri dev` (full Tauri window) or `npx serve renderer -l 8080` (browser, no Rust) — and approves or requests changes
+2. **User tests the build** — either `npx tauri dev` (full Tauri window) or `npx serve renderer -l 3000` (browser, no Rust) — and approves or requests changes
 3. Claude commits only after explicit user approval ("ok", "good", "commit it", etc.)
 
 **Exceptions (Claude may commit directly after stating intent, no build test needed):**
@@ -400,7 +400,14 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - **README.md / README.en.md**: "Partager un projet" section rewritten with OneDrive workflow guide.
 - **MAINTAINER.md**: new "Shared file / conflict detection" section documenting the flow and local-only state.
 
-## Pending items (summary from FEEDBACK.md + Bugs.md as of 2026-06-08)
+### 2026-06-09 — UX polish: Enter key, nav scrollbar, Qui? pill (`feature/jira-epic-color-today-line-zoom`)
+
+- **Enter key — empty line removal**: all 11 contenteditable `keydown` handlers updated with the same logic — pressing Enter on an empty trailing line (innerHTML ends with `<br>`) removes it and blurs; otherwise Enter inserts a newline normally. Covers: Tâches Internes (action, comment), Interfaces (name, comment), Fonctionnel (name, comment), Prérequis Dry Run (name, comment), Prérequis Install (action, comment), Facturation (jalon).
+- **Nav bar scrollbar**: reverted flex layout changes (all tabs back to `flex-shrink:0`, `padding:0 13px`). Only styling change kept: thin 3px webkit scrollbar on `.nav-tabs` with semi-transparent white thumb.
+- **"Qui?" column pill**: the Qui? cell in Prérequis Install now renders a `cell-none` gray pill badge (same style as the type column in Interfaces). Full cell remains clickable.
+- **Pending**: user has not yet tested or approved — no commit.
+
+## Pending items (summary from FEEDBACK.md + Bugs.md as of 2026-06-09)
 
 **Bugs (priority):**
 

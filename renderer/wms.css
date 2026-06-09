@@ -25,6 +25,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .rag-drop-item:hover{background:#1e2d42;}
 .rag-drop-clear{color:#94a3b8;border-top:1px solid #2d3f55;}
 .nav-tabs{display:flex;height:100%;overflow-x:auto;}
+.nav-tabs::-webkit-scrollbar{height:3px;}
+.nav-tabs::-webkit-scrollbar-track{background:transparent;}
+.nav-tabs::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:2px;}
 .nav-tab{padding:0 13px;height:100%;display:flex;align-items:center;font-size:12px;font-weight:500;color:rgba(255,255,255,.55);cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;flex-shrink:0;}
 .nav-tab:hover{color:rgba(255,255,255,.85);}
 .nav-tab.active{color:#fff;border-bottom-color:#60a5fa;}
@@ -77,7 +80,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .gantt-cell{width:22px;min-width:18px;text-align:center;padding:2px !important;}
 .gantt-bar{display:block;width:18px;height:15px;border-radius:3px;margin:0 auto;transition:opacity .2s;}
 .gantt-bar-done{opacity:.3;}
-.today-col{border-left:2px solid #f97316 !important;}
+.today-col{border-left-width:calc(2px / var(--page-zoom, 1)) !important;border-left-style:solid !important;border-left-color:#f97316 !important;}
 .holiday-week{background:#fef3c7 !important;color:#92400e !important;font-weight:700 !important;}
 .holiday-col{background:rgba(251,191,36,.08) !important;}
 /* STATUS BADGE */
@@ -189,6 +192,10 @@ td[contenteditable="true"]:focus{outline:2px solid var(--accent);outline-offset:
 /* Heures table */
 .h-input{border:none;background:transparent;font-family:'DM Mono',monospace;font-size:12px;text-align:right;width:70px;padding:2px 4px;border-radius:4px;}
 .h-input:focus{outline:2px solid var(--accent);background:var(--accent-light);}
+.cell-input{display:block;border:none;background:transparent;font-family:inherit;font-size:inherit;color:inherit;width:100%;padding:3px 6px;min-width:0;border-radius:4px;}
+.cell-input:focus{outline:2px solid var(--accent);background:var(--accent-light);}
+td[contenteditable]{cursor:text;}
+td[contenteditable]:focus{outline:2px solid var(--accent);background:var(--accent-light) !important;border-radius:4px;}
 @media print{.app-nav,.planning-toolbar .btn,.modal-overlay{display:none!important;}body{background:#fff;}.gantt-wrapper{overflow:visible;}}
 /* ── Project settings modal ── */
 .settings-section{margin-bottom:20px;}
@@ -286,8 +293,7 @@ td[contenteditable="true"]:focus{outline:2px solid var(--accent);outline-offset:
 @media (max-width:1024px) {
   /* Nav: allow tabs to scroll horizontally */
   .app-nav { flex-wrap: nowrap; height: auto; min-height: 46px; padding: 0 10px; gap: 6px; }
-  .nav-tabs { gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tabs { gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .nav-tab { font-size: 11px; padding: 0 10px; }
   .nav-right { flex-shrink: 0; gap: 4px; }
   .nav-right .btn { font-size: 10px; padding: 3px 8px; }
