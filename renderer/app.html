@@ -119,7 +119,7 @@
 
 <!-- RELOAD BANNER (shown when file changed on disk by another user) -->
 <div class="reload-banner" id="reload-banner" style="display:none">
-  <span data-i18n="banner.modified">⚠ Ce projet a été modifié par un autre utilisateur.</span>
+  <span id="reload-banner-msg">⚠ Ce projet a été modifié par un autre utilisateur.</span>
   <button class="btn btn-secondary btn-sm" onclick="reloadProject()" data-i18n="banner.reload">Recharger</button>
   <button class="btn btn-ghost btn-sm" onclick="document.getElementById('reload-banner').style.display='none'" data-i18n="banner.dismiss">Ignorer</button>
 </div>
@@ -588,6 +588,18 @@
       <button class="btn btn-secondary" onclick="resetTabOrder()" data-i18n="modal.tabs.reset">Réinitialiser</button>
       <button class="btn btn-secondary" onclick="closeModal('modal-manage-tabs')" data-i18n="btn.cancel">Annuler</button>
       <button class="btn btn-primary" onclick="saveManageTabs()" data-i18n="btn.apply">Appliquer</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFLICT MODAL (shown when auto-save would overwrite an external change) -->
+<div class="modal-overlay" id="modal-conflict">
+  <div class="modal">
+    <h3>⚠ Conflit de sauvegarde</h3>
+    <p id="modal-conflict-msg" style="margin-bottom:16px;line-height:1.5"></p>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeConflictModal()">Annuler</button>
+      <button class="btn btn-danger" onclick="overwriteAndSave()">Écraser et sauvegarder</button>
     </div>
   </div>
 </div>

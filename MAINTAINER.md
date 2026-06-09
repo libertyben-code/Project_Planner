@@ -136,6 +136,22 @@ The `isUnavail: true` flag on a task suppresses Statut, Priorité, J, and % Avan
 
 When saving, `saveTask()` reads all `.task-seg-row` elements, filters out blanks, sets `task.segments` only when there are 2+, and deletes the property otherwise to keep the JSON clean.
 
+### Shared file / conflict detection
+
+The app uses a Tauri file watcher to detect when another user saves the shared `.wmsplan`. When triggered:
+
+1. `_externalChangeDetected` flag is set to `true` — all subsequent `saveProject()` calls are blocked.
+2. A 500 ms delayed read fetches `meta.lastEditedBy` from the updated file and populates `_externalEditorName`.
+3. The reload banner updates to show: *"Modifié par [name] — pensez à recharger."*
+4. If the user then edits and auto-save fires, `_showConflictModal()` is called instead of writing.
+5. The conflict modal offers: **Annuler** (close modal, flag stays set) or **Écraser et sauvegarder** (clears flag, writes, hides banner).
+6. **Reloading** (`reloadProject()`) calls `loadProject()` which resets `_externalChangeDetected = false`.
+
+State that is NOT written to the `.wmsplan` and therefore never conflicts between users:
+- Column widths → `localStorage` key `col-w:<tbodyId>`
+- Per-page zoom → `localStorage` key `pageZoom`
+- Phase collapse state → `_collapsedPhases` Set in memory, resets on every load
+
 ### Per-page zoom
 
 `_pageZoom` is a module-level object (`{ [pageId]: zoomPercent }`) persisted to `localStorage` under the key `pageZoom`. Range: 50–200, step: 10.
@@ -226,6 +242,7 @@ Custom tabs are rendered by `buildCustomTabHTML(tab)` + `renderCustomTabRows(tab
 Files are saved as `.wmsplan` (plain JSON). The schema is defined by `buildState()` in `wms.js`. Key fields:
 
 - `meta` — project header, install dates, JIRA config
+  - `meta.lastEditedBy` — display name of the user who last saved (from `appSettings.displayName`; falls back to `'Utilisateur'`)
 - `phases[]` / `tasks[]` — Gantt data; tasks optionally carry `segments:[{start,end}]` for multi-period rows and `isUnavail:true` for holiday/absence rows
 - `heuresData[]` — hours rows; bold rows have `totalType`, editable rows have `type`
 - `jiraData` — `{ epics[], tasks[], lastSync }` populated by `syncJira()`

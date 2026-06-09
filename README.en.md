@@ -37,11 +37,26 @@ The app creates a blank `.wmsplan` file and opens the project. Every change is s
 - **Recent projects** appear as cards on the home screen. Click **Ouvrir**.
 - **From a shared folder**: click **Ouvrir...** in the top bar and browse to the `.wmsplan` file.
 
-### Sharing a project
+### Sharing a project via OneDrive (or network folder)
 
-- Copy the `.wmsplan` file to a shared network folder.
-- Each team member opens it with their own copy of the app.
-- If someone else saves while you have the file open, a banner appears at the top: click **Recharger** to get their changes.
+**Recommended setup:**
+
+1. Place the `.wmsplan` file in a shared OneDrive folder (or any network drive accessible to all team members).
+2. In **⚙ Settings** (home screen), fill in your **Username** — it will be shown to other members when you save changes.
+3. In **⚙ Project Settings** → *Secondary save folder*, point to the same OneDrive folder so every auto-save is copied there automatically.
+
+**How it works:**
+
+- The app watches the file continuously. If someone else saves while you are working, a banner appears at the top: *"Modified by [Name] — consider reloading."*
+- Click **Reload** to pull their changes (any unsaved local changes will be lost).
+- If you have made local edits before reloading, the app shows a **Save Conflict** modal with two options: *Cancel* (keep editing) or *Overwrite and save* (write your version over theirs).
+
+**Best practice:** one person edits at a time. The modification banner tells you when someone else is active on the file.
+
+**What is NOT shared between users** (local state only):
+- Column widths (stored in the local browser storage)
+- Per-page zoom level
+- Phase collapsed/expanded state (resets on every open)
 
 ## Home screen
 

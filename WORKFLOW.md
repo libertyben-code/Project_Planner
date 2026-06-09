@@ -390,6 +390,16 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - **Estimation originale + temps passé**: `timeoriginalestimate` and `timespent` (seconds) added to JIRA API fields list. Stored as `originalEstimateSec`/`timeSpentSec`. "J" column (both Gantt and JIRA tab) now shows original estimate in hours via `fmtJiraTime()`. New "Passé" column in JIRA tab shows time spent. CSS grid updated from 9 to 10 columns. `jira.col.spent` i18n key added in FR/EN/ES.
 - **Auto-sync**: `_startJiraAutoSync()` called at end of `loadProject()`. Fires one immediate `syncJira()` then sets a 10-minute `setInterval`. Silently skips if JIRA credentials or project key are not configured. Timer cleared and reset on reload.
 
+### 2026-06-09 — Multi-user OneDrive support (`feature/multi-user-onedrive`)
+
+- **`appSettings.displayName`**: new field in global settings, persisted via `write_settings`. Set in ⚙ Paramètres (home screen) → "Votre nom d'utilisateur".
+- **`meta.lastEditedBy`**: stamped in `buildState()` on every save using `_displayName`; visible in the `.wmsplan` JSON and read by other users when they detect an external change.
+- **Conflict gate in `saveProject()`**: if `_externalChangeDetected` is set, auto-save is blocked and `_showConflictModal()` is called instead of writing.
+- **File watcher upgrade**: on external change, sets `_externalChangeDetected = true`, then after a 500 ms delay reads the file to extract `meta.lastEditedBy` and updates the reload banner text to show who saved.
+- **Conflict modal** (`modal-conflict` in `app.html`): "Annuler" closes the modal (flag stays set); "Écraser et sauvegarder" clears the flag, hides the banner, and writes.
+- **README.md / README.en.md**: "Partager un projet" section rewritten with OneDrive workflow guide.
+- **MAINTAINER.md**: new "Shared file / conflict detection" section documenting the flow and local-only state.
+
 ## Pending items (summary from FEEDBACK.md + Bugs.md as of 2026-06-08)
 
 **Bugs (priority):**

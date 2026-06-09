@@ -8,7 +8,7 @@ setWindowTitle('WMS Project Planner');
 let recent = [];       // [{ name, client, pm, path, updatedAt, installStatus, installProgress, dryRunProgress }]
 let filteredRecent = [];
 let pendingConfirm = null;  // fn to call when user clicks "Confirmer"
-let appSettings = { saveFolder: '', companyName: '', lightMode: false, templatePath: '', language: 'fr', jiraConfig: { url: '', email: '', token: '' } };
+let appSettings = { saveFolder: '', companyName: '', displayName: '', lightMode: false, templatePath: '', language: 'fr', jiraConfig: { url: '', email: '', token: '' } };
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 async function init() {
@@ -439,6 +439,8 @@ window.openSettings = function() {
   const display = document.getElementById('settings-folder-display');
   display.textContent = appSettings.saveFolder || t('settings.folder.default');
   document.getElementById('settings-company-name').value = appSettings.companyName || '';
+  const displayNameEl = document.getElementById('settings-display-name');
+  if (displayNameEl) displayNameEl.value = appSettings.displayName || '';
   document.getElementById('settings-light-mode').checked = appSettings.lightMode || false;
   const langSelect = document.getElementById('settings-language');
   if (langSelect) langSelect.value = appSettings.language || getCurrentLang();
@@ -466,6 +468,11 @@ window.saveJiraCredentials = async function() {
 
 window.saveCompanyName = async function() {
   appSettings.companyName = document.getElementById('settings-company-name').value.trim();
+  await persistSettings();
+};
+
+window.saveDisplayName = async function() {
+  appSettings.displayName = document.getElementById('settings-display-name').value.trim();
   await persistSettings();
 };
 

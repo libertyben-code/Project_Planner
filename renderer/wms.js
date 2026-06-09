@@ -47,6 +47,9 @@ let _jiraAutoSyncTimer = null;
 let _ganttEditMode = false;
 let _collapsedPhases = new Set();
 let _companyName = 'COMPANY';
+let _displayName = '';
+let _externalChangeDetected = false;
+let _externalEditorName = 'un autre utilisateur';
 let _ownerOptions = ['Intégrateur', 'Autre'];
 let _userSettings = {};
 let _lastDailyBackupDay = '';
@@ -56,7 +59,7 @@ let _pageZoom = JSON.parse(localStorage.getItem('pageZoom') || '{}');
 // ═══ IPC / SAVE ═══
 function buildState() {
   return {
-    meta: { ...projectMeta, updatedAt: new Date().toISOString() },
+    meta: { ...projectMeta, updatedAt: new Date().toISOString(), lastEditedBy: _displayName || 'Utilisateur' },
     phases, tasks, heuresData, internalTasks,
     interfaces: interfacesData,
     functional: fonctionnelData,
@@ -70,6 +73,7 @@ function buildState() {
 
 async function saveProject() {
   if (!currentPath) return;
+  if (_externalChangeDetected) { _showConflictModal(); return; }
   try {
     _ownWrite = true;
     const state = buildState();
@@ -131,9 +135,11 @@ async function loadProject(path) {
       const rawSettings = await invoke('read_settings');
       const s = typeof rawSettings === 'string' ? JSON.parse(rawSettings) : (rawSettings || {});
       if (s.companyName) _companyName = s.companyName;
+      if (s.displayName) _displayName = s.displayName;
       _userSettings = s;
       if (s.language) setLanguage(s.language);
     } catch {}
+    _externalChangeDetected = false;
     const raw = await invoke('read_project', { path });
     const state = migrateProjectData(JSON.parse(raw));
     currentPath = path;
@@ -147,7 +153,15 @@ async function loadProject(path) {
       _fileWatcherRegistered = true;
       listenFileChanged(() => {
         if (_ownWrite) return;
+        _externalChangeDetected = true;
         document.getElementById('reload-banner').style.display = 'flex';
+        setTimeout(() => {
+          invoke('read_project', { path: currentPath }).then(raw => {
+            try { _externalEditorName = JSON.parse(raw)?.meta?.lastEditedBy || 'un autre utilisateur'; } catch {}
+            const msg = document.getElementById('reload-banner-msg');
+            if (msg) msg.textContent = `⚠ Modifié par ${_externalEditorName} — pensez à recharger.`;
+          }).catch(() => {});
+        }, 500);
       });
     }
   } catch (e) {
@@ -221,6 +235,13 @@ function setVal(id, v) { const el = document.getElementById(id); if (el) el.valu
 function reloadProject() {
   document.getElementById('reload-banner').style.display = 'none';
   if (currentPath) loadProject(currentPath);
+}
+
+function _showConflictModal() {
+  const msg = document.getElementById('modal-conflict-msg');
+  if (msg) msg.innerHTML = `Ce projet a été modifié par <strong>${_externalEditorName}</strong> depuis votre dernière ouverture.<br>Si vous écrasez, ses modifications seront perdues.`;
+  const modal = document.getElementById('modal-conflict');
+  if (modal) modal.style.display = 'flex';
 }
 
 function goHome() { window.location.href = 'home.html'; }
@@ -3301,6 +3322,13 @@ function resetSourcePath() {
 Object.assign(window, {
   changeZoom, resetZoom,
   goHome, reloadProject, undoDelete, toggleRagDropdown, closeRagDropdown,
+  closeConflictModal: () => { document.getElementById('modal-conflict').style.display = 'none'; },
+  overwriteAndSave: async () => {
+    document.getElementById('modal-conflict').style.display = 'none';
+    document.getElementById('reload-banner').style.display = 'none';
+    _externalChangeDetected = false;
+    await saveProject();
+  },
   onMetaInput, handleInstallOrigChange, openInstallDelaySection, clearInstallDelay,
   openAddPhaseModal, openAddTaskModal, openEditTask, openEditPhase,
   closeModal, saveTask, savePhase,

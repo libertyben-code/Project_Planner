@@ -37,11 +37,26 @@ L'application crée un fichier `.wmsplan` vierge et ouvre le projet. Chaque modi
 - **Projets récents** : ils apparaissent sous forme de cartes sur l'écran d'accueil. Cliquez sur **Ouvrir**.
 - **Depuis un dossier partagé** : cliquez sur **Ouvrir...** dans la barre du haut et naviguez jusqu'au fichier `.wmsplan`.
 
-### Partager un projet
+### Partager un projet via OneDrive (ou dossier réseau)
 
-- Copiez le fichier `.wmsplan` dans un dossier réseau partagé.
-- Chaque membre de l'équipe l'ouvre avec sa propre copie de l'application.
-- Si quelqu'un d'autre sauvegarde pendant que vous avez le fichier ouvert, une bannière apparaît en haut : cliquez sur **Recharger** pour récupérer ses modifications.
+**Configuration recommandée :**
+
+1. Déposez le fichier `.wmsplan` dans un dossier OneDrive partagé (ou un lecteur réseau accessible à tous).
+2. Dans **⚙ Paramètres** (écran d'accueil), renseignez votre **Nom d'utilisateur** — il sera affiché aux autres membres lors des modifications.
+3. Dans **⚙ Paramètres du projet** → *Dossier de sauvegarde secondaire*, indiquez le même dossier OneDrive pour que chaque sauvegarde y soit copiée automatiquement.
+
+**Comment ça fonctionne :**
+
+- L'application surveille le fichier en permanence. Si quelqu'un d'autre sauvegarde pendant que vous travaillez, une bannière s'affiche en haut : *"Modifié par [Prénom Nom] — pensez à recharger."*
+- Cliquez sur **Recharger** pour récupérer ses modifications (vos changements non sauvegardés seront perdus).
+- Si vous faites des modifications locales avant de recharger, l'app affichera une modale **Conflit de sauvegarde** avec deux options : *Annuler* (continuer à éditer) ou *Écraser et sauvegarder* (écrire votre version par-dessus).
+
+**Règle de bonne pratique :** une seule personne édite à la fois. La bannière de modification vous indique quand quelqu'un d'autre est actif sur le fichier.
+
+**Ce qui n'est PAS partagé entre les utilisateurs** (état local uniquement) :
+- Largeurs de colonnes (mémorisées dans le navigateur local)
+- Niveau de zoom par page
+- État replié/déplié des phases (réinitialisé à l'ouverture)
 
 ## Écran d'accueil
 
