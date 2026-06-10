@@ -384,7 +384,7 @@ window.deleteProject = function(path) {
   const name = entry ? entry.name : path.split(/[\\/]/).pop();
   showConfirm(
     'Supprimer le projet',
-    `"${name}" sera définitivement supprimé du disque. Cette action est irréversible.`,
+    `"${name}" sera définitivement supprimé du disque :\n${path}\n\nCette action est irréversible.`,
     async () => {
       try {
         await invoke('delete_project', { path });
