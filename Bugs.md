@@ -16,3 +16,5 @@ Format : `- [ ] description` en attente, `- [x] description — OK` une fois cor
 
 ## Tableau de bord
 - [x] dans le tableau JIRA, mettre à jours les statuts avec ceux des tickets JIRA — OK (onglet JIRA + Gantt)
+
+## Home

@@ -1330,31 +1330,114 @@ function savePhase() {
 document.querySelectorAll('.modal-overlay').forEach(el => el.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); }));
 
 // ═══ PDF ═══
-async function exportPDF() {
-  const btn = document.querySelector('.btn-primary'); const orig = btn.innerHTML; btn.innerHTML = t('pdf.generating'); btn.disabled = true;
+async function _renderPagedPDF({ panel, wrapperId, title, subtitle, fileName, singlePage = false }) {
+  const btn = document.getElementById('btn-nav-pdf');
+  const orig = btn?.innerHTML;
+  if (btn) { btn.innerHTML = t('pdf.generating'); btn.disabled = true; }
   try {
-    const { jsPDF } = window.jspdf; const panel = document.getElementById('planning-panel');
-    const wr = document.getElementById('gantt-wrapper'); const prev = wr.style.overflow; wr.style.overflow = 'visible';
-    const canvas = await html2canvas(panel, {scale:1.3,useCORS:true,backgroundColor:'#fff',logging:false,scrollX:0,scrollY:0,windowWidth:panel.scrollWidth,width:panel.scrollWidth});
-    wr.style.overflow = prev;
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF({orientation:'landscape',unit:'mm',format:'a3'});
+    const { jsPDF } = window.jspdf;
+    const SCALE = singlePage ? 1.8 : 2.5;
+    const wr = wrapperId ? document.getElementById(wrapperId) : null;
+    const prevOverflow = wr?.style.overflow;
+    const prevScrollTop = wr?.scrollTop ?? 0;
+    const prevScrollLeft = wr?.scrollLeft ?? 0;
+    if (wr) { wr.style.overflow = 'visible'; wr.scrollTop = 0; wr.scrollLeft = 0; }
+    const toolbar = singlePage ? panel.querySelector('.planning-toolbar') : null;
+    if (toolbar) toolbar.style.display = 'none';
+
+    // Measure row bottom-edges relative to panel top BEFORE rendering (used for smart page breaks)
+    const panelTop = panel.getBoundingClientRect().top;
+    const rowEdges = singlePage ? [] : [...panel.querySelectorAll('tr')]
+      .map(r => Math.round((r.getBoundingClientRect().bottom - panelTop) * SCALE))
+      .filter(y => y > 0);
+
+    const canvas = await html2canvas(panel, {
+      scale: SCALE, useCORS: true, backgroundColor: '#fff', logging: false,
+      scrollX: 0, scrollY: 0, windowWidth: panel.scrollWidth, width: panel.scrollWidth
+    });
+    if (wr) { wr.style.overflow = prevOverflow; wr.scrollTop = prevScrollTop; wr.scrollLeft = prevScrollLeft; }
+    if (toolbar) toolbar.style.display = '';
+
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     const pageW = pdf.internal.pageSize.getWidth(), pageH = pdf.internal.pageSize.getHeight();
-    const m = 10, aw = pageW - m*2, ah = pageH - m*2 - 14;
-    const ratio = canvas.width / canvas.height; let dw = aw, dh = dw / ratio; if (dh > ah) { dh = ah; dw = dh * ratio; }
-    const proj = projectMeta.name || '', cli = projectMeta.client || '', pm = projectMeta.pm || '', today = new Date().toLocaleDateString('fr-FR');
-    pdf.setFillColor(26,35,50); pdf.rect(m,m,pageW-m*2,10,'F');
-    pdf.setFont('helvetica','bold'); pdf.setFontSize(11); pdf.setTextColor(255,255,255); pdf.text(`PLANNING — ${proj.toUpperCase()}`, m+4, m+6.5);
-    pdf.setFont('helvetica','normal'); pdf.setFontSize(9); pdf.text(`Client: ${cli}  |  Directeur de Projet: ${pm}  |  ${today}`, pageW-m-4, m+6.5, {align:'right'});
-    pdf.addImage(imgData,'PNG',m,m+12,dw,dh);
-    pdf.setFontSize(8); pdf.setTextColor(150,150,150); pdf.text(`${t('pdf.confidential')} — ${proj}`, m, pageH-4); pdf.text('Page 1', pageW-m, pageH-4, {align:'right'});
-    const fileName = `Planning_${proj.replace(/\s+/g,'_')}_${today.replace(/\//g,'-')}.pdf`;
+    const m = 10, headerH = 12, footerH = 8;
+    const aw = pageW - m * 2;
+    const ah = pageH - m * 2 - headerH - footerH;
+    const pxPerMm = canvas.width / aw;
+    const proj = projectMeta.name || '';
+
+    const addHeader = () => {
+      pdf.setFillColor(26, 35, 50); pdf.rect(m, m, aw, 10, 'F');
+      pdf.setFont('helvetica', 'bold'); pdf.setFontSize(11); pdf.setTextColor(255, 255, 255);
+      pdf.text(title, m + 4, m + 6.5);
+      pdf.setFont('helvetica', 'normal'); pdf.setFontSize(9);
+      pdf.text(subtitle, pageW - m - 4, m + 6.5, { align: 'right' });
+    };
+
+    if (singlePage) {
+      addHeader();
+      const ratio = canvas.width / canvas.height;
+      let dw = aw, dh = dw / ratio;
+      if (dh > ah) { dh = ah; dw = dh * ratio; }
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      pdf.addImage(imgData, 'JPEG', m + (aw - dw) / 2, m + headerH, dw, dh);
+      pdf.setFontSize(8); pdf.setTextColor(150, 150, 150);
+      pdf.text(`${t('pdf.confidential')} — ${proj}`, m, pageH - 4);
+      pdf.text('Page 1 / 1', pageW - m, pageH - 4, { align: 'right' });
+    } else {
+      // Build page-break list snapping to row boundaries so no row is split mid-height
+      const slicePx = Math.round(ah * pxPerMm);
+      const sortedEdges = rowEdges.filter(y => y <= canvas.height).sort((a, b) => a - b);
+      const pageBreaks = [0];
+      let cur = 0;
+      while (cur < canvas.height) {
+        const target = cur + slicePx;
+        if (target >= canvas.height) break;
+        let best = target;
+        for (let i = sortedEdges.length - 1; i >= 0; i--) {
+          if (sortedEdges[i] <= target && sortedEdges[i] > cur) { best = sortedEdges[i]; break; }
+        }
+        pageBreaks.push(best);
+        cur = best;
+      }
+      pageBreaks.push(canvas.height);
+      const numPages = pageBreaks.length - 1;
+
+      for (let i = 0; i < numPages; i++) {
+        if (i > 0) pdf.addPage();
+        addHeader();
+        const srcY = pageBreaks[i];
+        const srcH = pageBreaks[i + 1] - srcY;
+        const slice = document.createElement('canvas');
+        slice.width = canvas.width; slice.height = srcH;
+        slice.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
+        const imgData = slice.toDataURL('image/jpeg', 1.0);
+        const sliceHmm = srcH / pxPerMm;
+        pdf.addImage(imgData, 'JPEG', m, m + headerH, aw, sliceHmm);
+        pdf.setFontSize(8); pdf.setTextColor(150, 150, 150);
+        pdf.text(`${t('pdf.confidential')} — ${proj}`, m, pageH - 4);
+        pdf.text(`Page ${i + 1} / ${numPages}`, pageW - m, pageH - 4, { align: 'right' });
+      }
+    }
+
     const savePath = await invoke('save_pdf_dialog', { name: fileName });
-    if (!savePath) { btn.innerHTML = orig; btn.disabled = false; return; }
+    if (!savePath) { if (btn) { btn.innerHTML = orig; btn.disabled = false; } return; }
     const arrayBuf = pdf.output('arraybuffer');
     await invoke('write_file_bytes', { path: savePath, bytes: Array.from(new Uint8Array(arrayBuf)) });
   } catch (e) { console.error(e); alert(t('pdf.error') + e); }
-  btn.innerHTML = orig; btn.disabled = false;
+  if (btn) { btn.innerHTML = orig; btn.disabled = false; }
+}
+
+async function exportPDF() {
+  const panel = document.getElementById('planning-panel');
+  const proj = projectMeta.name || '', cli = projectMeta.client || '', pm = projectMeta.pm || '';
+  const today = new Date().toLocaleDateString('fr-FR');
+  await _renderPagedPDF({
+    panel, wrapperId: 'gantt-wrapper', singlePage: true,
+    title: `PLANNING — ${proj.toUpperCase()}`,
+    subtitle: `Client: ${cli}  |  Directeur de Projet: ${pm}  |  ${today}`,
+    fileName: `Planning_${proj.replace(/\s+/g, '_')}_${today.replace(/\//g, '-')}.pdf`
+  });
 }
 
 async function exportCurrentTabPDF() {
@@ -1364,33 +1447,16 @@ async function exportCurrentTabPDF() {
     ? document.getElementById('planning-panel')
     : document.getElementById(pageId);
   if (!panel) return;
-  const btn = document.getElementById('btn-nav-pdf');
-  const orig = btn?.innerHTML; if (btn) { btn.innerHTML = t('pdf.generating'); btn.disabled = true; }
-  try {
-    const { jsPDF } = window.jspdf;
-    const wr = pageId === 'page-planning' ? document.getElementById('gantt-wrapper') : null;
-    const prev = wr?.style.overflow; if (wr) wr.style.overflow = 'visible';
-    const canvas = await html2canvas(panel, {scale:1.3,useCORS:true,backgroundColor:'#fff',logging:false,scrollX:0,scrollY:0,windowWidth:panel.scrollWidth,width:panel.scrollWidth});
-    if (wr) wr.style.overflow = prev;
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF({orientation:'landscape',unit:'mm',format:'a3'});
-    const pageW = pdf.internal.pageSize.getWidth(), pageH = pdf.internal.pageSize.getHeight();
-    const m = 10, aw = pageW - m*2, ah = pageH - m*2 - 14;
-    const ratio = canvas.width / canvas.height; let dw = aw, dh = dw / ratio; if (dh > ah) { dh = ah; dw = dh * ratio; }
-    const tabName = activeTab?.textContent?.trim() || 'Export';
-    const proj = projectMeta.name || '', cli = projectMeta.client || '', today = new Date().toLocaleDateString('fr-FR');
-    pdf.setFillColor(26,35,50); pdf.rect(m,m,pageW-m*2,10,'F');
-    pdf.setFont('helvetica','bold'); pdf.setFontSize(11); pdf.setTextColor(255,255,255); pdf.text(`${tabName.toUpperCase()} — ${proj.toUpperCase()}`, m+4, m+6.5);
-    pdf.setFont('helvetica','normal'); pdf.setFontSize(9); pdf.text(`Client: ${cli}  |  ${today}`, pageW-m-4, m+6.5, {align:'right'});
-    pdf.addImage(imgData,'PNG', m+(aw-dw)/2, m+12, dw, dh);
-    pdf.setFontSize(8); pdf.setTextColor(150,150,150); pdf.text(`${t('pdf.confidential')} — ${proj}`, m, pageH-4); pdf.text('Page 1', pageW-m, pageH-4, {align:'right'});
-    const fileName = `${tabName.replace(/\s+/g,'_')}_${proj.replace(/\s+/g,'_')}_${today.replace(/\//g,'-')}.pdf`;
-    const savePath = await invoke('save_pdf_dialog', { name: fileName });
-    if (!savePath) { if (btn) { btn.innerHTML = orig; btn.disabled = false; } return; }
-    const arrayBuf = pdf.output('arraybuffer');
-    await invoke('write_file_bytes', { path: savePath, bytes: Array.from(new Uint8Array(arrayBuf)) });
-  } catch (e) { console.error(e); alert(t('pdf.error') + e); }
-  if (btn) { btn.innerHTML = orig; btn.disabled = false; }
+  const tabName = activeTab?.textContent?.trim() || 'Export';
+  const proj = projectMeta.name || '', cli = projectMeta.client || '';
+  const today = new Date().toLocaleDateString('fr-FR');
+  await _renderPagedPDF({
+    panel, wrapperId: pageId === 'page-planning' ? 'gantt-wrapper' : null,
+    singlePage: pageId === 'page-planning',
+    title: `${tabName.toUpperCase()} — ${proj.toUpperCase()}`,
+    subtitle: `Client: ${cli}  |  ${today}`,
+    fileName: `${tabName.replace(/\s+/g, '_')}_${proj.replace(/\s+/g, '_')}_${today.replace(/\//g, '-')}.pdf`
+  });
 }
 
 // ═══ HEURES ═══

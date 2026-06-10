@@ -38,7 +38,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Dans la colonne propriétaire, il faut les champs suivant : nom du client, intégrateur (nom configurable), autre dans un menu déroulant.
   - [x] Si le nom du client est changé en haut de la page, cela doit se refletter dans les menus déroulant et autres pages. - OK
 - [x] Chaque phase doit avoir le nombre de jours de durée en prenant les dates de tache min et max - ok
-- [x] si l'on hover sur une celulle colorié du planning, on doit pouvoir voir la date hovered. - OK
+- [x] si l'on hover sur une celulle colorié du planning, on doit 1PDS8178-SR7U2100PFWpouvoir voir la date hovered. - OK
   - [x] Améliorer les infos du la bulle. - OK
 - [x] Le statut des tache doit être Non commencé par défaut.  
 - [x] Un bouton edit planning doit permettre de drag and drop les taches dans toutes les phases. - OK
@@ -144,6 +144,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 
 <!-- Gantt PDF export -->
 - [x] Changer le Chef de Projet en haut à gauche et mettre Directeur de Projet. — OK
+- [x] les fichiers pdf exporté sont beaucoup trop lourd. Il faut qu'ils fassent moins de 4mb. De plus pour les taches jira, il faut que les colonnes rentrent dans la largeur de la page et le fichier peux avoir plus d'une page. — OK
 
 ## JIRA
 

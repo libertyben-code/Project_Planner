@@ -407,7 +407,16 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - **"Qui?" column pill**: the Qui? cell in Prérequis Install now renders a `cell-none` gray pill badge (same style as the type column in Interfaces). Full cell remains clickable.
 - **Pending**: user has not yet tested or approved — no commit.
 
-## Pending items (summary from FEEDBACK.md + Bugs.md as of 2026-06-09)
+### 2026-06-10 — PDF export rework + delete UX fix (`feature/pdf-size-multipage`)
+
+- **PDF size & quality**: `html2canvas` scale lowered to 1.8 (singlePage) / 2.5 (multi-page); switched from PNG to JPEG quality 1.0 to stay under 5 MB while keeping sharpness. Format changed from A3 → A4 landscape.
+- **Multi-page with row-aware breaks**: canvas sliced vertically along `<tr>` bottom edges so no row is split mid-height across pages. Scroll position reset before measuring to get accurate coordinates.
+- **Single-page mode for planning**: `exportPDF()` and the navbar PDF button on the planning tab both pass `singlePage: true` — the entire Gantt is fit proportionally to one A4 page.
+- **Planning toolbar hidden during export**: `.planning-toolbar` is hidden before the html2canvas capture and restored after, so buttons don't appear in the PDF.
+- **Shared `_renderPagedPDF` helper**: both `exportPDF()` and `exportCurrentTabPDF()` delegate to a single helper, eliminating duplication.
+- **Delete confirmation shows file path**: `deleteProject` confirmation dialog now includes the full path so users always know which file will be permanently deleted.
+
+## Pending items (summary from FEEDBACK.md + Bugs.md as of 2026-06-10)
 
 **Bugs (priority):**
 
