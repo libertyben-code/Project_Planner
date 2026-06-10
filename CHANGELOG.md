@@ -2,6 +2,30 @@
 
 ---
 
+## 1.6.2 — 2026-06-10
+
+### 🇫🇷 Correctifs & améliorations
+
+- **Export PDF multi-pages** : le Gantt est découpé en autant de pages A4 paysage que nécessaire, avec des coupures alignées sur les bords de lignes (aucun texte tronqué entre deux pages).
+- **Export PDF planning — page unique** : le planning exporte sur une seule page A4 paysage, contenu redimensionné pour tenir entièrement.
+- **Barre d'outils masquée à l'export** : la toolbar du planning (boutons Zoom, filtre, etc.) n'apparaît plus dans le PDF.
+- **Qualité d'image améliorée** : rendu à l'échelle × 2,5 pour le multi-pages, × 1,8 pour la page unique ; JPEG qualité maximale (1.0).
+- **Format A4** : les exports utilisent désormais le format A4 paysage au lieu de A3.
+- **Taille de fichier maîtrisée** : < 5 MB pour le planning, < 4 MB pour les onglets.
+- **Suppression de projet — chemin affiché** : la boîte de confirmation affiche maintenant le chemin complet du fichier `.wmsplan` qui sera supprimé, pour éviter toute confusion.
+
+### 🇬🇧 Fixes & improvements
+
+- **Multi-page PDF export**: the Gantt is split across as many A4 landscape pages as needed, with page breaks snapped to row boundaries (no text sliced mid-row).
+- **Planning PDF — single page**: the planning exports on a single A4 landscape page, content scaled to fit.
+- **Toolbar hidden on export**: the planning toolbar (Zoom, filter buttons, etc.) no longer appears in the PDF.
+- **Improved image quality**: rendered at scale × 2.5 for multi-page, × 1.8 for single-page; JPEG quality set to maximum (1.0).
+- **A4 format**: exports now use A4 landscape instead of A3.
+- **File size under control**: < 5 MB for the planning, < 4 MB for other tabs.
+- **Project deletion — path shown**: the confirmation dialog now displays the full `.wmsplan` file path so users know exactly which file will be permanently deleted.
+
+---
+
 ## 1.6.1 — 2026-06-09
 
 ### 🇫🇷 Correctifs & améliorations
