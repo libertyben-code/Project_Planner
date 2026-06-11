@@ -22,6 +22,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Dans settings, ajouter l'option mode dark ou light — OK
 
 ## Portfolio
+
 - [x] Dans le portfolio, mettre le nom du DP et CDP Tech ainsi que le nombre de jours ouvrés restant avant installation pour le suivi niveau managerial — OK
 
 ## Planning (Gantt)
@@ -38,7 +39,7 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Dans la colonne propriétaire, il faut les champs suivant : nom du client, intégrateur (nom configurable), autre dans un menu déroulant.
   - [x] Si le nom du client est changé en haut de la page, cela doit se refletter dans les menus déroulant et autres pages. - OK
 - [x] Chaque phase doit avoir le nombre de jours de durée en prenant les dates de tache min et max - ok
-- [x] si l'on hover sur une celulle colorié du planning, on doit 1PDS8178-SR7U2100PFWpouvoir voir la date hovered. - OK
+- [x] si l'on hover sur une celulle colorié du planning, on doit pouvoir voir la date hovered. - OK
   - [x] Améliorer les infos du la bulle. - OK
 - [x] Le statut des tache doit être Non commencé par défaut.  
 - [x] Un bouton edit planning doit permettre de drag and drop les taches dans toutes les phases. - OK
@@ -154,6 +155,8 @@ Format: `- [ ] description` for pending, `- [x] description` once done.
 - [x] Mettre un lien hyperlink vers la tâche dans l'ID de la tâche = CLE-XXX — OK
 - [x] La collone J doit correspondre à l'estimation originale et ajouter une autre colonne avec le temps passé actuel. — OK
 - [x] Synchronisation JIRA automatique à l'ouverture du projet et toutes les 10 minutes. — OK
+- [x] Ajouter une colonne priorité pour les tâches et reprendre les iconnes JIRA — OK
+- [x] Permettre de filtrer les tâches par Responsable — OK
 
 ## General / Cross-cutting
 

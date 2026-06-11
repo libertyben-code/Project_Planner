@@ -119,6 +119,8 @@ The sync is made through the native app (not the browser) — no CORS issues or 
 
 The Gantt chart will display a JIRA phase below your manual phases, and the dashboard will show an epic-progress chart.
 
+The JIRA tab shows a **Priority** column with colour-coded icons (Highest → Blocker in red, Medium in yellow, Low/Lowest in blue). A **Owner** dropdown in the toolbar lets you filter tasks by assignee.
+
 ## Export
 
 Three export formats are available from the top bar:
