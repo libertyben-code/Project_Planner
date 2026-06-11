@@ -2,6 +2,22 @@
 
 ---
 
+## 1.7.0 — 2026-06-11
+
+### 🇫🇷 Nouvelles fonctionnalités
+
+- **Priorité JIRA** : l'onglet JIRA affiche une nouvelle colonne **Priorité** avec des icônes colorées reprenant le style JIRA — rouge pour Blocker/Highest, orange pour High, jaune pour Medium, bleu pour Low/Lowest. La colonne Priorité du Gantt affiche également ces icônes pour les tâches JIRA (auparavant elle affichait les story points par erreur).
+- **Filtre par Responsable** : un menu déroulant dans la barre de l'onglet JIRA permet de filtrer les tâches par assigné. Les épics sans tâches correspondantes sont automatiquement masqués. Le filtre se réinitialise à chaque synchronisation.
+- **Barre de navigation** : défilement latéral restauré — la barre d'onglets est à nouveau scrollable horizontalement lorsque les onglets dépassent la largeur disponible.
+
+### 🇬🇧 New features
+
+- **JIRA priority**: the JIRA tab now shows a **Priority** column with colour-coded icons matching the JIRA style — red for Blocker/Highest, orange for High, yellow for Medium, blue for Low/Lowest. The Priority cell in the Gantt also shows these icons for JIRA tasks (it was incorrectly showing story points before).
+- **Filter by owner**: a dropdown in the JIRA tab toolbar lets you filter tasks by assignee. Epics with no matching tasks are automatically hidden. The filter resets on each sync.
+- **Navigation bar**: horizontal scroll restored — the tab bar is scrollable again when tabs overflow the available width.
+
+---
+
 ## 1.6.2 — 2026-06-10
 
 ### 🇫🇷 Correctifs & améliorations
