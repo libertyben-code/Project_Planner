@@ -416,7 +416,14 @@ All Tauri calls go through `tauri-ipc.js`, which falls back to `localStorage` wh
 - **Shared `_renderPagedPDF` helper**: both `exportPDF()` and `exportCurrentTabPDF()` delegate to a single helper, eliminating duplication.
 - **Delete confirmation shows file path**: `deleteProject` confirmation dialog now includes the full path so users always know which file will be permanently deleted.
 
-## Pending items (summary from FEEDBACK.md + Bugs.md as of 2026-06-10)
+### 2026-06-11 — JIRA priority column + assignee filter + nav scroll fix (`feature/jira-priority-filter`)
+
+- **JIRA priority column**: `transformJiraIssues` now reads `iss.fields.priority?.name` (added to API fields list). `jiraPriorityIcon(name)` renders colour-coded badges (red Blocker/Highest, orange High, yellow Medium, blue Low, light-blue Lowest). Column inserted between Status and Responsable in the JIRA tab (CSS grid updated to 11 columns). Gantt JIRA rows also fixed: the PRIORITÉ cell was incorrectly showing story points — now shows the priority icon.
+- **Assignee filter**: `<select id="jira-filter-assignee">` added to the JIRA toolbar. `renderJira()` populates it from current task data on every render and applies `_jiraAssigneeFilter` to each epic's task list (epics with no matching tasks are hidden). `filterJiraAssignee(val)` exported to window. Filter resets on each `syncJira()` call.
+- **Nav scroll fix**: `.nav-tabs` was missing `flex:1; min-width:0;` — without these a flex child never shrinks below its content width, so `overflow-x:auto` never activates. Added both properties.
+- **Demo data**: `example.wmsplan` JIRA tasks updated with realistic priority values (Highest, High, Medium, Low) and varied assignees for testing.
+
+## Pending items (summary from FEEDBACK.md + Bugs.md as of 2026-06-11)
 
 **Bugs (priority):**
 

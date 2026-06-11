@@ -555,6 +555,9 @@
   <div class="jira-toolbar">
     <span class="nav-logo" style="font-size:14px;font-weight:700;color:#0052CC">◈ JIRA</span>
     <button id="jira-sync-btn" class="btn btn-primary btn-sm" onclick="syncJira()" data-i18n="jira.sync">⟳ Synchroniser</button>
+    <select id="jira-filter-assignee" onchange="filterJiraAssignee(this.value)" style="font-size:12px;padding:3px 8px;border:1px solid var(--border);border-radius:5px;background:var(--surface);color:var(--text);cursor:pointer">
+      <option value="">Tous les responsables</option>
+    </select>
     <span id="jira-sync-info" class="jira-sync-info" data-i18n="jira.never">Jamais synchronisé</span>
   </div>
   <div id="kpi-jira" class="kpi-grid" style="padding:0 20px 12px"></div>

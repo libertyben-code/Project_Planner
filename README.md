@@ -119,6 +119,8 @@ La synchronisation s'effectue via l'application native (pas le navigateur) — a
 
 Le diagramme de Gantt affichera une phase JIRA sous vos phases manuelles, et le tableau de bord présentera un graphique d'avancement par épic.
 
+L'onglet JIRA affiche une colonne **Priorité** avec des icônes colorées (Highest → Blocker en rouge, Medium en jaune, Low/Lowest en bleu). Un menu déroulant **Responsable** dans la barre d'outils permet de filtrer les tâches par assigné.
+
 ## Export
 
 Trois formats d'export sont disponibles depuis la barre du haut :

@@ -44,6 +44,7 @@ const DEFAULT_DEPLACEMENTS = [
 let customTabs = [];
 let jiraData = { epics: [], tasks: [], lastSync: '' };
 let _jiraAutoSyncTimer = null;
+let _jiraAssigneeFilter = '';
 let _ganttEditMode = false;
 let _collapsedPhases = new Set();
 let _companyName = 'COMPANY';
@@ -851,8 +852,8 @@ function renderGantt() {
                   td.innerHTML = `<span class="badge badge-${jiraStatusBadgeClassFromCategory(jTask.statusCategoryKey || 'new')}">${jTask.statusName || jiraStatusLabel(jTask.status)}</span>`;
                 }
               } else if (lbl === 'PRIORITÉ') {
-                td.style.cssText = 'text-align:center;font-size:10px;color:var(--text-muted)';
-                td.textContent = jTask.storyPoints ? jTask.storyPoints + ' pts' : '—';
+                td.innerHTML = jiraPriorityIcon(jTask.priority);
+                td.style.textAlign = 'center';
               } else if (lbl === 'INTITULÉ') {
                 td.style.cssText = 'padding:2px 6px;font-size:11.5px';
                 td.innerHTML = `<span class="jira-link" data-key="${jTask.key}" onclick="openJiraIssue(this.dataset.key)" style="font-size:10px;font-weight:700;color:#0052CC;background:#EAF0FF;padding:1px 4px;border-radius:2px;margin-right:5px;font-family:monospace;cursor:pointer">${jTask.key}</span>${jTask.summary}`;
@@ -1030,6 +1031,22 @@ function jiraStatusLabel(s) {
 function jiraStatusBadgeClassFromCategory(key) {
   return { done: 'Terminé', indeterminate: 'En-cours', new: 'Non-commencé' }[key] || 'empty';
 }
+function jiraPriorityIcon(name) {
+  const n = (name || '').toLowerCase();
+  const m = n.includes('blocker')  ? ['#d32f2f', '⊘']
+           : n.includes('highest') ? ['#d32f2f', '↑↑']
+           : n.includes('high')    ? ['#e64a19', '↑']
+           : n.includes('medium')  ? ['#f9a825', '↔']
+           : n.includes('lowest') || n.includes('trivial') ? ['#64b5f6', '↓↓']
+           : n.includes('low')    ? ['#1976d2', '↓']
+           : null;
+  if (!m) return `<span style="font-size:10px;color:var(--text-muted)">${name || '—'}</span>`;
+  return `<span title="${name}" style="display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:15px;background:${m[0]};color:#fff;font-size:9px;font-weight:900;border-radius:2px;padding:0 2px">${m[1]}</span>`;
+}
+function filterJiraAssignee(val) {
+  _jiraAssigneeFilter = val;
+  renderJira();
+}
 function fmtJiraTime(sec) {
   if (!sec) return '—';
   return Math.round(sec / 3600) + 'h';
@@ -1069,6 +1086,7 @@ function transformJiraIssues(epicsRaw, tasksRaw) {
     progress: iss.fields.progress?.percent || 0,
     originalEstimateSec: iss.fields.timeoriginalestimate || 0,
     timeSpentSec: iss.fields.timespent || 0,
+    priority: iss.fields.priority?.name || '',
   }));
   return { epics, tasks, lastSync: '' };
 }
@@ -1091,10 +1109,11 @@ async function syncJira() {
     const jiraUrl = `${cfg.url}/rest/api/3/search/jql`;
     const [erText, trText] = await Promise.all([
       invoke('jira_fetch', { url: jiraUrl, email: cfg.email, token: cfg.token, body: JSON.stringify({ jql: `project=${projectKey} AND issuetype=Epic`, fields: ['summary', 'status'], maxResults: 50 }) }),
-      invoke('jira_fetch', { url: jiraUrl, email: cfg.email, token: cfg.token, body: JSON.stringify({ jql: `project=${projectKey} AND issuetype in (Story,Task,Bug)`, fields: ['summary', 'status', 'assignee', 'customfield_10016', 'duedate', 'startdate', 'parent', 'progress', 'timeoriginalestimate', 'timespent'], maxResults: 100 }) })
+      invoke('jira_fetch', { url: jiraUrl, email: cfg.email, token: cfg.token, body: JSON.stringify({ jql: `project=${projectKey} AND issuetype in (Story,Task,Bug)`, fields: ['summary', 'status', 'assignee', 'customfield_10016', 'duedate', 'startdate', 'parent', 'progress', 'timeoriginalestimate', 'timespent', 'priority'], maxResults: 100 }) })
     ]);
     jiraData = transformJiraIssues(JSON.parse(erText), JSON.parse(trText));
     jiraData.lastSync = new Date().toLocaleString('fr-FR');
+    _jiraAssigneeFilter = '';
     renderJira(); renderGantt(); debouncedSave();
     document.getElementById('jira-sync-info').textContent = `${t('jira.last_sync')} ${jiraData.lastSync} — ${jiraData.tasks.length} ${t('jira.imported')}`;
   } catch (e) {
@@ -1126,15 +1145,22 @@ function renderJira() {
     <div class="kpi-card"><div class="kpi-label">${t('kpi.j_done')}</div><div class="kpi-value" style="color:#059669">${done}</div><div class="kpi-sub">${tasks.length ? Math.round(done/tasks.length*100) : 0}%</div></div>
     <div class="kpi-card"><div class="kpi-label">${t('kpi.j_progress')}</div><div class="kpi-value" style="color:#2563eb">${inProg}</div></div>
     <div class="kpi-card"><div class="kpi-label">${t('kpi.j_epics')}</div><div class="kpi-value">${epics.length}</div></div>`;
+  const filterSel = document.getElementById('jira-filter-assignee');
+  if (filterSel) {
+    const assignees = [...new Set(tasks.map(tk => tk.assignee).filter(Boolean))].sort();
+    filterSel.innerHTML = `<option value="">${t('jira.filter.all')}</option>` +
+      assignees.map(a => `<option value="${a}"${a === _jiraAssigneeFilter ? ' selected' : ''}>${a}</option>`).join('');
+  }
   container.innerHTML = '';
   if (!tasks.length && !epics.length) {
     container.innerHTML = `<div class="jira-empty"><p style="font-size:15px;font-weight:600;margin-bottom:6px">${t('jira.no_data')}</p><p>${t('jira.no_data_hint')}</p></div>`;
     return;
   }
   [...epics, { id: '__orphan__', key: '', summary: t('jira.no_epic'), color: '#94a3b8', status: '' }].forEach(epic => {
-    const epicTasks = epic.id === '__orphan__'
+    const epicTasks = (epic.id === '__orphan__'
       ? tasks.filter(t => !t.epicId || !epics.find(e => e.id === t.epicId))
-      : tasks.filter(t => t.epicId === epic.id);
+      : tasks.filter(t => t.epicId === epic.id))
+      .filter(t => !_jiraAssigneeFilter || t.assignee === _jiraAssigneeFilter);
     if (!epicTasks.length) return;
     const epicDone = epicTasks.filter(t => t.status === 'DONE').length;
     const epicPct  = epicTasks.length ? Math.round(epicDone / epicTasks.length * 100) : 0;
@@ -1154,13 +1180,14 @@ function renderJira() {
         </div>
       </div>
       <div class="jira-epic-tasks">
-        <div class="jira-tasks-header"><span>${t('jira.col.key')}</span><span>${t('jira.col.title')}</span><span>${t('jira.col.status')}</span><span>${t('jira.col.owner')}</span><span>${t('jira.col.pts')}</span><span>${t('jira.col.start')}</span><span>${t('jira.col.due')}</span><span>${t('jira.col.days')}</span><span>${t('jira.col.spent')}</span><span>${t('jira.col.progress')}</span></div>
+        <div class="jira-tasks-header"><span>${t('jira.col.key')}</span><span>${t('jira.col.title')}</span><span>${t('jira.col.status')}</span><span>${t('jira.col.priority')}</span><span>${t('jira.col.owner')}</span><span>${t('jira.col.pts')}</span><span>${t('jira.col.start')}</span><span>${t('jira.col.due')}</span><span>${t('jira.col.days')}</span><span>${t('jira.col.spent')}</span><span>${t('jira.col.progress')}</span></div>
         ${epicTasks.map(tk => {
           const catKey = tk.statusCategoryKey || ({ DONE:'done', IN_PROGRESS:'indeterminate', IN_REVIEW:'indeterminate' }[tk.status] || 'new');
           return `<div class="jira-task-row">
           <span class="jira-task-key jira-link" data-key="${tk.key}" onclick="openJiraIssue(this.dataset.key)">${tk.key}</span>
           <span class="jira-task-summary">${tk.summary}</span>
           <span class="badge badge-${jiraStatusBadgeClassFromCategory(catKey)}" style="font-size:10px">${tk.statusName || jiraStatusLabel(tk.status)}</span>
+          <span style="display:flex;align-items:center;justify-content:center">${jiraPriorityIcon(tk.priority)}</span>
           <span style="font-size:12px;color:var(--text-muted)">${tk.assignee ? formatTemplate(tk.assignee) : '—'}</span>
           <span style="font-size:12px;text-align:center">${tk.storyPoints ? tk.storyPoints + ' pts' : '—'}</span>
           <span style="font-size:12px;color:var(--text-muted)">${tk.startDate ? fmtDDMMYY(tk.startDate) : '—'}</span>
@@ -3455,7 +3482,7 @@ Object.assign(window, {
   addTaskSegment, removeTaskSegment,
   setRag,
   openManageTabsModal, saveManageTabs, resetTabOrder,
-  renderJira, syncJira, openJiraIssue,
+  renderJira, syncJira, openJiraIssue, filterJiraAssignee,
   renderTaches, renderInstall,
   addInternalTask, openEditInternalTask, saveInternalTask, deleteInternalTask, deleteInternalTaskFromModal,
   addInterface, openEditInterface, saveInterface, deleteInterfaceFromModal,

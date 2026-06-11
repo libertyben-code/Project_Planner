@@ -24,7 +24,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .rag-drop-item{display:flex;align-items:center;gap:7px;padding:8px 12px;width:100%;background:none;border:none;color:#e2e8f0;font-family:inherit;font-size:12px;cursor:pointer;text-align:left;transition:background .1s;}
 .rag-drop-item:hover{background:#1e2d42;}
 .rag-drop-clear{color:#94a3b8;border-top:1px solid #2d3f55;}
-.nav-tabs{display:flex;height:100%;overflow-x:auto;}
+.nav-tabs{display:flex;height:100%;overflow-x:auto;flex:1;min-width:0;}
 .nav-tabs::-webkit-scrollbar{height:3px;}
 .nav-tabs::-webkit-scrollbar-track{background:transparent;}
 .nav-tabs::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:2px;}
@@ -273,8 +273,8 @@ td[contenteditable]:focus{outline:2px solid var(--accent);background:var(--accen
 .jira-collapse-icon { font-size:10px;color:var(--text-muted);transition:transform .2s;flex-shrink:0; }
 .jira-epic.collapsed .jira-collapse-icon { transform:rotate(-90deg); }
 .jira-epic.collapsed .jira-epic-tasks { display:none; }
-.jira-tasks-header { display:grid;grid-template-columns:80px 1fr 120px 120px 45px 80px 80px 40px 40px 90px;gap:8px;padding:5px 14px 5px 28px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--text-muted);background:var(--bg);border-top:1px solid var(--border); }
-.jira-task-row { display:grid;grid-template-columns:80px 1fr 120px 120px 45px 80px 80px 40px 40px 90px;gap:8px;align-items:center;padding:7px 14px 7px 28px;border-top:1px solid var(--border);font-size:12px; }
+.jira-tasks-header { display:grid;grid-template-columns:80px 1fr 120px 50px 120px 45px 80px 80px 40px 40px 90px;gap:8px;padding:5px 14px 5px 28px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--text-muted);background:var(--bg);border-top:1px solid var(--border); }
+.jira-task-row { display:grid;grid-template-columns:80px 1fr 120px 50px 120px 45px 80px 80px 40px 40px 90px;gap:8px;align-items:center;padding:7px 14px 7px 28px;border-top:1px solid var(--border);font-size:12px; }
 .jira-task-row:hover { background:var(--hover-bg,#f8fafc); }
 .jira-task-key { font-size:10px;font-weight:700;color:#0052CC;background:#EAF0FF;padding:2px 5px;border-radius:3px;font-family:monospace;text-align:center;white-space:nowrap; }
 .jira-link { cursor:pointer; }

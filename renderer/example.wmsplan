@@ -236,11 +236,11 @@
       { "id": "WMS-2", "key": "WMS-2", "summary": "Configuration Entrepôt", "status": "TO_DO", "color": "#0891b2" }
     ],
     "tasks": [
-      { "id": "WMS-10", "key": "WMS-10", "epicId": "WMS-1", "summary": "Mapping des articles", "status": "DONE", "assignee": "J. Dupont", "storyPoints": 5, "startDate": "2026-04-07", "dueDate": "2026-04-18", "progress": 100 },
-      { "id": "WMS-11", "key": "WMS-11", "epicId": "WMS-1", "summary": "Interface commandes clients", "status": "IN_PROGRESS", "assignee": "J. Dupont", "storyPoints": 8, "startDate": "2026-04-21", "dueDate": "2026-05-09", "progress": 60 },
-      { "id": "WMS-12", "key": "WMS-12", "epicId": "WMS-1", "summary": "Tests d'intégration ERP", "status": "TO_DO", "assignee": "M. Martin", "storyPoints": 5, "startDate": "2026-05-12", "dueDate": "2026-05-23", "progress": 0 },
-      { "id": "WMS-20", "key": "WMS-20", "epicId": "WMS-2", "summary": "Paramétrage zones de stockage", "status": "TO_DO", "assignee": "A. Bernard", "storyPoints": 3, "startDate": "2026-05-04", "dueDate": "2026-05-15", "progress": 0 },
-      { "id": "WMS-21", "key": "WMS-21", "epicId": "WMS-2", "summary": "Configuration des emplacements", "status": "TO_DO", "assignee": "A. Bernard", "storyPoints": 5, "startDate": "2026-05-18", "dueDate": "2026-05-29", "progress": 0 }
+      { "id": "WMS-10", "key": "WMS-10", "epicId": "WMS-1", "summary": "Mapping des articles", "status": "DONE", "assignee": "J. Dupont", "storyPoints": 5, "startDate": "2026-04-07", "dueDate": "2026-04-18", "progress": 100, "priority": "Medium" },
+      { "id": "WMS-11", "key": "WMS-11", "epicId": "WMS-1", "summary": "Interface commandes clients", "status": "IN_PROGRESS", "assignee": "J. Dupont", "storyPoints": 8, "startDate": "2026-04-21", "dueDate": "2026-05-09", "progress": 60, "priority": "High" },
+      { "id": "WMS-12", "key": "WMS-12", "epicId": "WMS-1", "summary": "Tests d'intégration ERP", "status": "TO_DO", "assignee": "M. Martin", "storyPoints": 5, "startDate": "2026-05-12", "dueDate": "2026-05-23", "progress": 0, "priority": "Highest" },
+      { "id": "WMS-20", "key": "WMS-20", "epicId": "WMS-2", "summary": "Paramétrage zones de stockage", "status": "TO_DO", "assignee": "A. Bernard", "storyPoints": 3, "startDate": "2026-05-04", "dueDate": "2026-05-15", "progress": 0, "priority": "Low" },
+      { "id": "WMS-21", "key": "WMS-21", "epicId": "WMS-2", "summary": "Configuration des emplacements", "status": "TO_DO", "assignee": "A. Bernard", "storyPoints": 5, "startDate": "2026-05-18", "dueDate": "2026-05-29", "progress": 0, "priority": "Low" }
     ]
   }
 }

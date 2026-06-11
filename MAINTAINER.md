@@ -211,7 +211,11 @@ Each chart is stored in `charts[key]`. Always call `destroyChart(key)` before cr
 
 `normalizeJiraStatus(name)` maps free-text Jira status names to five internal codes: `TO_DO`, `IN_PROGRESS`, `IN_REVIEW`, `BLOCKED`, `DONE`. All internal code compares against these **uppercase** codes — never against raw Jira strings.
 
-`transformJiraIssues(epicsRaw, tasksRaw)` maps the Jira REST API v3 response to the internal schema. Tasks carry `epicId` (the parent epic's key), not `epicKey`.
+`transformJiraIssues(epicsRaw, tasksRaw)` maps the Jira REST API v3 response to the internal schema. Tasks carry `epicId` (the parent epic's key), not `epicKey`. Each task now also carries `priority` (the raw Jira priority name, e.g. `"High"`, `"Medium"`).
+
+`jiraPriorityIcon(name)` converts a Jira priority name to a small coloured badge (`<span>`). Colour table: Blocker → red `⊘`, Highest → red `↑↑`, High → orange `↑`, Medium → yellow `↔`, Low → blue `↓`, Lowest/Trivial → light-blue `↓↓`.
+
+`filterJiraAssignee(val)` sets the module-level `_jiraAssigneeFilter` string and re-renders the JIRA tab. `renderJira()` populates the `#jira-filter-assignee` select from the current task list on every render and applies the filter to each epic's task list. Filter is reset to `''` on every `syncJira()` call.
 
 `syncJira()` is the entry point. It opens the config modal if credentials are missing. It calls `invoke('jira_fetch', ...)` — **not** `fetch()` directly — because WebView2 blocks cross-origin requests to external APIs (CORS). The Rust `jira_fetch` command makes the HTTP call via `reqwest` and returns the response text; `syncJira()` then `JSON.parse`s it.
 
